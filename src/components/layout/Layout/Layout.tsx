@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutProps } from './Layout.types';
+import type { LayoutProps } from './Layout.types';
 
 /**
  * Main Layout component that provides consistent structure
@@ -10,17 +10,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, className = '' }) => {
 
   return (
     <div className={layoutClasses}>
-      <header className="layout__header">
-        {/* Header content will be rendered here */}
-      </header>
-      
+      <header className="layout__header">{/* Header content will be rendered here */}</header>
+
       <main className="layout__main" role="main">
         {children}
       </main>
-      
-      <footer className="layout__footer">
-        {/* Footer content will be rendered here */}
-      </footer>
+
+      <footer className="layout__footer">{/* Footer content will be rendered here */}</footer>
     </div>
   );
 };

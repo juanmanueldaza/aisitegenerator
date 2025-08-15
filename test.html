@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Test - AI Site Generator</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .test-result { 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 5px; 
+        }
+        .pass { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .fail { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Site Generator - Integration Tests</h1>
+    <div id="test-results"></div>
+
+    <script>
+        // Mock DOM elements for testing
+        document.body.innerHTML += `
+            <div style="display: none;">
+                <button id="loginBtn"></button>
+                <button id="logoutBtn"></button>
+                <div id="userInfo" class="hidden"></div>
+                <span id="userName"></span>
+                <div id="uploadSection" class="hidden"></div>
+                <div id="pagesSection" class="hidden"></div>
+                <input id="fileInput" type="file">
+                <div id="uploadArea"></div>
+                <div id="fileList"></div>
+                <button id="uploadBtn"></button>
+                <button id="deployBtn"></button>
+                <select id="sourceBranch"><option value="main">main</option></select>
+                <select id="buildSource"><option value="workflow">workflow</option></select>
+                <input id="httpsEnforced" type="checkbox">
+                <input id="customDomain" type="text">
+                <div id="statusIndicator"></div>
+                <span id="statusText"></span>
+                <div id="deploymentInfo" class="hidden"></div>
+                <a id="siteUrl"></a>
+                <span id="deploymentStatusText"></span>
+                <span id="lastUpdated"></span>
+                <div id="errorMessage" class="hidden"></div>
+                <p id="errorText"></p>
+                <ul id="troubleshootingTips"></ul>
+            </div>
+        `;
+
+        // Mock localStorage
+        if (!window.localStorage) {
+            window.localStorage = {
+                store: {},
+                getItem: function(key) { return this.store[key] || null; },
+                setItem: function(key, value) { this.store[key] = value.toString(); },
+                removeItem: function(key) { delete this.store[key]; }
+            };
+        }
+
+        // Test results container
+        const resultsDiv = document.getElementById('test-results');
+        
+        function addTestResult(testName, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${testName}</strong>: ${passed ? 'PASS' : 'FAIL'}
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            resultsDiv.appendChild(div);
+        }
+
+        // Run integration tests
+        async function runTests() {
+            try {
+                // Test 1: Check if core modules are defined
+                addTestResult('Core Modules Loading', 
+                    typeof GitHubAuth === 'function' && 
+                    typeof FileUpload === 'function' && 
+                    typeof GitHubPages === 'function' &&
+                    typeof App === 'function',
+                    'All main classes should be available');
+
+                // Test 2: Check if instances can be created
+                let authInstance, uploadInstance, pagesInstance, appInstance;
+                try {
+                    authInstance = new GitHubAuth();
+                    uploadInstance = new FileUpload();
+                    pagesInstance = new GitHubPages();
+                    appInstance = new App();
+                    addTestResult('Instance Creation', true, 'All instances created successfully');
+                } catch (e) {
+                    addTestResult('Instance Creation', false, e.message);
+                }
+
+                // Test 3: Check if initialization methods exist
+                const hasInitMethods = authInstance.init && 
+                                     uploadInstance.init && 
+                                     pagesInstance.init && 
+                                     appInstance.init;
+                addTestResult('Initialization Methods', hasInitMethods, 'All init methods should exist');
+
+                // Test 4: Check GitHub Auth methods
+                const authMethods = ['login', 'logout', 'fetchUser', 'apiRequest', 'isAuthenticated'];
+                const hasAuthMethods = authMethods.every(method => typeof authInstance[method] === 'function');
+                addTestResult('GitHub Auth Methods', hasAuthMethods, `Required methods: ${authMethods.join(', ')}`);
+
+                // Test 5: Check File Upload methods
+                const uploadMethods = ['uploadFiles', 'handleFileSelect', 'removeFile', 'ensureRepository'];
+                const hasUploadMethods = uploadMethods.every(method => typeof uploadInstance[method] === 'function');
+                addTestResult('File Upload Methods', hasUploadMethods, `Required methods: ${uploadMethods.join(', ')}`);
+
+                // Test 6: Check GitHub Pages methods
+                const pagesMethods = ['deployToPages', 'enablePages', 'startDeploymentMonitoring', 'handleDeploymentError'];
+                const hasPagesMethods = pagesMethods.every(method => typeof pagesInstance[method] === 'function');
+                addTestResult('GitHub Pages Methods', hasPagesMethods, `Required methods: ${pagesMethods.join(', ')}`);
+
+                // Test 7: Test configuration management
+                pagesInstance.config = { source: 'main', build_type: 'workflow' };
+                pagesInstance.saveConfiguration();
+                const savedConfig = localStorage.getItem('pages_config');
+                addTestResult('Configuration Persistence', !!savedConfig, 'Configuration should be saved to localStorage');
+
+                // Test 8: Test error handling
+                const errorHandled = typeof pagesInstance.generateTroubleshootingTips === 'function';
+                addTestResult('Error Handling', errorHandled, 'Error handling methods should exist');
+
+                // Test 9: Test file validation
+                const isValidMethod = typeof uploadInstance.isValidFile === 'function';
+                if (isValidMethod) {
+                    const mockHtmlFile = { name: 'test.html', type: 'text/html' };
+                    const mockInvalidFile = { name: 'test.exe', type: 'application/exe' };
+                    const validFile = uploadInstance.isValidFile(mockHtmlFile);
+                    const invalidFile = !uploadInstance.isValidFile(mockInvalidFile);
+                    addTestResult('File Validation', validFile && invalidFile, 'Should accept HTML and reject EXE files');
+                } else {
+                    addTestResult('File Validation', false, 'isValidFile method missing');
+                }
+
+                // Test 10: Test status updates
+                if (typeof pagesInstance.updateStatus === 'function') {
+                    pagesInstance.updateStatus('success', 'Test message');
+                    const statusText = document.getElementById('statusText').textContent;
+                    addTestResult('Status Updates', statusText === 'Test message', 'Status should update DOM elements');
+                } else {
+                    addTestResult('Status Updates', false, 'updateStatus method missing');
+                }
+
+                console.log('Integration tests completed');
+
+            } catch (error) {
+                addTestResult('Test Runner', false, `Test execution failed: ${error.message}`);
+            }
+        }
+
+        // Load scripts and run tests
+        Promise.all([
+            loadScript('github-auth.js'),
+            loadScript('file-upload.js'), 
+            loadScript('github-pages.js'),
+            loadScript('app.js')
+        ]).then(() => {
+            runTests();
+        }).catch(error => {
+            addTestResult('Script Loading', false, `Failed to load scripts: ${error.message}`);
+        });
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ButtonProps } from './Button.types';
+import type { ButtonProps } from './Button.types';
 
 /**
  * Reusable Button component following SOLID principles
@@ -19,14 +19,8 @@ export const Button: React.FC<ButtonProps> = ({
   const variantClasses = `button--${variant}`;
   const sizeClasses = `button--${size}`;
   const disabledClasses = disabled ? 'button--disabled' : '';
-  
-  const buttonClasses = [
-    baseClasses,
-    variantClasses,
-    sizeClasses,
-    disabledClasses,
-    className,
-  ]
+
+  const buttonClasses = [baseClasses, variantClasses, sizeClasses, disabledClasses, className]
     .filter(Boolean)
     .join(' ');
 

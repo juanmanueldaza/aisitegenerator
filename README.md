@@ -311,16 +311,8 @@ MIT
 
 ---
 
-Hecho con ❤️ usando Vite, React y TypeScript.
-
-## 📁 Project Structure
-
 The project follows SOLID and CLEAN architecture principles:
 
-```
-src/
-├── components/     # UI components
-├── hooks/          # Custom React hooks
 ├── services/       # External integrations and business logic
 ├── types/          # Type definitions
 ├── utils/          # Pure utility functions
@@ -335,13 +327,7 @@ src/
 - DRY: Reuse utilities and hooks; avoid duplication
 - KISS: Keep it simple and maintainable
 
-## 🛠️ Development Setup
-
-### Prerequisites
-
-- Node.js 18+
 - npm
-- Git
 
 ### Installation
 
@@ -500,19 +486,21 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
 
 ## 🎯 Roadmap
 
 - [ ] GitHub OAuth integration
 - [ ] AI chat interface implementation
 - [ ] Site template system
-- [ ] Real-time preview functionality
 - [ ] GitHub Pages deployment automation
 - [ ] Site management dashboard
 
 ---
 
 Built with ❤️ using modern web technologies and clean architecture principles.
+<<<<<<< HEAD
 >>>>>>> 513986a (Epic 1: Complete Initial Setup and Base Architecture with Modern Stack (#16))
 >>>>>>> 67cfc22 (Epic 1: Complete Initial Setup and Base Architecture with Modern Stack (#16))
+=======
+>>>>>>> a363a2c (fix: correct markdown formatting and code block structure)

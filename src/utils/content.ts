@@ -37,6 +37,24 @@ export function renderMarkdown(content: string): string {
         'pre',
         'a',
         'img',
+        // SVG for Mermaid
+        'svg',
+        'g',
+        'path',
+        'circle',
+        'ellipse',
+        'polygon',
+        'polyline',
+        'line',
+        'rect',
+        'text',
+        'tspan',
+        'defs',
+        'marker',
+        'linearGradient',
+        'stop',
+        'clipPath',
+        'style',
         'table',
         'thead',
         'tbody',
@@ -45,7 +63,36 @@ export function renderMarkdown(content: string): string {
         'td',
         'hr',
       ],
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class', 'id'],
+      ALLOWED_ATTR: [
+        'href',
+        'target',
+        'rel',
+        'src',
+        'alt',
+        'title',
+        'class',
+        'id',
+        'style',
+        // Common SVG attributes
+        'viewBox',
+        'xmlns',
+        'width',
+        'height',
+        'fill',
+        'stroke',
+        'stroke-width',
+        'd',
+        'points',
+        'x',
+        'y',
+        'x1',
+        'x2',
+        'y1',
+        'y2',
+        'rx',
+        'ry',
+        'transform',
+      ],
     });
   } catch (error) {
     console.error('Error rendering markdown:', error);
@@ -54,8 +101,51 @@ export function renderMarkdown(content: string): string {
 }
 
 // Generate a complete HTML document for iframe preview
-export function generatePreviewHTML(content: string): string {
-  const renderedContent = renderMarkdown(content);
+export async function generatePreviewHTMLAsync(content: string): Promise<string> {
+  // Detect mermaid code blocks and render them to SVG before sanitizing
+  const mermaidBlockRegex = /```mermaid\s+([\s\S]*?)```/gi;
+  const hasMermaid = mermaidBlockRegex.test(content);
+  // Reset regex state for subsequent use
+  mermaidBlockRegex.lastIndex = 0;
+
+  let processedMarkdown = content;
+  const svgMap = new Map<string, string>();
+
+  if (hasMermaid) {
+    const { default: mermaid } = await import('mermaid');
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
+
+    let idx = 0;
+    processedMarkdown = processedMarkdown.replace(mermaidBlockRegex, (_m, code: string) => {
+      const key = `@@MERMAID_${idx++}@@`;
+      svgMap.set(key, code);
+      return key;
+    });
+
+    // Render all collected diagrams
+    for (const [key, code] of svgMap.entries()) {
+      try {
+        const id = `mermaid-${Math.random().toString(36).slice(2)}`;
+        const res = await mermaid.render(id, String(code));
+        svgMap.set(key, res.svg);
+      } catch {
+        // On failure, degrade to a code block
+        svgMap.set(key, `<pre><code>${String(code)}</code></pre>`);
+      }
+    }
+  }
+
+  // First, convert markdown (with placeholders) to HTML
+  let html = marked.parse(processedMarkdown) as string;
+
+  // Replace placeholders with SVG strings (or fallback) prior to sanitization
+  if (svgMap.size) {
+    for (const [key, svg] of svgMap.entries()) {
+      html = html.replaceAll(key, svg);
+    }
+  }
+
+  const renderedContent = renderMarkdown(html);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

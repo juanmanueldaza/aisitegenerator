@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { LivePreviewProps, DeviceType } from '../../types/preview';
 import { DEVICE_TYPES } from '../../types/preview';
-import { generatePreviewHTML } from '../../utils/content';
+import { generatePreviewHTMLAsync } from '../../utils/content';
 import PreviewControls from './PreviewControls';
 import './LivePreview.css';
 
@@ -16,40 +16,52 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate preview HTML with security measures
-  const previewHTML = generatePreviewHTML(content);
-
   // Create secure blob URL for iframe content
-  const createPreviewURL = useCallback(() => {
+  const createPreviewURL = useCallback((html: string) => {
     try {
-      const blob = new Blob([previewHTML], { type: 'text/html' });
+      const blob = new Blob([html], { type: 'text/html' });
       return URL.createObjectURL(blob);
     } catch (err) {
       console.error('Error creating preview URL:', err);
       setError('Failed to generate preview');
       return null;
     }
-  }, [previewHTML]);
+  }, []);
 
   // Update iframe content when content changes
   useEffect(() => {
-    if (!iframeRef.current) return;
+    let cancelled = false;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
 
     setIsLoading(true);
     setError(null);
 
-    const url = createPreviewURL();
-    if (url) {
-      iframeRef.current.src = url;
+    (async () => {
+      try {
+        const html = await generatePreviewHTMLAsync(content);
+        if (cancelled) return;
+        const url = createPreviewURL(html);
+        if (url) {
+          iframe.src = url;
+          // Cleanup previous URL on effect cleanup
+          return () => URL.revokeObjectURL(url);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.error('Failed to generate preview HTML', e);
+          setError('Failed to generate preview');
+          setIsLoading(false);
+        }
+      }
+    })();
 
-      // Cleanup previous URL
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    } else {
-      setIsLoading(false);
-    }
-  }, [createPreviewURL, refreshKey]);
+    return () => {
+      cancelled = true;
+    };
+  }, [content, createPreviewURL, refreshKey]);
 
   // Handle iframe load events
   const handleIframeLoad = () => {

@@ -1,0 +1,31 @@
+{
+  "name": "aisitegenerator",
+  "version": "1.0.0",
+  "description": "A modern, frontend-only web app for step-by-step website creation, guided by an AI chat interface. Users authenticate with GitHub and deploy both the app and their generated sites via GitHub Pages. Live preview is available throughout the site-building process.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "github",
+    "octokit",
+    "website-generator",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "@types/node": "^24.2.1",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1"
+  }
+}

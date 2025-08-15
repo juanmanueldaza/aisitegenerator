@@ -1,0 +1,16 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "extensionsToTreatAsEsm": [".ts"],
+  "testMatch": ["**/src/**/*.test.ts"],
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.d.ts",
+    "!src/examples/**/*"
+  ],
+  "transform": {
+    "^.+\\.ts$": ["ts-jest", {
+      "useESM": true
+    }]
+  }
+}

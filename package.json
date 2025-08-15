@@ -1,0 +1,26 @@
+{
+  "name": "aisitegenerator",
+  "version": "1.0.0",
+  "description": "A modern, frontend-only web app for step-by-step website creation, guided by an AI chat interface",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "analyze": "npm run build && npx vite-bundle-analyzer dist/stats.html",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "mermaid": "^10.9.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-legacy": "^5.0.0",
+    "jsdom": "^26.1.0",
+    "vite": "^5.0.0",
+    "vite-bundle-analyzer": "^0.7.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

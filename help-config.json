@@ -1,0 +1,204 @@
+{
+  "helpSystem": {
+    "version": "1.0.0",
+    "title": "AI Site Generator Help System",
+    "description": "Comprehensive educational content about GitHub permissions and website creation",
+    "searchEnabled": true,
+    "multilingual": false,
+    "analytics": {
+      "enabled": false,
+      "trackingId": null
+    },
+    "accessibility": {
+      "screenReaderSupport": true,
+      "keyboardNavigation": true,
+      "highContrast": true,
+      "fontSize": "adjustable"
+    }
+  },
+  "content": {
+    "categories": [
+      {
+        "id": "github-permissions",
+        "title": "GitHub Permissions & Security",
+        "icon": "🔐",
+        "description": "Understanding OAuth, scopes, and security best practices",
+        "topics": [
+          {
+            "id": "github-scopes",
+            "title": "GitHub Scopes Explained",
+            "description": "Learn what GitHub scopes are and why they matter",
+            "difficulty": "beginner",
+            "readTime": "5 minutes",
+            "tags": ["security", "oauth", "permissions"],
+            "content": "docs/help/github-scopes.md"
+          },
+          {
+            "id": "permission-management",
+            "title": "Managing Application Permissions",
+            "description": "How to review, grant, and revoke application access",
+            "difficulty": "intermediate",
+            "readTime": "10 minutes",
+            "tags": ["management", "security", "oauth"],
+            "content": "docs/help/permission-management.md"
+          },
+          {
+            "id": "security-best-practices",
+            "title": "Security Best Practices",
+            "description": "Keep your GitHub account secure while using OAuth apps",
+            "difficulty": "intermediate",
+            "readTime": "8 minutes",
+            "tags": ["security", "best-practices", "audit"],
+            "content": "docs/help/security-best-practices.md"
+          }
+        ]
+      },
+      {
+        "id": "troubleshooting",
+        "title": "Troubleshooting",
+        "icon": "🔧",
+        "description": "Common issues and their solutions",
+        "topics": [
+          {
+            "id": "auth-issues",
+            "title": "Authentication Problems",
+            "description": "Resolve GitHub authentication and OAuth issues",
+            "difficulty": "beginner",
+            "readTime": "7 minutes",
+            "tags": ["troubleshooting", "authentication", "oauth"],
+            "content": "docs/help/troubleshooting.md"
+          },
+          {
+            "id": "permission-errors",
+            "title": "Permission Errors",
+            "description": "Fix insufficient permissions and access issues",
+            "difficulty": "intermediate",
+            "readTime": "6 minutes",
+            "tags": ["troubleshooting", "permissions", "errors"],
+            "content": "docs/help/troubleshooting.md"
+          }
+        ]
+      },
+      {
+        "id": "tutorials",
+        "title": "Tutorials & Guides",
+        "icon": "📚",
+        "description": "Step-by-step guides for using the AI Site Generator",
+        "topics": [
+          {
+            "id": "first-website",
+            "title": "Creating Your First Website",
+            "description": "Complete walkthrough from authentication to deployment",
+            "difficulty": "beginner",
+            "readTime": "15 minutes",
+            "tags": ["tutorial", "getting-started", "walkthrough"],
+            "content": "docs/tutorials/first-website.md"
+          },
+          {
+            "id": "customization-guide",
+            "title": "Customizing Generated Websites",
+            "description": "How to modify and enhance your AI-generated sites",
+            "difficulty": "intermediate",
+            "readTime": "20 minutes",
+            "tags": ["tutorial", "customization", "advanced"],
+            "content": "docs/tutorials/customization.md"
+          }
+        ]
+      }
+    ]
+  },
+  "ui": {
+    "theme": {
+      "primary": "#2563eb",
+      "secondary": "#64748b",
+      "success": "#10b981",
+      "warning": "#f59e0b",
+      "danger": "#ef4444"
+    },
+    "layout": {
+      "helpPanelWidth": "400px",
+      "modalMaxWidth": "800px",
+      "mobileBreakpoint": "768px"
+    },
+    "animations": {
+      "enabled": true,
+      "duration": "0.3s",
+      "easing": "ease-in-out"
+    }
+  },
+  "features": {
+    "contextualHelp": {
+      "enabled": true,
+      "triggerElements": [
+        {
+          "selector": "[data-help]",
+          "position": "top",
+          "type": "tooltip"
+        },
+        {
+          "selector": ".education-card",
+          "position": "bottom",
+          "type": "popover"
+        }
+      ]
+    },
+    "progressiveDisclosure": {
+      "enabled": true,
+      "maxInitialItems": 3,
+      "expandLabel": "Show more",
+      "collapseLabel": "Show less"
+    },
+    "search": {
+      "enabled": true,
+      "placeholder": "Search help topics...",
+      "minLength": 2,
+      "highlightResults": true,
+      "fuzzySearch": true
+    },
+    "feedback": {
+      "enabled": true,
+      "types": ["helpful", "not-helpful", "suggestion"],
+      "endpoint": "/api/feedback"
+    }
+  },
+  "integrations": {
+    "github": {
+      "docsUrl": "https://docs.github.com",
+      "supportUrl": "https://support.github.com",
+      "statusUrl": "https://www.githubstatus.com"
+    },
+    "external": {
+      "linkBehavior": "new-tab",
+      "showExternalIcon": true,
+      "trustedDomains": [
+        "github.com",
+        "docs.github.com",
+        "support.github.com"
+      ]
+    }
+  },
+  "shortcuts": {
+    "toggleHelp": ["F1", "Ctrl+/"],
+    "closeModal": ["Escape"],
+    "nextStep": ["ArrowRight", "Space"],
+    "previousStep": ["ArrowLeft", "Shift+Space"],
+    "search": ["Ctrl+K", "Cmd+K"]
+  },
+  "localization": {
+    "defaultLanguage": "en",
+    "supportedLanguages": ["en"],
+    "fallbackLanguage": "en",
+    "rtlSupport": false
+  },
+  "performance": {
+    "lazyLoading": true,
+    "preloadCritical": true,
+    "cacheContent": true,
+    "cacheExpiry": "24h"
+  },
+  "monitoring": {
+    "errorTracking": false,
+    "performanceMetrics": false,
+    "userJourneyTracking": false
+  }
+}

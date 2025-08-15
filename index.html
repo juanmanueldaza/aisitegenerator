@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Site Generator - GitHub Permissions Guide</title>
+    <meta name="description" content="Learn about GitHub permissions and scopes for secure AI-powered website creation">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="icon">🤖</span>
+                    AI Site Generator
+                </h1>
+                <nav class="header-nav">
+                    <button id="help-toggle" class="help-button" aria-label="Toggle help panel">
+                        <span class="icon">❓</span>
+                        Help
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="content-grid">
+                <section class="hero-section">
+                    <h2>Understanding GitHub Permissions</h2>
+                    <p class="hero-description">
+                        Learn how our AI Site Generator uses GitHub permissions to create and deploy your websites securely.
+                        Understanding these permissions helps you make informed decisions about your account security.
+                    </p>
+                    <div class="cta-buttons">
+                        <button id="start-tutorial" class="btn btn-primary">
+                            Start Interactive Tutorial
+                        </button>
+                        <button id="view-permissions" class="btn btn-secondary">
+                            View Permission Details
+                        </button>
+                    </div>
+                </section>
+
+                <section class="education-grid">
+                    <div class="education-card" id="scopes-card">
+                        <div class="card-header">
+                            <span class="card-icon">🔐</span>
+                            <h3>GitHub Scopes</h3>
+                        </div>
+                        <p>Learn what GitHub scopes are and why each permission is needed for your site generation.</p>
+                        <button class="card-action" data-topic="scopes">Learn More</button>
+                    </div>
+
+                    <div class="education-card" id="security-card">
+                        <div class="card-header">
+                            <span class="card-icon">🛡️</span>
+                            <h3>Security Best Practices</h3>
+                        </div>
+                        <p>Understand how to keep your GitHub account secure while using OAuth applications.</p>
+                        <button class="card-action" data-topic="security">Learn More</button>
+                    </div>
+
+                    <div class="education-card" id="management-card">
+                        <div class="card-header">
+                            <span class="card-icon">⚙️</span>
+                            <h3>Permission Management</h3>
+                        </div>
+                        <p>Learn how to review, manage, and revoke permissions for connected applications.</p>
+                        <button class="card-action" data-topic="management">Learn More</button>
+                    </div>
+
+                    <div class="education-card" id="troubleshooting-card">
+                        <div class="card-header">
+                            <span class="card-icon">🔧</span>
+                            <h3>Troubleshooting</h3>
+                        </div>
+                        <p>Common issues and solutions for GitHub authentication and permissions.</p>
+                        <button class="card-action" data-topic="troubleshooting">Learn More</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Help Panel -->
+        <aside id="help-panel" class="help-panel" aria-hidden="true">
+            <div class="help-header">
+                <h2>Help & Documentation</h2>
+                <button id="help-close" class="help-close" aria-label="Close help panel">×</button>
+            </div>
+            <div class="help-content">
+                <div class="help-search">
+                    <input type="search" id="help-search" placeholder="Search help topics..." aria-label="Search help topics">
+                </div>
+                <div id="help-body" class="help-body">
+                    <div class="help-section">
+                        <h3>Quick Start</h3>
+                        <ul>
+                            <li><a href="#" data-help="github-auth">GitHub Authentication</a></li>
+                            <li><a href="#" data-help="permissions-overview">Permissions Overview</a></li>
+                            <li><a href="#" data-help="first-site">Creating Your First Site</a></li>
+                        </ul>
+                    </div>
+                    <div class="help-section">
+                        <h3>Permissions & Security</h3>
+                        <ul>
+                            <li><a href="#" data-help="scope-repo">Repository Access</a></li>
+                            <li><a href="#" data-help="scope-user">User Information</a></li>
+                            <li><a href="#" data-help="scope-pages">GitHub Pages</a></li>
+                            <li><a href="#" data-help="revoke-access">Revoking Access</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Modal for detailed content -->
+        <div id="content-modal" class="modal" aria-hidden="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Title</h2>
+                    <button id="modal-close" class="modal-close" aria-label="Close modal">×</button>
+                </div>
+                <div id="modal-body" class="modal-body">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button id="modal-prev" class="btn btn-secondary">Previous</button>
+                    <button id="modal-next" class="btn btn-primary">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay for modals -->
+        <div id="overlay" class="overlay" aria-hidden="true"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

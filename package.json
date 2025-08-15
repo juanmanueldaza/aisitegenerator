@@ -1,0 +1,71 @@
+{
+  "name": "aisitegenerator",
+  "version": "1.0.0",
+  "description": "A modern, frontend-only web app for step-by-step website creation, guided by an AI chat interface",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint": "eslint src --ext .js,.ts,.jsx,.tsx",
+    "lint:fix": "eslint src --ext .js,.ts,.jsx,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,jsx,tsx,json,css,md}\"",
+    "type-check": "tsc --noEmit",
+    "docs:build": "typedoc",
+    "docs:serve": "serve docs",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "ai",
+    "website-generator",
+    "github-pages",
+    "frontend",
+    "web-app"
+  ],
+  "author": "Juan Manuel Daza",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.0",
+    "@octokit/rest": "^19.0.7",
+    "axios": "^1.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.14.2",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "@vitejs/plugin-react": "^3.1.0",
+    "@playwright/test": "^1.31.0",
+    "eslint": "^8.35.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-import": "^2.27.5",
+    "husky": "^8.0.3",
+    "jest": "^29.4.3",
+    "jest-environment-jsdom": "^29.4.3",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/user-event": "^14.4.3",
+    "msw": "^1.1.0",
+    "prettier": "^2.8.4",
+    "typescript": "^4.9.4",
+    "vite": "^4.1.0",
+    "typedoc": "^0.23.26",
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "aisitegenerator",
+  "version": "1.0.0",
+  "description": "A modern, frontend-only web app for step-by-step website creation, guided by an AI chat interface",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx live-server --port=3000 --host=localhost",
+    "build": "echo 'No build step needed for static files'",
+    "test": "echo 'No tests configured'"
+  },
+  "keywords": ["ai", "website-generator", "github-pages", "frontend"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^20.0.0",
+    "@octokit/oauth-app": "^6.0.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

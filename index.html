@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Site Generator</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <h1>AI Site Generator</h1>
+            <div id="auth-section">
+                <button id="login-btn" class="btn btn-primary">Login with GitHub</button>
+                <div id="user-info" class="user-info hidden">
+                    <span id="username"></span>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div id="welcome-section" class="section">
+                <h2>Welcome to AI Site Generator</h2>
+                <p>Create beautiful websites with AI guidance and deploy them to GitHub Pages.</p>
+                <p>Please login with GitHub to get started.</p>
+            </div>
+
+            <div id="repo-creation-section" class="section hidden">
+                <h2>Create Repository</h2>
+                <div class="form-container">
+                    <form id="repo-form">
+                        <div class="form-group">
+                            <label for="repo-name">Repository Name</label>
+                            <input 
+                                type="text" 
+                                id="repo-name" 
+                                name="repo-name" 
+                                placeholder="my-awesome-website"
+                                pattern="^[a-zA-Z0-9]([a-zA-Z0-9\-_])*[a-zA-Z0-9]$"
+                                title="Repository name must start and end with alphanumeric characters, and can contain hyphens and underscores"
+                                required
+                            />
+                            <small class="help-text">Use lowercase letters, numbers, hyphens, and underscores. Must start and end with alphanumeric characters.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="repo-description">Description (Optional)</label>
+                            <textarea 
+                                id="repo-description" 
+                                name="repo-description" 
+                                placeholder="A beautiful website created with AI Site Generator"
+                                rows="3"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="repo-private" name="repo-private">
+                                <span class="checkmark"></span>
+                                Make repository private
+                            </label>
+                            <small class="help-text">Note: Public repositories are required for GitHub Pages hosting.</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="create-repo-btn">
+                                Create Repository
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancel-btn">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="loading-section" class="section hidden">
+                <div class="loading-spinner"></div>
+                <p>Creating your repository...</p>
+            </div>
+
+            <div id="success-section" class="section hidden">
+                <div class="success-message">
+                    <h2>✅ Repository Created Successfully!</h2>
+                    <p>Your repository has been created and configured for GitHub Pages.</p>
+                    <div id="repo-details">
+                        <p><strong>Repository:</strong> <a id="repo-link" href="#" target="_blank"></a></p>
+                        <p><strong>GitHub Pages URL:</strong> <a id="pages-link" href="#" target="_blank"></a></p>
+                    </div>
+                    <button id="create-another-btn" class="btn btn-primary">Create Another Repository</button>
+                </div>
+            </div>
+
+            <div id="error-section" class="section hidden">
+                <div class="error-message">
+                    <h2>❌ Error</h2>
+                    <p id="error-text"></p>
+                    <button id="retry-btn" class="btn btn-primary">Try Again</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Note: In production, you'll need to include Octokit via a bundler or local copy -->
+    <script>
+        // For demo purposes, we'll create a minimal implementation
+        window.MockOctokit = {
+            Octokit: function(config) {
+                this.auth = config.auth;
+                this.rest = {
+                    users: {
+                        getAuthenticated: async () => {
+                            // Mock user data for demo
+                            return {
+                                data: {
+                                    login: 'demo-user',
+                                    name: 'Demo User',
+                                    email: 'demo@example.com'
+                                }
+                            };
+                        }
+                    },
+                    repos: {
+                        get: async () => {
+                            throw { status: 404 }; // Always return not found for demo
+                        },
+                        create: async (options) => {
+                            // Mock repository creation
+                            const repo = {
+                                name: options.name,
+                                full_name: `demo-user/${options.name}`,
+                                html_url: `https://github.com/demo-user/${options.name}`,
+                                owner: { login: 'demo-user' },
+                                private: options.private || false,
+                                description: options.description
+                            };
+                            return { data: repo };
+                        },
+                        createPagesSite: async () => {
+                            return { data: { url: 'https://demo-user.github.io/repo-name' } };
+                        },
+                        createOrUpdateFileContents: async () => {
+                            return { data: { content: { sha: 'mock-sha' } } };
+                        }
+                    }
+                };
+            }
+        };
+        // Use mock for demo purposes
+        window.Octokit = window.MockOctokit;
+    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/repository.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

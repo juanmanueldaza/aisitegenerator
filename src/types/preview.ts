@@ -37,7 +37,7 @@ export const DEVICE_TYPES: DeviceType[] = [
     name: 'Tablet',
     width: 768,
     height: 1024,
-    icon: '📱',
+    icon: '�',
   },
   {
     name: 'Mobile',

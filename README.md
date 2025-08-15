@@ -192,10 +192,11 @@ export const Component: React.FC<ComponentProps> = ({ prop }) => {
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
 
 ## 🎯 Roadmap
 
+<<<<<<< HEAD
 - [ ] GitHub OAuth integration
 - [ ] AI chat interface implementation
 - [ ] Site template system
@@ -206,3 +207,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Built with ❤️ using modern web technologies and clean architecture principles.
+=======
+- [Live Demo](https://juanmanueldaza.github.io/aisitegenerator) *(Coming Soon)*
+- [Issue Tracker](https://github.com/juanmanueldaza/aisitegenerator/issues)
+- [Discussions](https://github.com/juanmanueldaza/aisitegenerator/discussions)
+>>>>>>> 0a91720 (fix: correct markdown formatting and code block structure)

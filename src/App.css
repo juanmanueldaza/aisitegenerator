@@ -1,0 +1,281 @@
+/* App Layout */
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Error Banner */
+.error-banner {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.error-banner h3 {
+  color: #c33;
+  margin-top: 0;
+}
+
+.error-banner ol {
+  margin: 1rem 0;
+}
+
+.error-banner code {
+  background: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+.error-banner a {
+  color: #0066cc;
+}
+
+/* Main Layout */
+main {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Chat Container */
+.chat-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.prompt-form {
+  margin-bottom: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.input-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.input-group textarea:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.input-group button {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.input-group button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.input-group button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Error Message */
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-message h4 {
+  color: #c33;
+  margin: 0 0 0.5rem 0;
+}
+
+.error-message p {
+  margin: 0 0 1rem 0;
+  color: #666;
+}
+
+.error-message button {
+  background: #c33;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Response */
+.response {
+  background: #f8fffe;
+  border: 1px solid #e1f5fe;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.response h3 {
+  margin: 0 0 1rem 0;
+  color: #0277bd;
+}
+
+.response-content {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.response-meta {
+  margin-top: 0.75rem;
+  text-align: right;
+}
+
+.response-meta small {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* Stats Panel */
+.stats-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.stats-panel h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.stats {
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat:last-child {
+  border-bottom: none;
+}
+
+.stat label {
+  font-weight: 500;
+  color: #555;
+}
+
+.stat span {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Loading States */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.input-group button:disabled {
+  animation: pulse 1.5s infinite;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .chat-container,
+  .stats-panel {
+    background: #1a1a1a;
+    color: #fff;
+  }
+  
+  .input-group textarea {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #fff;
+  }
+  
+  .response-content {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #fff;
+  }
+  
+  .stat {
+    border-color: #333;
+  }
+  
+  .stats-panel h3 {
+    border-color: #333;
+    color: #fff;
+  }
+}

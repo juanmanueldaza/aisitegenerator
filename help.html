@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Permissions Help - AI Site Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .help-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .help-nav {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .help-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .help-nav a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        .help-nav a:hover {
+            background: #e9ecef;
+        }
+        .help-section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .help-section:last-child {
+            border-bottom: none;
+        }
+        .help-section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .help-section h3 {
+            color: #007bff;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .code-example {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-left: 4px solid #f39c12;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-left: 4px solid #17a2b8;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #007bff;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-robot"></i> AI Site Generator</h1>
+            <p class="subtitle">GitHub Permissions Documentation</p>
+        </header>
+
+        <div class="help-content">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Authorization
+            </a>
+
+            <nav class="help-nav">
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#scopes">Scope Details</a></li>
+                    <li><a href="#security">Security</a></li>
+                    <li><a href="#management">Management</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </nav>
+
+            <section id="overview" class="help-section">
+                <h2><i class="fas fa-info-circle"></i> What are GitHub Permissions?</h2>
+                <p>
+                    GitHub permissions (also called "scopes") define what actions an application can perform on your behalf. 
+                    When you authorize AI Site Generator to access your GitHub account, you're granting specific, limited 
+                    permissions that allow us to create and manage your website repositories.
+                </p>
+                
+                <h3>Why We Need These Permissions</h3>
+                <p>
+                    AI Site Generator needs to interact with your GitHub account to:
+                </p>
+                <ul>
+                    <li>Create a new repository for your generated website</li>
+                    <li>Upload your website files and assets</li>
+                    <li>Configure GitHub Pages for automatic hosting</li>
+                    <li>Set up automated deployment workflows</li>
+                    <li>Manage repository settings and configurations</li>
+                </ul>
+
+                <div class="info-box">
+                    <strong>Good to know:</strong> We only request the minimum permissions needed for our service to function. 
+                    You can revoke these permissions at any time through your GitHub settings.
+                </div>
+            </section>
+
+            <section id="scopes" class="help-section">
+                <h2><i class="fas fa-key"></i> Detailed Scope Explanations</h2>
+
+                <h3>Repository Access (repo)</h3>
+                <p><strong>Official GitHub Description:</strong> Grants full access to repositories, including private repositories.</p>
+                
+                <h4>What AI Site Generator Can Do:</h4>
+                <ul>
+                    <li>Create new public repositories for your websites</li>
+                    <li>Read and write files in repositories we create</li>
+                    <li>Manage repository settings (like enabling GitHub Pages)</li>
+                    <li>Create and manage branches</li>
+                    <li>Handle commits and version control</li>
+                </ul>
+
+                <h4>What AI Site Generator Cannot Do:</h4>
+                <ul>
+                    <li>Access your existing private repositories (unless you explicitly choose to use them)</li>
+                    <li>Delete repositories without your explicit consent</li>
+                    <li>Modify repositories not created by our application</li>
+                    <li>Access sensitive data in other repositories</li>
+                </ul>
+
+                <div class="code-example">
+Example GitHub API calls we might make:
+POST /user/repos (create a new repository)
+PUT /repos/{owner}/{repo}/contents/{path} (upload website files)
+PATCH /repos/{owner}/{repo} (enable GitHub Pages)
+                </div>
+
+                <h3>Workflow Access (workflow)</h3>
+                <p><strong>Official GitHub Description:</strong> Grants the ability to add and update GitHub Actions workflow files.</p>
+
+                <h4>What AI Site Generator Can Do:</h4>
+                <ul>
+                    <li>Create GitHub Actions workflows for automatic deployment</li>
+                    <li>Update deployment configurations</li>
+                    <li>Monitor workflow execution status</li>
+                    <li>Configure continuous integration for your website</li>
+                </ul>
+
+                <h4>What AI Site Generator Cannot Do:</h4>
+                <ul>
+                    <li>Access workflow secrets or environment variables</li>
+                    <li>Modify workflows in other repositories</li>
+                    <li>Access sensitive build logs or artifacts</li>
+                    <li>Execute arbitrary code outside of our defined workflows</li>
+                </ul>
+
+                <div class="code-example">
+Example workflow we might create:
+name: Deploy Website
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+                </div>
+
+                <h3>Email Access (user:email)</h3>
+                <p><strong>Official GitHub Description:</strong> Grants read access to a user's email addresses.</p>
+
+                <h4>What AI Site Generator Can Do:</h4>
+                <ul>
+                    <li>Read your primary email address</li>
+                    <li>Access verified email addresses</li>
+                    <li>Use your email for proper git commit attribution</li>
+                    <li>Configure GitHub Pages with correct contact information</li>
+                </ul>
+
+                <h4>What AI Site Generator Cannot Do:</h4>
+                <ul>
+                    <li>Send emails on your behalf</li>
+                    <li>Access private or unverified email addresses</li>
+                    <li>Share your email with third parties</li>
+                    <li>Subscribe you to mailing lists</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong>Privacy Note:</strong> We use your email address only for technical purposes like git commits. 
+                    We never share your email address with third parties or use it for marketing purposes.
+                </div>
+            </section>
+
+            <section id="security" class="help-section">
+                <h2><i class="fas fa-shield-alt"></i> Security & Privacy</h2>
+
+                <h3>OAuth 2.0 Security</h3>
+                <p>
+                    AI Site Generator uses GitHub's official OAuth 2.0 implementation, which is the industry standard 
+                    for secure authorization. This means:
+                </p>
+                <ul>
+                    <li><strong>No Password Access:</strong> We never see or store your GitHub password</li>
+                    <li><strong>Secure Token Exchange:</strong> All communication is encrypted and uses secure tokens</li>
+                    <li><strong>Limited Lifetime:</strong> Access tokens can expire and be revoked</li>
+                    <li><strong>Scope Limitation:</strong> We can only perform actions within the granted scopes</li>
+                </ul>
+
+                <h3>Data Protection</h3>
+                <ul>
+                    <li>We only access data necessary for our service functionality</li>
+                    <li>No sensitive data is stored unnecessarily</li>
+                    <li>All data transmission uses HTTPS encryption</li>
+                    <li>Access tokens are stored securely and never exposed</li>
+                </ul>
+
+                <h3>Compliance</h3>
+                <p>
+                    Our OAuth implementation follows GitHub's security guidelines and best practices:
+                </p>
+                <ul>
+                    <li>CSRF protection with state parameters</li>
+                    <li>Secure redirect URI validation</li>
+                    <li>Proper token storage and handling</li>
+                    <li>Regular security audits and updates</li>
+                </ul>
+            </section>
+
+            <section id="management" class="help-section">
+                <h2><i class="fas fa-cog"></i> Managing Your Permissions</h2>
+
+                <h3>Revoking Access</h3>
+                <p>You can revoke AI Site Generator's access to your GitHub account at any time:</p>
+                <ol>
+                    <li>Go to your <a href="https://github.com/settings/applications" target="_blank">GitHub Settings → Applications</a></li>
+                    <li>Find "AI Site Generator" in the "Authorized OAuth Apps" section</li>
+                    <li>Click "Revoke" to remove all permissions</li>
+                </ol>
+
+                <div class="info-box">
+                    <strong>Note:</strong> Revoking access will not delete repositories or websites that have already been created. 
+                    It only prevents future access to your GitHub account.
+                </div>
+
+                <h3>Monitoring Activity</h3>
+                <p>You can monitor what applications are doing with your account:</p>
+                <ul>
+                    <li>Check the <a href="https://github.com/settings/security-log" target="_blank">Security Log</a> in your GitHub settings</li>
+                    <li>Review the audit log for OAuth application activities</li>
+                    <li>Monitor repository creation and modification events</li>
+                </ul>
+
+                <h3>Re-authorizing</h3>
+                <p>
+                    If you revoke access and later want to use AI Site Generator again, you'll need to go through 
+                    the authorization process again. This ensures you maintain full control over your permissions.
+                </p>
+            </section>
+
+            <section id="troubleshooting" class="help-section">
+                <h2><i class="fas fa-tools"></i> Troubleshooting</h2>
+
+                <h3>Authorization Failed</h3>
+                <p><strong>Problem:</strong> The authorization process fails or returns an error.</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Make sure you're logged into GitHub</li>
+                    <li>Check that you haven't already denied access recently</li>
+                    <li>Try clearing your browser cache and cookies</li>
+                    <li>Ensure JavaScript is enabled in your browser</li>
+                </ul>
+
+                <h3>Missing Permissions</h3>
+                <p><strong>Problem:</strong> AI Site Generator can't perform certain actions.</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Check that you granted all required scopes during authorization</li>
+                    <li>Verify that your GitHub account has the necessary permissions</li>
+                    <li>Try re-authorizing with all required permissions</li>
+                </ul>
+
+                <h3>Repository Creation Issues</h3>
+                <p><strong>Problem:</strong> New repositories aren't being created.</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Check if you've reached GitHub's repository limit</li>
+                    <li>Verify that the repository name isn't already taken</li>
+                    <li>Ensure you have the "repo" scope authorized</li>
+                </ul>
+
+                <h3>GitHub Pages Not Working</h3>
+                <p><strong>Problem:</strong> Your website isn't deploying to GitHub Pages.</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Check that GitHub Pages is enabled for your repository</li>
+                    <li>Verify that the workflow scope is authorized</li>
+                    <li>Check the Actions tab in your repository for deployment status</li>
+                    <li>Ensure your repository has a valid index.html file</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong>Still having issues?</strong> If these solutions don't help, please check our 
+                    <a href="https://github.com/juanmanueldaza/aisitegenerator/issues" target="_blank">GitHub Issues</a> 
+                    page or create a new issue with details about your problem.
+                </div>
+            </section>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i>
+                    Return to Authorization
+                </a>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2024 AI Site Generator. Built with ❤️ for developers.</p>
+        </footer>
+    </div>
+</body>
+</html>

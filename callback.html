@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization Complete - AI Site Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-robot"></i> AI Site Generator</h1>
+            <p class="subtitle">GitHub Authorization Complete</p>
+        </header>
+
+        <main class="main-content">
+            <div class="auth-card">
+                <div id="callback-content">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Processing authorization...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 AI Site Generator. Built with ❤️ for developers.</p>
+        </footer>
+    </div>
+
+    <style>
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        .loading-spinner i {
+            font-size: 3rem;
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
+        .loading-spinner p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .success-content {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        .success-content i {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        .success-content h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .success-content p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .error-content {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        .error-content i {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        .error-content h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .error-content p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .next-steps {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+        .next-steps h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .next-steps ul {
+            margin: 1rem 0 1rem 1.5rem;
+        }
+        .next-steps li {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+    </style>
+
+    <script>
+        // Handle the OAuth callback
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            const error = params.get('error');
+            const errorDescription = params.get('error_description');
+            const state = params.get('state');
+
+            setTimeout(() => {
+                handleCallback(code, error, errorDescription, state);
+            }, 1500); // Add a slight delay for better UX
+        });
+
+        function handleCallback(code, error, errorDescription, state) {
+            const contentDiv = document.getElementById('callback-content');
+
+            if (error) {
+                showError(error, errorDescription);
+            } else if (code) {
+                showSuccess(code, state);
+            } else {
+                showError('unknown', 'No authorization code received');
+            }
+        }
+
+        function showSuccess(code, state) {
+            const contentDiv = document.getElementById('callback-content');
+            contentDiv.innerHTML = `
+                <div class="success-content">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>Authorization Successful!</h2>
+                    <p>
+                        You have successfully authorized AI Site Generator to access your GitHub account. 
+                        We can now help you create and deploy amazing websites.
+                    </p>
+                    
+                    <div class="next-steps">
+                        <h3><i class="fas fa-list-check"></i> What's Next?</h3>
+                        <ul>
+                            <li>Start creating your AI-generated website</li>
+                            <li>Choose from various templates and themes</li>
+                            <li>Customize your content with AI assistance</li>
+                            <li>Deploy automatically to GitHub Pages</li>
+                        </ul>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button onclick="startBuilding()" class="btn btn-primary">
+                            <i class="fas fa-rocket"></i>
+                            Start Building Your Website
+                        </button>
+                        <a href="index.html" class="btn btn-secondary">
+                            <i class="fas fa-home"></i>
+                            Return to Home
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            // Store the authorization info for later use
+            sessionStorage.setItem('github_authorized', 'true');
+            sessionStorage.setItem('auth_code', code);
+            sessionStorage.setItem('auth_state', state);
+        }
+
+        function showError(error, description) {
+            const contentDiv = document.getElementById('callback-content');
+            
+            let errorMessage = 'An unknown error occurred during authorization.';
+            let suggestions = [];
+
+            switch (error) {
+                case 'access_denied':
+                    errorMessage = 'Authorization was denied. You chose not to grant the requested permissions.';
+                    suggestions = [
+                        'Try authorizing again if you changed your mind',
+                        'Review the permissions we request and why we need them',
+                        'Contact support if you have questions about the permissions'
+                    ];
+                    break;
+                case 'invalid_request':
+                    errorMessage = 'There was an error with the authorization request.';
+                    suggestions = [
+                        'Try starting the authorization process again',
+                        'Clear your browser cache and cookies',
+                        'Contact support if the problem persists'
+                    ];
+                    break;
+                case 'unauthorized_client':
+                    errorMessage = 'The application is not authorized to make this request.';
+                    suggestions = [
+                        'This may be a configuration issue on our end',
+                        'Please contact our support team',
+                        'Try again later'
+                    ];
+                    break;
+                default:
+                    if (description) {
+                        errorMessage = description;
+                    }
+                    suggestions = [
+                        'Try the authorization process again',
+                        'Check your internet connection',
+                        'Contact support if the issue continues'
+                    ];
+            }
+
+            contentDiv.innerHTML = `
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>Authorization Failed</h2>
+                    <p>${errorMessage}</p>
+                    
+                    <div class="next-steps">
+                        <h3><i class="fas fa-lightbulb"></i> Suggestions</h3>
+                        <ul>
+                            ${suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="index.html" class="btn btn-primary">
+                            <i class="fas fa-redo"></i>
+                            Try Again
+                        </a>
+                        <a href="help.html" class="btn btn-secondary">
+                            <i class="fas fa-question-circle"></i>
+                            Get Help
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startBuilding() {
+            // In a real application, this would redirect to the website builder
+            alert('🚀 Website builder coming soon! This is where you would start creating your AI-generated website.');
+            
+            // For now, just show a placeholder message
+            const contentDiv = document.getElementById('callback-content');
+            contentDiv.innerHTML = `
+                <div class="success-content">
+                    <i class="fas fa-construction"></i>
+                    <h2>Coming Soon!</h2>
+                    <p>
+                        The AI website builder is currently under development. Once complete, 
+                        this is where you'll be able to create stunning websites with AI assistance.
+                    </p>
+                    <div class="action-buttons">
+                        <a href="index.html" class="btn btn-primary">
+                            <i class="fas fa-home"></i>
+                            Return to Home
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Site Generator - GitHub Authorization</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-robot"></i> AI Site Generator</h1>
+            <p class="subtitle">Create stunning websites with AI assistance</p>
+        </header>
+
+        <main class="main-content">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <i class="fab fa-github github-icon"></i>
+                    <h2>Connect with GitHub</h2>
+                    <p class="auth-description">
+                        To create and deploy your AI-generated website, we need access to your GitHub account.
+                        Below you'll find detailed explanations of each permission we're requesting.
+                    </p>
+                </div>
+
+                <div class="permissions-section">
+                    <h3><i class="fas fa-shield-alt"></i> Required Permissions</h3>
+                    <div class="permission-item">
+                        <div class="permission-header">
+                            <div class="permission-icon">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="permission-info">
+                                <h4>Repository Access <span class="scope-badge">repo</span></h4>
+                                <p class="permission-description">
+                                    Create and manage your website repositories
+                                </p>
+                            </div>
+                            <button class="help-btn" data-tooltip="repo-tooltip">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                        <div class="permission-details" id="repo-tooltip">
+                            <p><strong>Why we need this:</strong></p>
+                            <ul>
+                                <li>Create a new repository for your generated website</li>
+                                <li>Upload your website files and assets</li>
+                                <li>Manage repository settings for GitHub Pages deployment</li>
+                                <li>Update your website content when you make changes</li>
+                            </ul>
+                            <p><strong>What we can do:</strong> Read and write access to your repositories</p>
+                            <p><strong>What we cannot do:</strong> Access private repositories unless explicitly granted</p>
+                            <a href="https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes" target="_blank" class="docs-link">
+                                <i class="fas fa-external-link-alt"></i> Learn more about repo scope
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="permission-item">
+                        <div class="permission-header">
+                            <div class="permission-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="permission-info">
+                                <h4>GitHub Actions <span class="scope-badge">workflow</span></h4>
+                                <p class="permission-description">
+                                    Enable GitHub Actions for automatic deployments
+                                </p>
+                            </div>
+                            <button class="help-btn" data-tooltip="workflow-tooltip">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                        <div class="permission-details" id="workflow-tooltip">
+                            <p><strong>Why we need this:</strong></p>
+                            <ul>
+                                <li>Set up automated deployment workflows</li>
+                                <li>Enable continuous integration for your website</li>
+                                <li>Automatically build and deploy changes</li>
+                                <li>Monitor deployment status and logs</li>
+                            </ul>
+                            <p><strong>What we can do:</strong> Create, update, and manage GitHub Actions workflows</p>
+                            <p><strong>What we cannot do:</strong> Access workflow secrets or sensitive data</p>
+                            <a href="https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes" target="_blank" class="docs-link">
+                                <i class="fas fa-external-link-alt"></i> Learn more about workflow scope
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="permission-item">
+                        <div class="permission-header">
+                            <div class="permission-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="permission-info">
+                                <h4>Email Access <span class="scope-badge">user:email</span></h4>
+                                <p class="permission-description">
+                                    Set up GitHub Pages with your email
+                                </p>
+                            </div>
+                            <button class="help-btn" data-tooltip="email-tooltip">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                        <div class="permission-details" id="email-tooltip">
+                            <p><strong>Why we need this:</strong></p>
+                            <ul>
+                                <li>Configure GitHub Pages with proper attribution</li>
+                                <li>Set up commit author information</li>
+                                <li>Enable notifications for deployment status</li>
+                                <li>Comply with GitHub's terms of service</li>
+                            </ul>
+                            <p><strong>What we can do:</strong> Read your primary and verified email addresses</p>
+                            <p><strong>What we cannot do:</strong> Send emails on your behalf or access private emails</p>
+                            <a href="https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes" target="_blank" class="docs-link">
+                                <i class="fas fa-external-link-alt"></i> Learn more about user:email scope
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-info">
+                    <div class="security-header">
+                        <i class="fas fa-lock"></i>
+                        <h3>Your Security & Privacy</h3>
+                    </div>
+                    <div class="security-content">
+                        <ul>
+                            <li><strong>Secure OAuth:</strong> We use GitHub's official OAuth flow for authentication</li>
+                            <li><strong>No Password Storage:</strong> We never see or store your GitHub password</li>
+                            <li><strong>Revocable Access:</strong> You can revoke these permissions at any time in your GitHub settings</li>
+                            <li><strong>Limited Scope:</strong> We only request the minimum permissions needed for functionality</li>
+                        </ul>
+                        <p>
+                            <a href="https://github.com/settings/applications" target="_blank" class="manage-link">
+                                <i class="fas fa-cog"></i> Manage your GitHub app authorizations
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="consent-section">
+                    <div class="consent-checkbox">
+                        <input type="checkbox" id="understand-permissions" required>
+                        <label for="understand-permissions">
+                            I understand what permissions I'm granting and why they're needed
+                        </label>
+                    </div>
+                    <div class="consent-checkbox">
+                        <input type="checkbox" id="agree-terms" required>
+                        <label for="agree-terms">
+                            I agree to allow AI Site Generator to access my GitHub account with the permissions listed above
+                        </label>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="authorize-btn" class="btn btn-primary" disabled>
+                        <i class="fab fa-github"></i>
+                        Authorize with GitHub
+                    </button>
+                    <a href="help.html" class="btn btn-secondary">
+                        <i class="fas fa-book"></i>
+                        View Full Documentation
+                    </a>
+                    <button id="learn-more-btn" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More About OAuth
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 AI Site Generator. Built with ❤️ for developers.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

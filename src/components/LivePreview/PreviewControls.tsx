@@ -1,6 +1,7 @@
-import React from 'react'
-import { PreviewControlsProps, DEVICE_TYPES, ZOOM_LEVELS } from '../../types/preview'
-import './PreviewControls.css'
+import React from 'react';
+import type { PreviewControlsProps } from '../../types/preview';
+import { DEVICE_TYPES, ZOOM_LEVELS } from '../../types/preview';
+import './PreviewControls.css';
 
 const PreviewControls: React.FC<PreviewControlsProps> = ({
   selectedDevice,
@@ -10,22 +11,24 @@ const PreviewControls: React.FC<PreviewControlsProps> = ({
   zoomLevel,
   onZoomChange,
   onRefresh,
-  previewUrl
+  previewUrl,
 }) => {
   return (
     <div className="preview-controls">
       <div className="controls-section">
-        <label htmlFor="device-select" className="control-label">Device:</label>
+        <label htmlFor="device-select" className="control-label">
+          Device:
+        </label>
         <select
           id="device-select"
           value={selectedDevice.name}
           onChange={(e) => {
-            const device = DEVICE_TYPES.find(d => d.name === e.target.value)
-            if (device) onDeviceChange(device)
+            const device = DEVICE_TYPES.find((d) => d.name === e.target.value);
+            if (device) onDeviceChange(device);
           }}
           className="device-select"
         >
-          {DEVICE_TYPES.map(device => (
+          {DEVICE_TYPES.map((device) => (
             <option key={device.name} value={device.name}>
               {device.icon} {device.name} ({device.width}×{device.height})
             </option>
@@ -34,14 +37,16 @@ const PreviewControls: React.FC<PreviewControlsProps> = ({
       </div>
 
       <div className="controls-section">
-        <label htmlFor="zoom-select" className="control-label">Zoom:</label>
+        <label htmlFor="zoom-select" className="control-label">
+          Zoom:
+        </label>
         <select
           id="zoom-select"
           value={zoomLevel}
           onChange={(e) => onZoomChange(parseFloat(e.target.value))}
           className="zoom-select"
         >
-          {ZOOM_LEVELS.map(zoom => (
+          {ZOOM_LEVELS.map((zoom) => (
             <option key={zoom} value={zoom}>
               {Math.round(zoom * 100)}%
             </option>
@@ -57,11 +62,11 @@ const PreviewControls: React.FC<PreviewControlsProps> = ({
         >
           🔄 Refresh
         </button>
-        
+
         <button
           onClick={onFullscreenToggle}
           className="control-button fullscreen-button"
-          title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         >
           {isFullscreen ? '🗗' : '🗖'} {isFullscreen ? 'Exit' : 'Fullscreen'}
         </button>
@@ -74,7 +79,7 @@ const PreviewControls: React.FC<PreviewControlsProps> = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default PreviewControls
+export default PreviewControls;

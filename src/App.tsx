@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import LivePreview from './components/LivePreview/LivePreview'
-import './App.css'
+import { useState } from 'react';
+import LivePreview from './components/LivePreview/LivePreview';
+import './App.css';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -35,18 +35,18 @@ function greet(name) {
 - Another point
 - Final point
 
-> This is a blockquote showing how content will appear in the preview.`
+> This is a blockquote showing how content will appear in the preview.`;
 
 function App() {
-  const [content, setContent] = useState(SAMPLE_CONTENT)
-  
+  const [content, setContent] = useState(SAMPLE_CONTENT);
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>AI Site Generator - Live Preview Demo</h1>
         <p>See your website come to life as you build it</p>
       </header>
-      
+
       <main className="app-main">
         <div className="editor-section">
           <h2>Content Editor</h2>
@@ -57,13 +57,13 @@ function App() {
             className="content-editor"
           />
         </div>
-        
+
         <div className="preview-section">
           <LivePreview content={content} />
         </div>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

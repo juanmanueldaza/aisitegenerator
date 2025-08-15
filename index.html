@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Site Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Site Generator</h1>
+            <p>Create and deploy websites with AI assistance</p>
+        </header>
+
+        <main>
+            <section class="auth-section" id="authSection">
+                <h2>GitHub Authentication</h2>
+                <button id="loginBtn" class="btn btn-primary">Login with GitHub</button>
+                <div id="userInfo" class="user-info hidden">
+                    <span id="userName"></span>
+                    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                </div>
+            </section>
+
+            <section class="upload-section hidden" id="uploadSection">
+                <h2>Upload Your Site Files</h2>
+                <div class="upload-area" id="uploadArea">
+                    <p>Drag and drop files here or click to select</p>
+                    <input type="file" id="fileInput" multiple accept=".html,.css,.js,.md">
+                </div>
+                <div id="fileList" class="file-list"></div>
+                <button id="uploadBtn" class="btn btn-primary" disabled>Upload Files</button>
+            </section>
+
+            <section class="pages-section hidden" id="pagesSection">
+                <h2>GitHub Pages Deployment</h2>
+                <div class="deployment-status" id="deploymentStatus">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span id="statusText">Ready to deploy</span>
+                </div>
+                
+                <div class="pages-config">
+                    <h3>Configuration</h3>
+                    <div class="config-option">
+                        <label for="sourceBranch">Source Branch:</label>
+                        <select id="sourceBranch">
+                            <option value="main">main</option>
+                            <option value="gh-pages">gh-pages</option>
+                        </select>
+                    </div>
+                    
+                    <div class="config-option">
+                        <label for="buildSource">Build Source:</label>
+                        <select id="buildSource">
+                            <option value="workflow">GitHub Actions</option>
+                            <option value="legacy">Deploy from branch</option>
+                        </select>
+                    </div>
+                    
+                    <div class="config-option">
+                        <label>
+                            <input type="checkbox" id="httpsEnforced" checked>
+                            Enforce HTTPS
+                        </label>
+                    </div>
+                    
+                    <div class="config-option">
+                        <label for="customDomain">Custom Domain (optional):</label>
+                        <input type="text" id="customDomain" placeholder="example.com">
+                    </div>
+                </div>
+
+                <button id="deployBtn" class="btn btn-primary">Deploy to GitHub Pages</button>
+                
+                <div class="deployment-info hidden" id="deploymentInfo">
+                    <h3>Deployment Information</h3>
+                    <div class="info-item">
+                        <label>Site URL:</label>
+                        <a id="siteUrl" href="#" target="_blank" rel="noopener"></a>
+                    </div>
+                    <div class="info-item">
+                        <label>Status:</label>
+                        <span id="deploymentStatusText">Deploying...</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Last Updated:</label>
+                        <span id="lastUpdated"></span>
+                    </div>
+                </div>
+
+                <div class="error-message hidden" id="errorMessage">
+                    <h3>Deployment Error</h3>
+                    <p id="errorText"></p>
+                    <div class="troubleshooting">
+                        <h4>Troubleshooting Tips:</h4>
+                        <ul id="troubleshootingTips"></ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="github-auth.js"></script>
+    <script src="file-upload.js"></script>
+    <script src="github-pages.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "aisitegenerator",
+  "version": "1.0.0",
+  "description": "A modern, frontend-only web app for step-by-step website creation, guided by an AI chat interface",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000 -c-1",
+    "build": "npm run lint",
+    "test": "npx jest",
+    "lint": "npx eslint src/ --ext .js",
+    "lint:fix": "npx eslint src/ --ext .js --fix"
+  },
+  "keywords": ["ai", "website-generator", "frontend", "gemini-api"],
+  "author": "AI Site Generator Team",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.17.1"
+  }
+}

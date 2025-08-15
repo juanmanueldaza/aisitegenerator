@@ -312,12 +312,6 @@ MIT
 ---
 
 Hecho con ❤️ usando Vite, React y TypeScript.
-## 🚀 Tech Stack
-
-- **Frontend Framework**: React 19 with TypeScript
-- **Build Tool**: Vite 7
-- **Code Quality**: ESLint + Prettier + Husky
-- **Architecture**: Clean Architecture following SOLID principles
 
 ## 📁 Project Structure
 
@@ -325,29 +319,28 @@ The project follows SOLID and CLEAN architecture principles:
 
 ```
 src/
-├── components/     # UI Components (Single Responsibility Principle)
-├── hooks/         # Custom React Hooks (DRY Principle)
-├── services/      # Business Logic & External Integrations (Dependency Inversion)
-├── types/         # TypeScript Type Definitions (Interface Segregation)
-├── utils/         # Utility Functions (Open/Closed Principle)
-├── pages/         # Page Components
-├── assets/        # Static Assets (images, icons)
-└── styles/        # Global Styles & CSS
+├── components/     # UI components
+├── hooks/          # Custom React hooks
+├── services/       # External integrations and business logic
+├── types/          # Type definitions
+├── utils/          # Pure utility functions
+├── assets/         # Static assets
+└── styles/         # Global styles
 ```
 
 ### Architecture Principles
 
-- **SOLID**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
-- **CLEAN**: Separation of concerns with clear boundaries between layers
-- **DRY**: Don't Repeat Yourself - reusable utilities and hooks
-- **KISS**: Keep It Simple, Stupid - straightforward, maintainable code
+- SOLID: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+- CLEAN: Separation of concerns with clear boundaries between layers
+- DRY: Reuse utilities and hooks; avoid duplication
+- KISS: Keep it simple and maintainable
 
 ## 🛠️ Development Setup
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- npm
 - Git
 
 ### Installation
@@ -371,8 +364,7 @@ src/
    npm run dev
    ```
 
-4. **Open your browser**
-   Navigate to `http://localhost:5173`
+4. **Open your browser**: go to `http://localhost:5173`
 
 ## 📜 Available Scripts
 
@@ -383,6 +375,9 @@ src/
 - `npm run lint:fix` - Fix auto-fixable ESLint issues
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check if code is properly formatted
+- `npm run typecheck` - TypeScript type checking
+- `npm run test` - Run tests with Vitest
+- `npm run test:watch` - Run tests in watch mode
 
 ## 🔧 Code Quality & Development Tools
 
@@ -407,14 +402,13 @@ src/
 
 - Strict mode enabled for maximum type safety
 - Path aliases for clean imports:
-  - `@types` → `src/types`
-  - `@components` → `src/components`
-  - `@hooks` → `src/hooks`
-  - `@services` → `src/services`
-  - `@utils` → `src/utils`
-  - `@pages` → `src/pages`
-  - `@assets` → `src/assets`
-  - `@styles` → `src/styles`
+   - `@types` → `src/types`
+   - `@components` → `src/components`
+   - `@hooks` → `src/hooks`
+   - `@services` → `src/services`
+   - `@utils` → `src/utils`
+   - `@assets` → `src/assets`
+   - `@styles` → `src/styles`
 
 ## 🏗️ Architecture Overview
 

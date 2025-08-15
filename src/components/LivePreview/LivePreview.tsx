@@ -1,75 +1,76 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { LivePreviewProps, DeviceType, DEVICE_TYPES } from '../../types/preview'
-import { generatePreviewHTML } from '../../utils/content'
-import PreviewControls from './PreviewControls'
-import './LivePreview.css'
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import type { LivePreviewProps, DeviceType } from '../../types/preview';
+import { DEVICE_TYPES } from '../../types/preview';
+import { generatePreviewHTML } from '../../utils/content';
+import PreviewControls from './PreviewControls';
+import './LivePreview.css';
 
 const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) => {
-  const [selectedDevice, setSelectedDevice] = useState<DeviceType>(DEVICE_TYPES[0])
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [zoomLevel, setZoomLevel] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [selectedDevice, setSelectedDevice] = useState<DeviceType>(DEVICE_TYPES[0]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Generate preview HTML with security measures
-  const previewHTML = generatePreviewHTML(content)
-  
+  const previewHTML = generatePreviewHTML(content);
+
   // Create secure blob URL for iframe content
   const createPreviewURL = useCallback(() => {
     try {
-      const blob = new Blob([previewHTML], { type: 'text/html' })
-      return URL.createObjectURL(blob)
+      const blob = new Blob([previewHTML], { type: 'text/html' });
+      return URL.createObjectURL(blob);
     } catch (err) {
-      console.error('Error creating preview URL:', err)
-      setError('Failed to generate preview')
-      return null
+      console.error('Error creating preview URL:', err);
+      setError('Failed to generate preview');
+      return null;
     }
-  }, [previewHTML])
+  }, [previewHTML]);
 
   // Update iframe content when content changes
   useEffect(() => {
-    if (!iframeRef.current) return
+    if (!iframeRef.current) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
-    const url = createPreviewURL()
+    const url = createPreviewURL();
     if (url) {
-      iframeRef.current.src = url
-      
+      iframeRef.current.src = url;
+
       // Cleanup previous URL
       return () => {
-        URL.revokeObjectURL(url)
-      }
+        URL.revokeObjectURL(url);
+      };
     } else {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [createPreviewURL, refreshKey])
+  }, [createPreviewURL, refreshKey]);
 
   // Handle iframe load events
   const handleIframeLoad = () => {
-    setIsLoading(false)
-    setError(null)
-  }
+    setIsLoading(false);
+    setError(null);
+  };
 
   const handleIframeError = () => {
-    setIsLoading(false)
-    setError('Failed to load preview')
-  }
+    setIsLoading(false);
+    setError('Failed to load preview');
+  };
 
   // Refresh the preview
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1)
-  }
+    setRefreshKey((prev) => prev + 1);
+  };
 
   // Toggle fullscreen mode
   const handleFullscreenToggle = () => {
-    setIsFullscreen(prev => !prev)
-  }
+    setIsFullscreen((prev) => !prev);
+  };
 
   // Calculate iframe dimensions based on device and zoom
   const iframeStyle = {
@@ -77,13 +78,13 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
     height: `${selectedDevice.height}px`,
     transform: `scale(${zoomLevel})`,
     transformOrigin: 'top left',
-  }
+  };
 
   // Calculate container dimensions to accommodate scaled iframe
   const containerStyle = {
     width: `${selectedDevice.width * zoomLevel}px`,
     height: `${selectedDevice.height * zoomLevel}px`,
-  }
+  };
 
   return (
     <div className={`live-preview ${className} ${isFullscreen ? 'fullscreen' : ''}`}>
@@ -152,7 +153,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
         </button>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default LivePreview
+export default LivePreview;

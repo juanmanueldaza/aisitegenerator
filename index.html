@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Site Generator</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <h1>AI Site Generator</h1>
+            <div class="auth-section">
+                <button id="github-auth-btn" class="btn btn-primary">
+                    Connect GitHub
+                </button>
+                <div id="user-info" class="user-info hidden">
+                    <span id="username"></span>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="chat-interface">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Tell me about the website you want to create..." disabled>
+                    <button id="send-btn" class="btn btn-primary" disabled>Send</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Progress Modal -->
+        <div id="progress-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3 id="progress-title">Processing...</h3>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p id="progress-message">Initializing...</p>
+                <div id="progress-details" class="progress-details"></div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="modal hidden">
+            <div class="modal-content error-content">
+                <div class="error-header">
+                    <h3 id="error-title">Error</h3>
+                    <button id="error-close" class="btn-close">&times;</button>
+                </div>
+                <div class="error-body">
+                    <p id="error-message"></p>
+                    <div id="error-details" class="error-details hidden"></div>
+                    <div id="error-solution" class="error-solution hidden"></div>
+                </div>
+                <div class="error-actions">
+                    <button id="error-retry" class="btn btn-primary hidden">Retry</button>
+                    <button id="error-help" class="btn btn-secondary hidden">Get Help</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="js/utils/github-api.js"></script>
+    <script src="js/utils/error-handler.js"></script>
+    <script src="js/utils/retry-manager.js"></script>
+    <script src="js/components/toast.js"></script>
+    <script src="js/components/progress.js"></script>
+    <script src="js/components/error-modal.js"></script>
+    <script src="js/auth/github-auth.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

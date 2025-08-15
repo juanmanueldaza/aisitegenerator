@@ -11,7 +11,6 @@ const PreviewControls: React.FC<PreviewControlsProps> = ({
   zoomLevel,
   onZoomChange,
   onRefresh,
-  previewUrl,
 }) => {
   return (
     <div className="preview-controls">
@@ -72,12 +71,7 @@ const PreviewControls: React.FC<PreviewControlsProps> = ({
         </button>
       </div>
 
-      {previewUrl && (
-        <div className="controls-section url-section">
-          <span className="control-label">URL:</span>
-          <code className="preview-url">{previewUrl}</code>
-        </div>
-      )}
+      {/* URL de preview omitida para evitar confusión en UI */}
     </div>
   );
 };

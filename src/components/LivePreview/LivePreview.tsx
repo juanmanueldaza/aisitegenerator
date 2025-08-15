@@ -31,6 +31,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
   // Update iframe content when content changes
   useEffect(() => {
     let cancelled = false;
+    let currentUrl: string | null = null;
     const iframe = iframeRef.current;
     if (!iframe) return;
 
@@ -43,9 +44,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
         if (cancelled) return;
         const url = createPreviewURL(html);
         if (url) {
+          currentUrl = url;
           iframe.src = url;
-          // Cleanup previous URL on effect cleanup
-          return () => URL.revokeObjectURL(url);
         } else {
           setIsLoading(false);
         }
@@ -60,6 +60,10 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
 
     return () => {
       cancelled = true;
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl);
+        currentUrl = null;
+      }
     };
   }, [content, createPreviewURL, refreshKey]);
 
@@ -110,7 +114,6 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
           zoomLevel={zoomLevel}
           onZoomChange={setZoomLevel}
           onRefresh={handleRefresh}
-          previewUrl={`preview-${refreshKey}.html`}
         />
       </div>
 

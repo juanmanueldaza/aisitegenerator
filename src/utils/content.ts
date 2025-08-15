@@ -55,6 +55,7 @@ export function renderMarkdown(content: string): string {
         'stop',
         'clipPath',
         'style',
+        // Tables
         'table',
         'thead',
         'tbody',
@@ -65,7 +66,6 @@ export function renderMarkdown(content: string): string {
       ],
       ALLOWED_ATTR: [
         'href',
-        'target',
         'rel',
         'src',
         'alt',

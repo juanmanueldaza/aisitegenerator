@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Site Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>AI Site Generator</h1>
+            <div class="auth-section">
+                <button id="githubAuth" class="btn btn-primary">Connect GitHub</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- AI Chat Section -->
+            <section class="ai-chat-section">
+                <div class="chat-header">
+                    <h2>AI Assistant</h2>
+                </div>
+                <div id="chatMessages" class="chat-messages">
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            Hello! I'm your AI assistant. I can help you create a website by suggesting content, design elements, and code. What kind of website would you like to build?
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="userInput" placeholder="Tell me about your website idea..." />
+                    <button id="sendMessage" class="btn btn-primary">Send</button>
+                </div>
+            </section>
+
+            <!-- AI Suggestions Panel -->
+            <section class="suggestions-panel">
+                <div class="suggestions-header">
+                    <h3>AI Suggestions</h3>
+                    <div class="suggestions-controls">
+                        <button id="undoBtn" class="btn btn-secondary" disabled>Undo</button>
+                        <button id="redoBtn" class="btn btn-secondary" disabled>Redo</button>
+                    </div>
+                </div>
+                <div id="suggestionsContainer" class="suggestions-container">
+                    <!-- AI suggestions will be populated here -->
+                </div>
+            </section>
+
+            <!-- Site Builder Section -->
+            <section class="site-builder">
+                <div class="builder-header">
+                    <h3>Site Builder</h3>
+                    <div class="builder-controls">
+                        <button id="previewToggle" class="btn btn-secondary">Toggle Preview</button>
+                        <button id="exportSite" class="btn btn-success">Export Site</button>
+                    </div>
+                </div>
+                
+                <!-- Code Editor -->
+                <div class="code-editor">
+                    <div class="editor-tabs">
+                        <button class="tab-btn active" data-tab="html">HTML</button>
+                        <button class="tab-btn" data-tab="css">CSS</button>
+                        <button class="tab-btn" data-tab="js">JavaScript</button>
+                    </div>
+                    <textarea id="htmlEditor" class="editor-content active" placeholder="HTML content will appear here..."></textarea>
+                    <textarea id="cssEditor" class="editor-content" placeholder="CSS content will appear here..."></textarea>
+                    <textarea id="jsEditor" class="editor-content" placeholder="JavaScript content will appear here..."></textarea>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section">
+                <div class="preview-header">
+                    <h3>Live Preview</h3>
+                    <div class="preview-controls">
+                        <button id="refreshPreview" class="btn btn-secondary">Refresh</button>
+                    </div>
+                </div>
+                <iframe id="previewFrame" class="preview-frame" src="about:blank"></iframe>
+            </section>
+        </main>
+    </div>
+
+    <!-- Suggestion Modal -->
+    <div id="suggestionModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="modalTitle">AI Suggestion</h4>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalDescription" class="suggestion-description"></div>
+                <div id="modalPreview" class="suggestion-preview"></div>
+                <div class="suggestion-actions">
+                    <button id="acceptSuggestion" class="btn btn-success">Accept</button>
+                    <button id="modifySuggestion" class="btn btn-warning">Edit</button>
+                    <button id="rejectSuggestion" class="btn btn-danger">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

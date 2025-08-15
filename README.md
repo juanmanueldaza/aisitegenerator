@@ -2,6 +2,7 @@
 
 A modern, frontend-only web app for step-by-step website creation, guided by an AI chat interface. Users authenticate with GitHub and deploy both the app and their generated sites via GitHub Pages. Live preview is available throughout the site-building process.
 
+<<<<<<< HEAD
 ## 🚀 Tech Stack
 
 - Frontend: React 19 + TypeScript
@@ -212,3 +213,163 @@ Built with ❤️ using modern web technologies and clean architecture principle
 - [Issue Tracker](https://github.com/juanmanueldaza/aisitegenerator/issues)
 - [Discussions](https://github.com/juanmanueldaza/aisitegenerator/discussions)
 >>>>>>> 0a91720 (fix: correct markdown formatting and code block structure)
+=======
+## ✨ Features
+
+### Core Functionality
+- **Real-time Markdown Preview** - See your content rendered as you type
+- **Mermaid Diagram Support** - Create flowcharts, sequence diagrams, and more
+- **Error Handling** - Comprehensive error messages and graceful fallbacks
+- **Responsive Design** - Works on desktop, tablet, and mobile devices
+- **GitHub Pages Ready** - Static deployment with no backend required
+
+### Supported Diagram Types
+- Flowcharts and decision trees
+- Sequence diagrams
+- Class diagrams
+- State diagrams
+- User journey diagrams
+- Gantt charts
+- Pie charts
+- Entity relationship diagrams
+
+## 🚀 Getting Started
+
+### Quick Start
+1. Clone the repository
+2. Open `index.html` in your browser or serve with a local server
+3. Start creating content with live preview!
+
+### Local Development
+```bash
+# Serve with Python (recommended)
+python -m http.server 8000
+# or
+python3 -m http.server 8000
+
+# Then open http://localhost:8000
+```
+
+### GitHub Pages Deployment
+1. Push code to your GitHub repository
+2. Enable GitHub Pages in repository settings
+3. Your site will be available at `https://yourusername.github.io/aisitegenerator/`
+
+## 📖 Usage
+
+### Basic Markdown
+Write standard markdown in the left panel and see it rendered in real-time on the right.
+
+### Creating Diagrams
+Use Mermaid syntax in code blocks:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+```
+````
+
+### Supported Diagram Examples
+
+#### Flowchart
+````markdown
+```mermaid
+graph TD
+    A[Christmas] -->|Get money| B(Go shopping)
+    B --> C{Let me think}
+    C -->|One| D[Laptop]
+    C -->|Two| E[iPhone]
+    C -->|Three| F[fa:fa-car Car]
+```
+````
+
+#### Sequence Diagram
+````markdown
+```mermaid
+sequenceDiagram
+    participant Alice
+    participant Bob
+    Alice->>John: Hello John, how are you?
+    loop Healthcheck
+        John->>John: Fight against hypochondria
+    end
+    Note right of John: Rational thoughts <br/>prevail!
+    John-->>Alice: Great!
+    John->>Bob: How about you?
+    Bob-->>John: Jolly good!
+```
+````
+
+## 🏗️ Architecture
+
+### File Structure
+```
+├── index.html                 # Main application entry point
+├── src/
+│   ├── js/
+│   │   ├── app.js             # Main application logic
+│   │   ├── markdown-renderer.js   # Markdown processing
+│   │   └── mermaid-integration.js # Mermaid diagram handling
+│   └── styles/
+│       └── main.css           # Application styles
+└── package.json               # Project configuration
+```
+
+### Key Components
+
+1. **MarkdownRenderer** - Handles markdown to HTML conversion with Mermaid support
+2. **MermaidIntegration** - Manages Mermaid library loading, caching, and error handling
+3. **AISiteGenerator** - Main application class that coordinates everything
+
+### Performance Features
+- **Lazy Loading** - Mermaid library loaded only when needed
+- **Debounced Updates** - Real-time preview without excessive re-rendering
+- **Diagram Caching** - Rendered diagrams cached to improve performance
+- **Memory Management** - Automatic cleanup of removed diagrams
+
+## 🛠️ Technical Details
+
+### Dependencies
+- **Mermaid** (v10.6.1) - Loaded from CDN for diagram rendering
+- **Vanilla JavaScript** - No framework dependencies for maximum compatibility
+
+### Browser Support
+- Modern browsers with ES6+ support
+- Chrome 60+, Firefox 55+, Safari 11+, Edge 79+
+
+### Security
+- XSS protection through content sanitization
+- Safe HTML rendering
+- Secure Mermaid configuration
+- Content Security Policy ready
+
+## 🚧 Development Status
+
+This application implements the core requirements for issue #34 (Mermaid integration) and provides the foundation for issue #33 (markdown rendering).
+
+### Completed Features
+- ✅ Real-time markdown rendering
+- ✅ Mermaid diagram support with all major diagram types
+- ✅ Error handling and user feedback
+- ✅ Responsive design
+- ✅ Performance optimizations
+- ✅ GitHub Pages compatibility
+
+### Future Enhancements
+- AI chat interface integration
+- GitHub authentication
+- Website generation wizard
+- Template system
+- Export functionality
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+>>>>>>> 9e018a2 (Implement complete Mermaid diagram integration with markdown rendering)

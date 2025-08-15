@@ -11,7 +11,7 @@ Aplicación moderna (frontend) para crear sitios paso a paso asistidos por IA, c
 - Quality: ESLint + Prettier + Husky + Vitest
 - Architecture: Clean Architecture (SOLID)
 
-## 📁 Project Structure
+## 📁 Estructura del proyecto
 
 The project follows SOLID and CLEAN architecture principles:
 
@@ -26,22 +26,22 @@ src/
 └── styles/         # Global styles
 ```
 
-### Architecture Principles
+### Principios de arquitectura
 
 - SOLID: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
 - CLEAN: Separation of concerns with clear boundaries between layers
 - DRY: Reuse utilities and hooks; avoid duplication
 - KISS: Keep it simple and maintainable
 
-## 🛠️ Development Setup
+## 🛠️ Entorno de desarrollo
 
-### Prerequisites
+### Prerrequisitos
 
 - Node.js 18+
 - npm
 - Git
 
-### Installation
+### Instalación
 
 1. **Clone the repository**
 
@@ -56,15 +56,15 @@ src/
    npm install
    ```
 
-3. **Start development server**
+3. **Inicia el servidor de desarrollo**
 
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**: go to `http://localhost:5173`
+4. **Abre el navegador**: `http://localhost:5173`
 
-## 📜 Available Scripts
+## 📜 Scripts disponibles
 
 - `npm run dev` - Start development server with hot reload
 - `npm run build` - Build for production
@@ -77,26 +77,26 @@ src/
 - `npm run test` - Run tests with Vitest
 - `npm run test:watch` - Run tests in watch mode
 
-## 🔧 Code Quality & Development Tools
+## 🔧 Calidad de código y herramientas
 
-### ESLint Configuration
+### Configuración ESLint
 
 - TypeScript-aware linting
 - React hooks rules
 - React refresh plugin for development
 
-### Prettier Configuration
+### Configuración Prettier
 
 - Consistent code formatting
 - 100 character line length
 - Single quotes, semicolons
 
-### Husky Pre-commit Hooks
+### Hooks de Husky (pre-commit)
 
 - Automatic code linting and formatting before commits
 - Ensures code quality consistency across the team
 
-### TypeScript Configuration
+### Configuración de TypeScript
 
 - Strict mode enabled for maximum type safety
 - Path aliases for clean imports:
@@ -108,9 +108,9 @@ src/
    - `@assets` → `src/assets`
    - `@styles` → `src/styles`
 
-## 🏗️ Architecture Overview
+## 🏗️ Arquitectura
 
-### Service Layer (Dependency Inversion)
+### Capa de servicios (Inversión de dependencias)
 
 The `services/` directory contains abstract interfaces that define contracts for external integrations:
 
@@ -119,7 +119,7 @@ The `services/` directory contains abstract interfaces that define contracts for
 - `ISiteService` - Site configuration management
 - `IAIService` - AI chat and content generation
 
-### Component Layer (Single Responsibility)
+### Capa de componentes (Responsabilidad única)
 
 React components focus on a single responsibility:
 
@@ -127,7 +127,7 @@ React components focus on a single responsibility:
 - Props-driven behavior
 - Reusable and testable
 
-### Hooks Layer (DRY Principle)
+### Capa de hooks (Principio DRY)
 
 Custom hooks encapsulate reusable stateful logic:
 
@@ -136,7 +136,7 @@ Custom hooks encapsulate reusable stateful logic:
 - `useDebouncedValue` - Debounced input handling
 - `useLocalStorage` - Local storage state synchronization
 
-### Utilities (Open/Closed Principle)
+### Utilidades (Principio Abierto/Cerrado)
 
 Pure functions that are open for extension but closed for modification:
 
@@ -144,16 +144,16 @@ Pure functions that are open for extension but closed for modification:
 - Validation helpers
 - Object manipulation utilities
 
-## 🚦 Development Guidelines
+## 🚦 Guías de desarrollo
 
-### Code Style
+### Estilo de código
 
 - Use TypeScript strictly with proper type definitions
 - Follow the established folder structure
 - Implement proper error handling
 - Write self-documenting code with clear naming
 
-### Import Organization
+### Organización de imports
 
 ```typescript
 // External libraries
@@ -166,7 +166,7 @@ import { formatDate } from '@utils';
 import type { User } from '@types';
 ```
 
-### Component Structure
+### Estructura de componentes
 
 ```typescript
 // Component props interface
@@ -182,7 +182,7 @@ export const Component: React.FC<ComponentProps> = ({ prop }) => {
 };
 ```
 
-## 🤝 Contributing
+## 🤝 Contribuir
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
@@ -192,9 +192,17 @@ export const Component: React.FC<ComponentProps> = ({ prop }) => {
 6. Push to the branch: `git push origin feature/amazing-feature`
 7. Open a Pull Request
 
-## 📄 License
+## 📄 Licencia
 
 This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
+
+## ✨ Funcionalidades
+
+- Vista previa de Markdown en vivo con sanitización.
+- Soporte de diagramas Mermaid de forma asíncrona y segura (SVG sanitizado).
+- Manejo de errores y degradación elegante.
+- Diseño responsivo y accesible.
+- Preparado para despliegue en GitHub Pages.
 
 ## 🎯 Roadmap
 

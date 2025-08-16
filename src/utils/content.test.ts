@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { generatePreviewHTMLAsync } from './content';
 
 // Mock mermaid to avoid heavy rendering and ensure determinism
 vi.mock('mermaid', () => ({
@@ -10,6 +9,9 @@ vi.mock('mermaid', () => ({
     })),
   },
 }));
+
+// Importar después del mock para garantizar que Vitest use el mock
+import { generatePreviewHTMLAsync } from './content';
 
 describe('generatePreviewHTMLAsync', () => {
   beforeEach(() => {
@@ -36,5 +38,28 @@ describe('generatePreviewHTMLAsync', () => {
     expect(html).toContain('A--&gt;B');
     // No raw code fence should remain
     expect(html).not.toContain('```mermaid');
+  });
+
+  it('sanitizes dangerous href and event attributes', async () => {
+    const md =
+      '[xss](javascript:alert(1))\n\n<a href="https://example.com" onclick="alert(1)">ok</a>';
+    const html = await generatePreviewHTMLAsync(md);
+    expect(html).not.toMatch(/javascript:/i);
+    expect(html).toContain('https://example.com');
+    expect(html).not.toContain('onclick=');
+  });
+
+  it('falls back to code block when mermaid render fails', async () => {
+    // Cambiar implementación del mock de mermaid para este caso
+    const mermaid = await import('mermaid');
+    // @ts-expect-error mock
+    mermaid.default.render.mockImplementationOnce(async () => {
+      throw new Error('fail');
+    });
+    const md = '```mermaid\nA-->B\n```';
+    const html = await generatePreviewHTMLAsync(md);
+    expect(html).toContain('<pre><code>');
+    expect(html).not.toContain('<svg');
+    expect(html).toContain('A--&gt;B');
   });
 });

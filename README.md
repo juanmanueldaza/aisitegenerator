@@ -103,6 +103,17 @@ Notas técnicas:
 - El flujo de subida a Contents API incluye `sha` al actualizar archivos para evitar errores de conflicto.
 - Asegúrate de tener GitHub Pages habilitado para la rama principal.
 
+## 📚 Documentación completa
+
+Consulta el índice de documentación en `.github/docs/`:
+
+- Arquitectura, desarrollo, checklist de producción, investigación de OAuth y más: `.github/docs/README.md`
+
+## 🤖 Copilot chat mode
+
+Usa el modo de chat "GitHubCopilotExpert" para optimizar la carpeta `.github`, generar instrucciones del proyecto y curar documentación.
+Archivo: `.github/copilot-chat/modes.md` (entrypoints: optimize_github_folder, create_project_instructions, migrate_project_docs)
+
 ## 🎯 Roadmap
 
 - [ ] GitHub OAuth integration

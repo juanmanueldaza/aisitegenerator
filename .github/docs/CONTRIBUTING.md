@@ -16,6 +16,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 ### Development Setup
 
 1. **Fork and Clone**
+
    ```bash
    # Fork the repository on GitHub, then clone your fork
    git clone https://github.com/YOUR_USERNAME/aisitegenerator.git
@@ -23,15 +24,17 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Environment Setup**
+
    ```bash
    # Copy environment template
    cp .env.example .env.local
-   
+
    # Add your API keys (see README.md for details)
    # VITE_OPENAI_API_KEY=your_key_here
    # VITE_GITHUB_CLIENT_ID=your_client_id
@@ -45,6 +48,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 ### Development Workflow
 
 1. **Create a Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -57,6 +61,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
    - Update documentation if needed
 
 3. **Test Your Changes**
+
    ```bash
    npm run lint          # Check code style
    npm run type-check    # Verify TypeScript
@@ -65,6 +70,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
    ```
 
 4. **Commit and Push**
+
    ```bash
    git add .
    git commit -m "feat: add new component for site templates"
@@ -81,6 +87,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 ### TypeScript Standards
 
 #### Function Declarations
+
 ```typescript
 // ✅ Preferred: Arrow functions for simple functions
 export const calculateTotal = (items: Item[]): number => {
@@ -88,16 +95,14 @@ export const calculateTotal = (items: Item[]): number => {
 };
 
 // ✅ Acceptable: Function declarations for complex functions
-export function processUserInput(
-  input: string,
-  options: ProcessingOptions
-): ProcessedResult {
+export function processUserInput(input: string, options: ProcessingOptions): ProcessedResult {
   // Complex logic here
   return result;
 }
 ```
 
 #### Interface and Type Definitions
+
 ```typescript
 // ✅ Good: Clear, specific interfaces
 interface SiteConfig {
@@ -122,6 +127,7 @@ interface Data {
 ```
 
 #### Component Patterns
+
 ```typescript
 // ✅ Good: Props interface with clear naming
 interface ChatMessageProps {
@@ -156,6 +162,7 @@ export { ChatMessage, ChatMessageList, ChatMessageInput };
 ### React Best Practices
 
 #### Component Structure
+
 ```typescript
 // ✅ Preferred component structure
 export const ComponentName: React.FC<Props> = ({ prop1, prop2 }) => {
@@ -193,12 +200,10 @@ export const ComponentName: React.FC<Props> = ({ prop1, prop2 }) => {
 ```
 
 #### Custom Hooks
+
 ```typescript
 // ✅ Good: Focused, reusable custom hooks
-export const useLocalStorage = <T>(
-  key: string,
-  initialValue: T
-): [T, (value: T) => void] => {
+export const useLocalStorage = <T>(key: string, initialValue: T): [T, (value: T) => void] => {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
@@ -209,14 +214,17 @@ export const useLocalStorage = <T>(
     }
   });
 
-  const setValue = useCallback((value: T) => {
-    try {
-      setStoredValue(value);
-      window.localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
-    }
-  }, [key]);
+  const setValue = useCallback(
+    (value: T) => {
+      try {
+        setStoredValue(value);
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        console.warn(`Error setting localStorage key "${key}":`, error);
+      }
+    },
+    [key]
+  );
 
   return [storedValue, setValue];
 };
@@ -225,6 +233,7 @@ export const useLocalStorage = <T>(
 ### Styling Guidelines
 
 #### Tailwind CSS Usage
+
 ```typescript
 // ✅ Good: Organized class names with consistent ordering
 <div className="
@@ -255,6 +264,7 @@ export const useLocalStorage = <T>(
 ### File and Folder Conventions
 
 #### Naming Conventions
+
 ```
 ✅ Good Examples:
 components/
@@ -288,6 +298,7 @@ utils/
 ```
 
 #### Import/Export Conventions
+
 ```typescript
 // ✅ Good: Organized imports
 // 1. React and library imports
@@ -362,7 +373,7 @@ describe('ChatInterface', () => {
 
   it('should render message input and send button', () => {
     render(<ChatInterface {...defaultProps} />);
-    
+
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument();
   });
@@ -370,15 +381,15 @@ describe('ChatInterface', () => {
   it('should enable send button only when input has text', async () => {
     const user = userEvent.setup();
     render(<ChatInterface {...defaultProps} />);
-    
+
     const input = screen.getByRole('textbox');
     const sendButton = screen.getByRole('button', { name: /send/i });
-    
+
     expect(sendButton).toBeDisabled();
-    
+
     await user.type(input, 'Hello');
     expect(sendButton).toBeEnabled();
-    
+
     await user.clear(input);
     expect(sendButton).toBeDisabled();
   });
@@ -398,22 +409,18 @@ describe('useLocalStorage', () => {
   });
 
   it('should return initial value when no stored value exists', () => {
-    const { result } = renderHook(() => 
-      useLocalStorage('test-key', 'initial')
-    );
-    
+    const { result } = renderHook(() => useLocalStorage('test-key', 'initial'));
+
     expect(result.current[0]).toBe('initial');
   });
 
   it('should store value in localStorage when setValue is called', () => {
-    const { result } = renderHook(() => 
-      useLocalStorage('test-key', 'initial')
-    );
-    
+    const { result } = renderHook(() => useLocalStorage('test-key', 'initial'));
+
     act(() => {
       result.current[1]('new value');
     });
-    
+
     expect(result.current[0]).toBe('new value');
     expect(localStorage.getItem('test-key')).toBe('"new value"');
   });
@@ -425,6 +432,7 @@ describe('useLocalStorage', () => {
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
 ### Commit Message Format
+
 ```
 <type>[optional scope]: <description>
 
@@ -434,6 +442,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 ```
 
 ### Types
+
 - **feat**: A new feature
 - **fix**: A bug fix
 - **docs**: Documentation only changes
@@ -444,6 +453,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 - **chore**: Changes to the build process or auxiliary tools
 
 ### Examples
+
 ```bash
 feat(chat): add message history persistence
 fix(auth): resolve GitHub OAuth callback issue
@@ -457,31 +467,39 @@ chore(deps): update React to v18.2.0
 ## 📝 Pull Request Guidelines
 
 ### PR Title Format
+
 Follow the same format as commit messages:
+
 ```
 feat(scope): brief description of changes
 ```
 
 ### PR Description Template
+
 ```markdown
 ## Description
+
 Brief summary of the changes and which issue is fixed.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Tests pass locally with my changes
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
 
 ## Screenshots (if applicable)
+
 Add screenshots to help explain your changes.
 
 ## Checklist
+
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -516,6 +534,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -528,9 +547,10 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment:**
- - OS: [e.g. macOS, Windows]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+
+- OS: [e.g. macOS, Windows]
+- Browser [e.g. chrome, safari]
+- Version [e.g. 22]
 
 **Additional context**
 Add any other context about the problem here.
@@ -625,7 +645,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -634,20 +654,20 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 bg-black bg-opacity-50"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div 
+      <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-header">
           <h2 id="modal-title">{title}</h2>
-          <button 
+          <button
             onClick={onClose}
             aria-label="Close modal"
             className="close-button"
@@ -668,16 +688,16 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
 
 ### Code Documentation
 
-```typescript
+````typescript
 /**
  * Generates a website structure based on user input and AI recommendations.
- * 
+ *
  * @param prompt - The user's description of their desired website
  * @param options - Configuration options for generation
  * @param options.template - Base template to use for generation
  * @param options.style - Visual style preferences
  * @returns Promise that resolves to generated website structure
- * 
+ *
  * @example
  * ```typescript
  * const website = await generateWebsite(
@@ -685,7 +705,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
  *   { template: 'portfolio', style: 'minimal' }
  * );
  * ```
- * 
+ *
  * @throws {APIError} When the AI service is unavailable
  * @throws {ValidationError} When the prompt is invalid
  */
@@ -695,11 +715,12 @@ export async function generateWebsite(
 ): Promise<WebsiteStructure> {
   // Implementation
 }
-```
+````
 
 ### README Updates
 
 When adding new features, update the README with:
+
 - Brief feature description
 - Usage examples
 - Configuration options
@@ -710,6 +731,7 @@ When adding new features, update the README with:
 ### Version Numbering
 
 We follow [Semantic Versioning](https://semver.org/):
+
 - **MAJOR**: Breaking changes
 - **MINOR**: New features (backward compatible)
 - **PATCH**: Bug fixes (backward compatible)
@@ -744,6 +766,7 @@ We follow [Semantic Versioning](https://semver.org/):
 ### Recognition
 
 Contributors will be:
+
 - Listed in the contributors section
 - Credited in release notes
 - Invited to maintainer team (for regular contributors)

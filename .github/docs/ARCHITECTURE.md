@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+
 # AI Site Generator - Architecture Documentation
 
 This document outlines the folder structure, naming conventions, and architectural principles implemented in the AI Site Generator project.
@@ -24,6 +25,7 @@ src/
 ## Naming Conventions
 
 ### Files and Directories
+
 - **Components**: PascalCase for component names and directories (`Button`, `SiteBuilder`)
 - **Files**: Match the component/export name (`Button.tsx`, `Button.types.ts`)
 - **Utilities**: camelCase for utility files (`stringUtils.ts`, `validation.ts`)
@@ -31,6 +33,7 @@ src/
 - **Assets**: kebab-case for asset files (`logo-small.svg`, `hero-background.jpg`)
 
 ### Code Conventions
+
 - **Components**: PascalCase (`<Button>`, `<SiteBuilder>`)
 - **Functions**: camelCase (`capitalize`, `isValidEmail`)
 - **Variables**: camelCase (`userName`, `apiResponse`)
@@ -40,6 +43,7 @@ src/
 ## Import/Export Patterns
 
 ### Absolute Imports
+
 The project uses absolute imports with path mapping for clean, maintainable code:
 
 ```typescript
@@ -53,6 +57,7 @@ import { API_CONFIG } from '@/constants';
 ```
 
 ### Index File Pattern
+
 Each directory includes an `index.ts` file that exports all public components/functions:
 
 ```typescript
@@ -65,6 +70,7 @@ import { Button, Input } from '@/components/ui';
 ```
 
 ### Component Structure
+
 Each component follows a consistent structure:
 
 ```
@@ -158,7 +164,9 @@ The `tsconfig.json` includes path mapping for clean imports:
       "@/constants/*": ["constants/*"],
       "@/assets/*": ["assets/*"]
     }
+
 =======
+
 # Architecture Documentation
 
 This document outlines the architectural principles, design patterns, and technical decisions that guide the AI Site Generator project.
@@ -166,6 +174,7 @@ This document outlines the architectural principles, design patterns, and techni
 ## 🏗 Architectural Principles
 
 ### KISS (Keep It Simple, Stupid)
+
 - **Minimal Dependencies**: Only essential libraries are included
 - **Clear Component Hierarchy**: Simple, predictable component structure
 - **Straightforward Data Flow**: Unidirectional data flow patterns
@@ -174,6 +183,7 @@ This document outlines the architectural principles, design patterns, and techni
 ### SOLID Principles
 
 #### Single Responsibility Principle (SRP)
+
 Each component and function has one clear purpose:
 
 ```typescript
@@ -194,6 +204,7 @@ export const ChatMessageWithActions = ({ message, onEdit, onDelete, onShare }) =
 ```
 
 #### Open/Closed Principle (OCP)
+
 Components are open for extension but closed for modification:
 
 ```typescript
@@ -220,7 +231,9 @@ export class ClaudeChatProvider implements ChatProvider {
 <<<<<<< HEAD
 This enables clean, absolute imports throughout the application while maintaining clear separation between different layers of the architecture.
 =======
+
 #### Liskov Substitution Principle (LSP)
+
 Derived components can replace base components without breaking functionality:
 
 ```typescript
@@ -232,12 +245,19 @@ interface EditorComponent {
 }
 
 // All implementations honor the contract
-export class TextEditor implements EditorComponent { /* ... */ }
-export class MarkdownEditor implements EditorComponent { /* ... */ }
-export class CodeEditor implements EditorComponent { /* ... */ }
+export class TextEditor implements EditorComponent {
+  /* ... */
+}
+export class MarkdownEditor implements EditorComponent {
+  /* ... */
+}
+export class CodeEditor implements EditorComponent {
+  /* ... */
+}
 ```
 
 #### Interface Segregation Principle (ISP)
+
 Interfaces are focused and specific:
 
 ```typescript
@@ -266,6 +286,7 @@ interface FileOperations {
 ```
 
 #### Dependency Inversion Principle (DIP)
+
 High-level modules depend on abstractions, not concretions:
 
 ```typescript
@@ -299,6 +320,7 @@ export const SiteDeployer = ({ gitHubService }: { gitHubService: GitHubService }
 ```
 
 ### DRY (Don't Repeat Yourself)
+
 - **Shared Components**: Reusable UI components in `/components/ui/`
 - **Custom Hooks**: Common logic extracted to hooks
 - **Utility Functions**: Shared helpers in `/utils/`
@@ -374,6 +396,7 @@ src/
 ### Component Patterns
 
 #### Compound Components Pattern
+
 For complex UI components with multiple related parts:
 
 ```typescript
@@ -393,6 +416,7 @@ export const Chat = {
 ```
 
 #### Render Props Pattern
+
 For sharing logic between components:
 
 ```typescript
@@ -416,6 +440,7 @@ export const Loading: React.FC<LoadingProps> = ({ children }) => {
 ```
 
 #### Custom Hooks Pattern
+
 For reusable stateful logic:
 
 ```typescript
@@ -525,7 +550,7 @@ export class OpenAIService {
       model: 'gpt-4',
       messages: [{ role: 'user', content: prompt }],
     });
-    
+
     return this.parseSiteStructure(response.choices[0].message.content);
   }
 
@@ -551,7 +576,7 @@ export class GitHubSiteRepository implements SiteRepository {
   async save(site: Site): Promise<void> {
     // GitHub-specific implementation
   }
-  
+
   async load(id: string): Promise<Site> {
     // GitHub-specific implementation
   }
@@ -678,10 +703,7 @@ interface AppEvents {
 }
 
 export const useEventBus = () => {
-  const emit = <T extends keyof AppEvents>(
-    event: T,
-    data: AppEvents[T]
-  ) => {
+  const emit = <T extends keyof AppEvents>(event: T, data: AppEvents[T]) => {
     // Event emission logic
   };
 
@@ -706,15 +728,15 @@ Test components in isolation with clear contracts:
 describe('ChatInterface', () => {
   it('should send message when form is submitted', async () => {
     const mockOnSend = jest.fn();
-    
+
     render(<ChatInterface onSend={mockOnSend} />);
-    
+
     const input = screen.getByRole('textbox');
     const submitButton = screen.getByRole('button', { name: /send/i });
-    
+
     await user.type(input, 'Hello AI');
     await user.click(submitButton);
-    
+
     expect(mockOnSend).toHaveBeenCalledWith('Hello AI');
   });
 });
@@ -728,24 +750,24 @@ Test complete user flows:
 describe('Site Creation Flow', () => {
   it('should create and deploy a site', async () => {
     render(<App />);
-    
+
     // Navigate to editor
     await user.click(screen.getByText('Create New Site'));
-    
+
     // Enter site details
     await user.type(screen.getByLabelText('Site Name'), 'My Test Site');
-    
+
     // Generate with AI
     await user.click(screen.getByText('Generate with AI'));
-    
+
     // Wait for generation
     await waitFor(() => {
       expect(screen.getByText('Site generated successfully')).toBeInTheDocument();
     });
-    
+
     // Deploy
     await user.click(screen.getByText('Deploy to GitHub Pages'));
-    
+
     // Verify deployment
     await waitFor(() => {
       expect(screen.getByText('Deployed successfully')).toBeInTheDocument();
@@ -790,4 +812,5 @@ Enforce architectural principles through linting:
 ```
 
 This architecture ensures maintainable, scalable, and testable code that follows industry best practices while keeping the complexity manageable.
->>>>>>> decbc82 (feat: add comprehensive documentation for project principles and conventions)
+
+> > > > > > > decbc82 (feat: add comprehensive documentation for project principles and conventions)

@@ -41,16 +41,17 @@ This document provides a comprehensive analysis of secure OAuth implementation m
 function generatePKCE() {
   const codeVerifier = base64URLEscape(crypto.getRandomValues(new Uint8Array(32)));
   const codeChallenge = base64URLEscape(sha256(codeVerifier));
-  
+
   return {
     codeVerifier,
     codeChallenge,
-    codeChallengeMethod: 'S256'
+    codeChallengeMethod: 'S256',
   };
 }
 
 // Authorization URL construction
-const authURL = `https://github.com/login/oauth/authorize?` +
+const authURL =
+  `https://github.com/login/oauth/authorize?` +
   `client_id=${CLIENT_ID}&` +
   `redirect_uri=${REDIRECT_URI}&` +
   `scope=${SCOPE}&` +
@@ -74,23 +75,27 @@ While possible, the traditional authorization code flow without PKCE poses secur
 **Use Case**: User authentication and acting on behalf of users
 
 #### Characteristics
+
 - **User-centric**: Designed for applications that need to act on behalf of users
 - **Scope-based permissions**: Uses OAuth scopes to define access levels
 - **User token**: Receives user access tokens
 - **Rate limits**: Subject to user-based rate limits (5,000 requests/hour for authenticated users)
 
 #### Pros
+
 - Simpler setup for user authentication
 - Familiar OAuth 2.0 flow
 - Good for applications that primarily need user data access
 - Supports PKCE for frontend-only apps
 
 #### Cons
+
 - Limited to user permissions
 - Cannot access organization-level data without user membership
 - Requires user to be online for token refresh
 
 #### Best for
+
 - Applications that need to authenticate users
 - User-centric workflows
 - Personal repository access
@@ -101,12 +106,14 @@ While possible, the traditional authorization code flow without PKCE poses secur
 **Use Case**: Application-centric authentication and automated workflows
 
 #### Characteristics
+
 - **App-centric**: Designed for applications that act as independent entities
 - **Fine-grained permissions**: More specific permission model
 - **Installation-based**: Installed on specific repositories or organizations
 - **Higher rate limits**: 15,000 requests/hour per installation
 
 #### Pros
+
 - More granular permissions
 - Can access organization data
 - Higher rate limits
@@ -114,12 +121,14 @@ While possible, the traditional authorization code flow without PKCE poses secur
 - Can act independently of user sessions
 
 #### Cons
+
 - More complex setup
 - Requires server-side components for some features
 - Installation flow required
 - Not suitable for pure frontend-only applications
 
 #### Best for
+
 - CI/CD integrations
 - Automated workflows
 - Organization-level applications
@@ -139,12 +148,12 @@ While possible, the traditional authorization code flow without PKCE poses secur
 ### @octokit/auth-oauth-app
 
 ```javascript
-import { createOAuthAppAuth } from "@octokit/auth-oauth-app";
+import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 
 const auth = createOAuthAppAuth({
-  clientType: "oauth-app",
-  clientId: "1234567890abcdef1234",
-  clientSecret: "1234567890abcdef12347890abcdef1234567890ab", // Not suitable for frontend
+  clientType: 'oauth-app',
+  clientId: '1234567890abcdef1234',
+  clientSecret: '1234567890abcdef12347890abcdef1234567890ab', // Not suitable for frontend
 });
 ```
 
@@ -153,12 +162,12 @@ const auth = createOAuthAppAuth({
 ### @octokit/auth-oauth-user
 
 ```javascript
-import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
+import { createOAuthUserAuth } from '@octokit/auth-oauth-user';
 
 const auth = createOAuthUserAuth({
-  clientId: "1234567890abcdef1234",
-  clientSecret: "1234567890abcdef12347890abcdef1234567890ab", // Problematic for frontend
-  code: "code_from_oauth_callback",
+  clientId: '1234567890abcdef1234',
+  clientSecret: '1234567890abcdef12347890abcdef1234567890ab', // Problematic for frontend
+  code: 'code_from_oauth_callback',
 });
 ```
 
@@ -173,15 +182,15 @@ class GitHubOAuthPKCE {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
     const codeVerifier = base64URLEncode(array);
-    
+
     const encoder = new TextEncoder();
     const data = encoder.encode(codeVerifier);
     const digest = await crypto.subtle.digest('SHA-256', data);
     const codeChallenge = base64URLEncode(new Uint8Array(digest));
-    
+
     return { codeVerifier, codeChallenge };
   }
-  
+
   buildAuthURL(clientId, redirectUri, scope, state, codeChallenge) {
     const params = new URLSearchParams({
       client_id: clientId,
@@ -189,9 +198,9 @@ class GitHubOAuthPKCE {
       scope: scope,
       state: state,
       code_challenge: codeChallenge,
-      code_challenge_method: 'S256'
+      code_challenge_method: 'S256',
     });
-    
+
     return `https://github.com/login/oauth/authorize?${params}`;
   }
 }
@@ -202,15 +211,19 @@ class GitHubOAuthPKCE {
 ### Third-party Libraries
 
 #### hello.js
+
 - **Pros**: Simple API, multiple providers
 - **Cons**: Limited PKCE support, not actively maintained
 
 #### AppAuth-JS
+
 - **Pros**: PKCE support, OAuth 2.0 compliant
 - **Cons**: More complex setup, additional dependency
 
 #### Recommendation
+
 **Native implementation with Web Crypto API** provides the best balance of:
+
 - Security (PKCE support)
 - Control (no external dependencies)
 - Compatibility (modern browser support)
@@ -221,20 +234,25 @@ class GitHubOAuthPKCE {
 ### XSS Protection Strategies
 
 #### Content Security Policy (CSP)
+
 ```html
-<meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; 
+<meta
+  http-equiv="Content-Security-Policy"
+  content="default-src 'self'; 
                connect-src 'self' https://api.github.com https://github.com;
                script-src 'self' 'unsafe-inline';
-               style-src 'self' 'unsafe-inline';">
+               style-src 'self' 'unsafe-inline';"
+/>
 ```
 
 #### Input Sanitization
+
 - Validate all user inputs
 - Use textContent instead of innerHTML when possible
 - Implement proper escaping for dynamic content
 
 #### Secure Token Handling
+
 - Never expose tokens in URLs or logs
 - Implement proper error handling to prevent token leakage
 - Use secure communication channels only (HTTPS)
@@ -242,20 +260,21 @@ class GitHubOAuthPKCE {
 ### Token Storage Security
 
 #### Memory Storage (Recommended)
+
 ```javascript
 class SecureTokenStorage {
   constructor() {
     this.tokens = new Map();
   }
-  
+
   setToken(key, token) {
     this.tokens.set(key, token);
   }
-  
+
   getToken(key) {
     return this.tokens.get(key);
   }
-  
+
   clearTokens() {
     this.tokens.clear();
   }
@@ -263,15 +282,18 @@ class SecureTokenStorage {
 ```
 
 **Pros**:
+
 - Not accessible via XSS attacks on storage APIs
 - Automatically cleared on page refresh/navigation
 - No persistence concerns
 
 **Cons**:
+
 - Lost on page refresh
 - Requires re-authentication frequently
 
 #### SessionStorage (Alternative)
+
 ```javascript
 // Encrypted storage approach
 class EncryptedSessionStorage {
@@ -279,7 +301,7 @@ class EncryptedSessionStorage {
     const encrypted = await this.encrypt(token);
     sessionStorage.setItem(key, encrypted);
   }
-  
+
   async getToken(key) {
     const encrypted = sessionStorage.getItem(key);
     return encrypted ? await this.decrypt(encrypted) : null;
@@ -288,16 +310,20 @@ class EncryptedSessionStorage {
 ```
 
 **Pros**:
+
 - Survives page refresh
 - Tab-scoped (more secure than localStorage)
 - Can be encrypted for additional security
 
 **Cons**:
+
 - Still accessible via XSS
 - Requires encryption implementation
 
 #### LocalStorage (Not Recommended)
+
 **Reasons to avoid**:
+
 - Persistent across sessions
 - Accessible via XSS attacks
 - Shared across all tabs
@@ -306,6 +332,7 @@ class EncryptedSessionStorage {
 ### CSRF Protection
 
 #### State Parameter Validation
+
 ```javascript
 function generateState() {
   const array = new Uint8Array(16);
@@ -319,6 +346,7 @@ function validateState(receivedState, expectedState) {
 ```
 
 #### Origin Validation
+
 ```javascript
 function validateOrigin(redirectUri) {
   const allowedOrigins = ['https://yourdomain.com'];
@@ -330,16 +358,17 @@ function validateOrigin(redirectUri) {
 ### Scope Management Best Practices
 
 #### Principle of Least Privilege
+
 ```javascript
 const REQUIRED_SCOPES = {
   basic: 'user:email',
   repository: 'repo',
-  publicOnly: 'public_repo'
+  publicOnly: 'public_repo',
 };
 
 // Request only necessary scopes
 function getRequiredScope(userAction) {
-  switch(userAction) {
+  switch (userAction) {
     case 'profile':
       return REQUIRED_SCOPES.basic;
     case 'createRepo':
@@ -353,6 +382,7 @@ function getRequiredScope(userAction) {
 ```
 
 #### Dynamic Scope Requests
+
 - Start with minimal scopes
 - Request additional scopes as needed
 - Clearly explain why each scope is required
@@ -404,17 +434,17 @@ const OAUTH_CONFIG = {
   clientId: process.env.GITHUB_CLIENT_ID,
   redirectUri: window.location.origin + '/oauth/callback',
   scope: 'user:email public_repo',
-  
+
   // Security settings
   useSecureStorage: true,
   enforceHTTPS: true,
   validateState: true,
   usePKCE: true,
-  
+
   // Token settings
   tokenStorageMethod: 'memory', // or 'sessionStorage'
   tokenExpirationBuffer: 300, // 5 minutes before actual expiry
-  automaticRefresh: false // Manual refresh for better control
+  automaticRefresh: false, // Manual refresh for better control
 };
 ```
 
@@ -423,16 +453,19 @@ const OAUTH_CONFIG = {
 ### Phase 1: Core OAuth Implementation (Week 1)
 
 #### Day 1-2: PKCE Implementation
+
 - [ ] Implement PKCE parameter generation
 - [ ] Create authorization URL builder
 - [ ] Implement code verifier storage
 
 #### Day 3-4: OAuth Flow
+
 - [ ] Build authorization redirect handler
 - [ ] Implement callback processing
 - [ ] Create token exchange functionality
 
 #### Day 5: Security Foundation
+
 - [ ] Implement secure token storage
 - [ ] Add state parameter validation
 - [ ] Configure CSP headers
@@ -440,16 +473,19 @@ const OAUTH_CONFIG = {
 ### Phase 2: Integration and Security (Week 2)
 
 #### Day 1-2: GitHub API Integration
+
 - [ ] Create authenticated API client
 - [ ] Implement error handling
 - [ ] Add rate limiting awareness
 
 #### Day 3-4: Enhanced Security
+
 - [ ] Add token expiration handling
 - [ ] Implement logout functionality
 - [ ] Create security monitoring
 
 #### Day 5: Testing and Validation
+
 - [ ] Security testing
 - [ ] Cross-browser compatibility
 - [ ] Performance optimization
@@ -457,16 +493,19 @@ const OAUTH_CONFIG = {
 ### Phase 3: Production Readiness (Week 3)
 
 #### Day 1-2: Error Handling
+
 - [ ] Comprehensive error scenarios
 - [ ] User-friendly error messages
 - [ ] Fallback mechanisms
 
 #### Day 3-4: Monitoring and Logging
+
 - [ ] Security event logging
 - [ ] Performance monitoring
 - [ ] Error tracking
 
 #### Day 5: Documentation
+
 - [ ] Implementation documentation
 - [ ] Security guidelines
 - [ ] Troubleshooting guide
@@ -482,33 +521,39 @@ const OAUTH_CONFIG = {
 ### High-Risk Scenarios
 
 #### 1. Authorization Code Interception
+
 **Risk Level**: High
 **Probability**: Medium (in compromised environments)
 **Impact**: Complete account takeover
 
 **Mitigation Strategies**:
+
 - ✅ Implement PKCE (primary mitigation)
 - ✅ Use HTTPS only
 - ✅ Validate redirect URIs
 - ✅ Short-lived authorization codes
 
 #### 2. Token Theft via XSS
+
 **Risk Level**: High
 **Probability**: Medium (depends on application security)
 **Impact**: API access with user permissions
 
 **Mitigation Strategies**:
+
 - ✅ Memory-based token storage
 - ✅ Content Security Policy
 - ✅ Input validation and sanitization
 - ✅ Regular security audits
 
 #### 3. CSRF Attacks
+
 **Risk Level**: Medium
 **Probability**: Low (with proper implementation)
 **Impact**: Unauthorized actions
 
 **Mitigation Strategies**:
+
 - ✅ State parameter validation
 - ✅ Origin validation
 - ✅ SameSite cookie attributes
@@ -517,22 +562,26 @@ const OAUTH_CONFIG = {
 ### Medium-Risk Scenarios
 
 #### 4. Token Replay Attacks
+
 **Risk Level**: Medium
 **Probability**: Low
 **Impact**: Limited by token scope and expiry
 
 **Mitigation Strategies**:
+
 - ✅ Short token lifetimes
 - ✅ Token binding (where possible)
 - ✅ Activity monitoring
 - ✅ Anomaly detection
 
 #### 5. Phishing Attacks
+
 **Risk Level**: Medium
 **Probability**: Medium
 **Impact**: User credential compromise
 
 **Mitigation Strategies**:
+
 - ✅ User education
 - ✅ Clear authorization screens
 - ✅ Domain validation
@@ -541,11 +590,13 @@ const OAUTH_CONFIG = {
 ### Low-Risk Scenarios
 
 #### 6. Network Interception
+
 **Risk Level**: Low
 **Probability**: Very Low (with HTTPS)
 **Impact**: Token or code interception
 
 **Mitigation Strategies**:
+
 - ✅ HTTPS enforcement
 - ✅ Certificate pinning (optional)
 - ✅ HSTS headers
@@ -553,14 +604,14 @@ const OAUTH_CONFIG = {
 
 ### Risk Matrix
 
-| Risk | Probability | Impact | Risk Level | Mitigation Priority |
-|------|-------------|--------|------------|-------------------|
-| Code Interception | Medium | High | High | Critical |
-| XSS Token Theft | Medium | High | High | Critical |
-| CSRF | Low | Medium | Medium | High |
-| Token Replay | Low | Medium | Medium | Medium |
-| Phishing | Medium | Medium | Medium | High |
-| Network Interception | Very Low | High | Low | Low |
+| Risk                 | Probability | Impact | Risk Level | Mitigation Priority |
+| -------------------- | ----------- | ------ | ---------- | ------------------- |
+| Code Interception    | Medium      | High   | High       | Critical            |
+| XSS Token Theft      | Medium      | High   | High       | Critical            |
+| CSRF                 | Low         | Medium | Medium     | High                |
+| Token Replay         | Low         | Medium | Medium     | Medium              |
+| Phishing             | Medium      | Medium | Medium     | High                |
+| Network Interception | Very Low    | High   | Low        | Low                 |
 
 ### Continuous Security Measures
 

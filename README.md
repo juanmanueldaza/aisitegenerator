@@ -78,6 +78,31 @@ src/
 - Diseño responsivo
 - Listo para GitHub Pages
 
+## 🔐 Autenticación con GitHub (PKCE + Device Flow)
+
+Esta app soporta dos flujos de autenticación:
+
+- PKCE (recomendado en producción)
+  - Registra un GitHub OAuth App con redirect URI exacta en tu dominio (por ejemplo, `https://aisitegenerator.daza.ar/oauth/callback`).
+  - El Client ID se puede ingresar en tiempo de ejecución desde la UI o via query string `?gh_client_id=...`.
+  - Puedes sobreescribir el redirect con `?gh_redirect=...` si necesitas probar otros entornos.
+- Device Authorization Flow (ideal para desarrollo local)
+  - No requiere callback ni variables en build. La UI muestra el código de usuario y la URL para autorizar.
+
+Depuración útil:
+
+- Agrega `?auth_debug=1` a la URL para ver logs de autenticación detallados (valores sensibles se enmascaran).
+
+Notas técnicas:
+
+- Los estados/tokens temporales se almacenan en `sessionStorage`.
+- En desarrollo, existe un proxy dev para endpoints de OAuth cuando es necesario.
+
+## 🚀 Despliegue a GitHub Pages
+
+- El flujo de subida a Contents API incluye `sha` al actualizar archivos para evitar errores de conflicto.
+- Asegúrate de tener GitHub Pages habilitado para la rama principal.
+
 ## 🎯 Roadmap
 
 - [ ] GitHub OAuth integration

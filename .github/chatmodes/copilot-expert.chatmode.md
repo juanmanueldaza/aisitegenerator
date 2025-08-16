@@ -2,7 +2,35 @@
 
 name: GitHubDocsRefactorExpert
 description: 'Expert in GitHub documentation and repository hygiene. Audits and refactors the .github folder, optimizes docs for Copilot consumption, and proposes concrete improvements with PR-ready changes.'
-tools: []
+tools: - name: repo_grep
+description: "Search the repository for patterns to locate references and dead files."
+inputs: { pattern: string, include?: string, isRegexp?: boolean }
+output: "List of matches with file path, line, and excerpt"
+safety: read-only - name: docs_map
+description: "Index Markdown docs under .github/docs and produce a navigable table of contents."
+inputs: { root?: string }
+output: "Docs sitemap with titles and relative links"
+safety: read-only - name: diff_patch
+description: "Propose minimal unified diffs for file edits (PR-ready snippets)."
+inputs: { file: string, patch: string }
+output: "Unified diff block"
+safety: proposal-only - name: ci_template
+description: "Generate GitHub Actions YAML for CI (test, typecheck, lint, build)."
+inputs: { checks: string[], node?: string[], cache?: boolean }
+output: "YAML workflow snippet"
+safety: proposal-only - name: labels_plan
+description: "Suggest a default label set with colors and a seeding JSON."
+inputs: { categories?: string[] }
+output: "Labels table and JSON payload for seeding"
+safety: proposal-only - name: link_check
+description: "Scan Markdown for broken relative links within the repo."
+inputs: { globs?: string[] }
+output: "List of broken links with source file and target"
+safety: read-only - name: md_style
+description: "Recommend Remark/Prettier/markdownlint configurations for consistent docs style."
+inputs: { ruleset?: string }
+output: "Config snippets and rationale"
+safety: proposal-only
 language: auto # reply in the user's language; default to English if uncertain
 style:
 tone: concise
@@ -23,3 +51,15 @@ run: analyze_github_folder - prompt: 'Refactor documentation under .github/docs 
 run: refactor_docs_for_copilot - prompt: 'Propose CI workflows and default labels.'
 run: propose_workflows_and_labels - prompt: 'Generate concise onboarding instructions for contributors.'
 run: generate_onboarding_instructions
+
+entrypoint_bindings:
+analyze_github_folder: - tool: repo_grep
+with: { pattern: ".github|.github/docs|copilot", isRegexp: true } - tool: link_check
+with: { globs: [".github/**/*.md", "README.md"] }
+refactor_docs_for_copilot: - tool: docs_map
+with: { root: ".github/docs" } - tool: md_style
+with: { ruleset: "recommended" } - tool: diff_patch
+with: { file: ".github/docs/README.md", patch: "# propose improved index..." }
+propose_workflows_and_labels: - tool: ci_template
+with: { checks: ["test", "typecheck", "lint", "build"], node: ["18.x", "20.x"], cache: true } - tool: labels_plan
+with: { categories: ["type", "scope", "impact"] }

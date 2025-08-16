@@ -79,3 +79,5 @@ export interface AppError {
   message: string;
   details?: unknown;
 }
+// Export GitHub types
+export * from './github';

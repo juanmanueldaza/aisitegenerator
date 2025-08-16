@@ -128,3 +128,5 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
 
   return [storedValue, setValue] as const;
 };
+// Export GitHub integration hook
+export { useGitHub } from './useGitHub';

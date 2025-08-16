@@ -8,3 +8,7 @@
 - Ensure `.env.example` reflects current runtime needs (Client ID optional due to runtime input)
 - Add CODEOWNERS and ownership of critical dirs (`src/services`, `.github/workflows`)
 - Tighten CI to run unit tests, typecheck, lint, and build on PRs
+
+Tip: In Copilot Chat, run the GitHubCopilotExpert mode
+
+- "Use GitHubCopilotExpert optimize_github_folder and propose a diff for missing workflows and labels."

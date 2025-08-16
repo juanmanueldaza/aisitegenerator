@@ -133,6 +133,21 @@ export interface AuthStatus {
   expiresAt?: number;
 }
 
+// Device Flow types
+export interface DeviceFlowStart {
+  device_code: string;
+  user_code: string;
+  verification_uri: string;
+  expires_in: number; // seconds
+  interval: number; // seconds
+}
+
+export interface DeviceFlowBeginInfo {
+  user_code: string;
+  verification_uri: string;
+  expires_in: number; // seconds
+}
+
 // OAuth scopes with descriptions
 export const GITHUB_SCOPES = {
   user: 'Access user profile information',

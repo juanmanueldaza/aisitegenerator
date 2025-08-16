@@ -5,6 +5,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import GitHubService from '../services/github';
+import { getRuntimeClientId, getRuntimeRedirectUri } from '../utils/githubConfig';
+import { dlog, mask } from '../utils/debug';
 import type {
   AuthStatus,
   GitHubUser,
@@ -13,11 +15,7 @@ import type {
 } from '../types/github';
 
 // GitHub OAuth configuration
-const GITHUB_CONFIG = {
-  clientId: import.meta.env.VITE_GITHUB_CLIENT_ID || 'your_github_client_id',
-  redirectUri: `${window.location.origin}/oauth/callback`,
-  scopes: ['user:email', 'public_repo'],
-};
+const ENV_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID || '';
 
 interface UseGitHubReturn {
   // Authentication state
@@ -28,6 +26,12 @@ interface UseGitHubReturn {
 
   // Authentication methods
   login: () => Promise<void>;
+  startDeviceAuth: () => Promise<{
+    user_code: string;
+    verification_uri: string;
+    expires_in: number;
+    poll: () => Promise<void>;
+  }>;
   logout: () => void;
 
   // Repository methods
@@ -55,13 +59,25 @@ export const useGitHub = (): UseGitHubReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Use ref to maintain service instance across renders
+  // Use refs to maintain service instance and current clientId across renders
   const serviceRef = useRef<GitHubService | null>(null);
+  const clientIdRef = useRef<string>('');
 
   // Initialize service
   const getService = useCallback(() => {
-    if (!serviceRef.current) {
-      serviceRef.current = new GitHubService(GITHUB_CONFIG);
+    const runtimeId = getRuntimeClientId() || ENV_CLIENT_ID || '';
+    dlog('resolve clientId', { runtime: mask(runtimeId) });
+
+    // (Re)create service when first used or when clientId changed
+    if (!serviceRef.current || clientIdRef.current !== runtimeId) {
+      dlog('create GitHubService', { clientId: mask(runtimeId) });
+      const redirectOverride = getRuntimeRedirectUri();
+      serviceRef.current = new GitHubService({
+        clientId: runtimeId,
+        redirectUri: redirectOverride || `${window.location.origin}/oauth/callback`,
+        scopes: ['user:email', 'public_repo'],
+      });
+      clientIdRef.current = runtimeId;
     }
     return serviceRef.current;
   }, []);
@@ -75,6 +91,7 @@ export const useGitHub = (): UseGitHubReturn => {
 
         const service = getService();
         const status = await service.initialize();
+        dlog('initialize status', { isAuthenticated: status.isAuthenticated, user: status.user });
 
         setAuthStatus(status);
 
@@ -111,12 +128,21 @@ export const useGitHub = (): UseGitHubReturn => {
     try {
       setError(null);
       const service = getService();
+      dlog('login start');
       await service.login();
+      dlog('login redirect initiated');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      dlog('login error', errorMessage, err);
       setError(errorMessage);
       throw err;
     }
+  }, [getService]);
+
+  // Device Flow
+  const startDeviceAuth = useCallback(async () => {
+    const service = getService();
+    return service.startDeviceAuth();
   }, [getService]);
 
   // Logout method
@@ -229,6 +255,7 @@ export const useGitHub = (): UseGitHubReturn => {
 
     // Authentication methods
     login,
+    startDeviceAuth,
     logout,
 
     // Repository methods

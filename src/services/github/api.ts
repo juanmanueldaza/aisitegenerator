@@ -181,24 +181,39 @@ export class GitHubAPIService {
     repo: string,
     path: string
   ): Promise<{ content: string; sha: string; encoding: string }> {
-    return this.request(`/repos/${owner}/${repo}/contents/${path}`);
+    return this.request<{ content: string; sha: string; encoding: string }>(
+      `/repos/${owner}/${repo}/contents/${path}`
+    );
   }
 
   /**
    * Upload multiple files to repository
    */
   async uploadFiles(owner: string, repo: string, files: GitHubFileContent[]): Promise<void> {
-    const uploadPromises = files.map((file) =>
-      this.createOrUpdateFile(
+    for (const file of files) {
+      let existingSha: string | undefined;
+      try {
+        const existing = await this.getFileContent(owner, repo, file.path);
+        if (existing && existing.sha) {
+          existingSha = existing.sha;
+        }
+      } catch (err) {
+        // If file not found, proceed without sha; any other error should rethrow
+        const message = err instanceof Error ? err.message : String(err);
+        if (!/not found/i.test(message)) {
+          throw err;
+        }
+      }
+
+      await this.createOrUpdateFile(
         owner,
         repo,
         file.path,
         file.content,
-        file.message || `Add ${file.path}`
-      )
-    );
-
-    await Promise.all(uploadPromises);
+        file.message || (existingSha ? `Update ${file.path}` : `Add ${file.path}`),
+        existingSha
+      );
+    }
   }
 
   /**

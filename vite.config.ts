@@ -5,6 +5,31 @@ import path from 'path';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      // Dev-only proxy to bypass browser CORS when calling GitHub OAuth endpoints
+      '/__gh/oauth': {
+        target: 'https://github.com',
+        changeOrigin: true,
+        secure: true,
+        headers: {
+          'User-Agent': 'aisitegenerator-dev-proxy',
+          Accept: 'application/json',
+        },
+        rewrite: (p) => p.replace(/^\/__gh\/oauth/, '/login/oauth'),
+      },
+      '/__gh/device': {
+        target: 'https://github.com',
+        changeOrigin: true,
+        secure: true,
+        headers: {
+          'User-Agent': 'aisitegenerator-dev-proxy',
+          Accept: 'application/json',
+        },
+        rewrite: (p) => p.replace(/^\/__gh\/device/, '/login/device'),
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

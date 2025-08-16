@@ -20,6 +20,14 @@ export default defineConfig({
     setupFiles: './src/setupTests.ts',
     css: true,
     globals: false,
+    // Explicitly exclude node_modules and other common folders in addition to our e2e tests.
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.{git,svn,hg}/**',
+      'tests/e2e/**',
+      ...(process.env.VITEST_EXCLUDE ? process.env.VITEST_EXCLUDE.split(',') : []),
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

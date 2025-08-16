@@ -12,6 +12,7 @@ import type {
   CreateRepositoryParams,
 } from '../../types/github';
 import { SCOPE_SETS } from '../../types/github';
+import { dlog, mask } from '../../utils/debug';
 
 export class GitHubService {
   private authService: GitHubAuthService;
@@ -31,7 +32,9 @@ export class GitHubService {
     // Check if we're in an OAuth callback
     if (this.authService.isCallback()) {
       try {
+        dlog('OAuth callback detected');
         const token = await this.authService.handleCallback(window.location.href);
+        dlog('OAuth token obtained', { token: mask(token) });
         await this.setToken(token);
 
         // Clean up URL
@@ -48,10 +51,12 @@ export class GitHubService {
     const existingToken = this.getStoredToken();
     if (existingToken) {
       try {
+        dlog('existing token found', { token: mask(existingToken) });
         await this.setToken(existingToken);
         return this.getAuthStatus();
       } catch {
         // Token might be invalid, clear it
+        dlog('existing token invalid, clearing');
         this.clearToken();
       }
     }
@@ -64,6 +69,27 @@ export class GitHubService {
    */
   async login(scopes: string[] = SCOPE_SETS.basic): Promise<void> {
     await this.authService.initiateAuth(scopes);
+  }
+
+  /**
+   * Start Device Authorization Flow and return instructions + poll handle.
+   */
+  async startDeviceAuth(scopes: string[] = SCOPE_SETS.basic): Promise<{
+    user_code: string;
+    verification_uri: string;
+    expires_in: number;
+    poll: () => Promise<void>;
+  }> {
+    const session = await this.authService.startDeviceFlow(scopes);
+    return {
+      user_code: session.user_code,
+      verification_uri: session.verification_uri,
+      expires_in: session.expires_in,
+      poll: async () => {
+        const token = await session.poll();
+        await this.setToken(token);
+      },
+    };
   }
 
   /**
@@ -87,9 +113,11 @@ export class GitHubService {
 
     // Fetch user information
     try {
+      dlog('fetch current user');
       this.currentUser = await this.apiService.getUser();
     } catch {
       // If we can't get user info, the token is likely invalid
+      dlog('fetch user failed, clearing token');
       this.clearToken();
       throw new Error('Invalid authentication token');
     }
@@ -103,6 +131,7 @@ export class GitHubService {
       // Use sessionStorage for security (cleared on tab close)
       // In production, consider more secure storage options
       sessionStorage.setItem('github_token', token);
+      dlog('token stored in sessionStorage');
     } catch (error) {
       console.warn('Failed to store token:', error);
     }
@@ -113,7 +142,9 @@ export class GitHubService {
    */
   private getStoredToken(): string | null {
     try {
-      return sessionStorage.getItem('github_token');
+      const t = sessionStorage.getItem('github_token');
+      dlog('getStoredToken', { present: !!t });
+      return t;
     } catch (error) {
       console.warn('Failed to retrieve token:', error);
       return null;
@@ -127,6 +158,7 @@ export class GitHubService {
     try {
       sessionStorage.removeItem('github_token');
       this.apiService.clearToken();
+      dlog('token cleared');
     } catch (error) {
       console.warn('Failed to clear token:', error);
     }
@@ -226,7 +258,7 @@ export class GitHubService {
       throw new Error('User information not available');
     }
 
-    // Upload files to repository
+    // Upload files to repository (create or update, with sha handling)
     await this.apiService.uploadFiles(user.login, repoName, files);
 
     // Enable GitHub Pages

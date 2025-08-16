@@ -3,7 +3,17 @@
  * Implements PKCE (Proof Key for Code Exchange) for secure frontend-only OAuth
  */
 
-import type { GitHubAuthConfig, GitHubAuthState, PKCEParams } from '../../types/github';
+import type {
+  GitHubAuthConfig,
+  GitHubAuthState,
+  PKCEParams,
+  DeviceFlowStart,
+} from '../../types/github';
+import { dlog, mask } from '../../utils/debug';
+// Vite exposes import.meta.env.DEV as boolean
+const isDev =
+  typeof import.meta !== 'undefined' &&
+  (import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV === true;
 
 export class GitHubAuthService {
   private config: GitHubAuthConfig;
@@ -110,6 +120,16 @@ export class GitHubAuthService {
    * Build authorization URL with PKCE parameters
    */
   async buildAuthorizationURL(scopes: string[] = ['user:email', 'public_repo']): Promise<string> {
+    if (!this.config.clientId || !this.config.clientId.trim()) {
+      throw new Error(
+        'GitHub Client ID is not configured. Please provide your OAuth App Client ID.'
+      );
+    }
+    dlog('buildAuthorizationURL', {
+      clientId: mask(this.config.clientId),
+      redirectUri: this.config.redirectUri,
+      scopes,
+    });
     const pkce = await this.generatePKCE();
     const state = this.generateState();
 
@@ -133,7 +153,9 @@ export class GitHubAuthService {
       response_type: 'code',
     });
 
-    return `https://github.com/login/oauth/authorize?${params.toString()}`;
+    const url = `https://github.com/login/oauth/authorize?${params.toString()}`;
+    dlog('authorization URL', url);
+    return url;
   }
 
   /**
@@ -144,6 +166,7 @@ export class GitHubAuthService {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
+    dlog('handleCallback params', { code: mask(code || ''), state: mask(state || ''), error });
 
     // Check for OAuth errors
     if (error) {
@@ -156,13 +179,18 @@ export class GitHubAuthService {
 
     // Validate state parameter
     const storedState = this.getAuthState();
+    dlog('stored auth state present?', !!storedState);
     if (!storedState || storedState.state !== state) {
       throw new Error('Invalid state parameter - possible CSRF attack');
     }
 
     try {
       // Exchange authorization code for access token
-      const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      dlog('exchange token POST', { clientId: mask(this.config.clientId) });
+      const tokenEndpoint = isDev
+        ? '/__gh/oauth/access_token'
+        : 'https://github.com/login/oauth/access_token';
+      const tokenResponse = await fetch(tokenEndpoint, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -180,6 +208,11 @@ export class GitHubAuthService {
       }
 
       const tokenData = await tokenResponse.json();
+      dlog('token response', {
+        ok: tokenResponse.ok,
+        status: tokenResponse.status,
+        hasToken: !!tokenData?.access_token,
+      });
 
       if (tokenData.error) {
         throw new Error(`Token exchange error: ${tokenData.error_description || tokenData.error}`);
@@ -205,6 +238,103 @@ export class GitHubAuthService {
   async initiateAuth(scopes?: string[]): Promise<void> {
     const authURL = await this.buildAuthorizationURL(scopes);
     window.location.href = authURL;
+  }
+
+  /**
+   * Start Device Authorization Flow (no redirect needed)
+   * Returns polling handle and human steps (user code + verification URI)
+   */
+  async startDeviceFlow(scopes: string[] = ['user:email', 'public_repo']): Promise<{
+    user_code: string;
+    verification_uri: string;
+    expires_in: number;
+    poll: () => Promise<string>;
+  }> {
+    if (!this.config.clientId || !this.config.clientId.trim()) {
+      throw new Error(
+        'GitHub Client ID is not configured. Please provide your OAuth App Client ID.'
+      );
+    }
+
+    const params = new URLSearchParams({
+      client_id: this.config.clientId,
+      scope: scopes.join(' '),
+    });
+
+    dlog('device flow: requesting code', { clientId: mask(this.config.clientId), scopes });
+    const deviceCodeEndpoint = isDev ? '/__gh/device/code' : 'https://github.com/login/device/code';
+    const resp = await fetch(deviceCodeEndpoint, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+    if (!resp.ok) {
+      throw new Error(`Device code request failed: ${resp.status}`);
+    }
+    const data = (await resp.json()) as DeviceFlowStart;
+    dlog('device flow: received', {
+      verification_uri: data.verification_uri,
+      user_code: mask(data.user_code),
+    });
+
+    const startedAt = Date.now();
+    const expiresMs = data.expires_in * 1000;
+    const intervalMs = Math.max(5, data.interval) * 1000;
+
+    const poll = async (): Promise<string> => {
+      while (true) {
+        if (Date.now() - startedAt > expiresMs) {
+          throw new Error('Device verification expired. Please restart sign-in.');
+        }
+        // Poll for token
+        const tokenEndpoint = isDev
+          ? '/__gh/oauth/access_token'
+          : 'https://github.com/login/oauth/access_token';
+        const tokenResp = await fetch(tokenEndpoint, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: this.config.clientId,
+            device_code: data.device_code,
+            grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+          }).toString(),
+        });
+        if (!tokenResp.ok) {
+          throw new Error(`Device token poll failed: ${tokenResp.status}`);
+        }
+        const tokenData = await tokenResp.json();
+        if (tokenData.access_token) {
+          dlog('device flow: token acquired');
+          return tokenData.access_token as string;
+        }
+        if (tokenData.error === 'authorization_pending') {
+          await new Promise((r) => setTimeout(r, intervalMs));
+          continue;
+        }
+        if (tokenData.error === 'slow_down') {
+          await new Promise((r) => setTimeout(r, intervalMs + 5000));
+          continue;
+        }
+        if (tokenData.error === 'expired_token' || tokenData.error === 'access_denied') {
+          throw new Error('Device verification failed or was denied.');
+        }
+        // Unknown state; wait a bit and retry
+        await new Promise((r) => setTimeout(r, intervalMs));
+      }
+    };
+
+    return {
+      user_code: data.user_code,
+      verification_uri: data.verification_uri,
+      expires_in: data.expires_in,
+      poll,
+    };
   }
 
   /**

@@ -9,6 +9,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAIProvider } from '@/services/ai';
 import GeminiProvider from '@/services/ai/gemini';
 import { renderMarkdown } from '@/utils/content';
+import { Toast } from '@/components/ui';
 import type { AIMessage } from '@/types/ai';
 
 interface Message {
@@ -46,7 +47,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   const [validating, setValidating] = useState<boolean>(false);
   const [toast, setToast] = useState<string>('');
   const [autoApply, setAutoApply] = useLocalStorage<boolean>('CHAT_AUTO_APPLY', true);
-  const [lastApplied, setLastApplied] = useState<string>('');
+  const [preferMarkdown, setPreferMarkdown] = useLocalStorage<boolean>('CHAT_PREFER_MD', false);
+  const [lastApplied, setLastApplied] = useLocalStorage<string>('CHAT_LAST_APPLIED', '');
   const [lastCandidate, setLastCandidate] = useState<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -272,7 +274,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
     items: Array<{ kind: 'html' | 'markdown'; body: string; index: number }>
   ): { kind: 'html' | 'markdown'; body: string; index: number } | null {
     if (!items.length) return null;
-    // Prefer HTML if present, else first markdown
+    if (preferMarkdown) {
+      const md = items.find((b) => b.kind === 'markdown');
+      return md || items[0];
+    }
     const html = items.find((b) => b.kind === 'html');
     return html || items[0];
   }
@@ -458,6 +463,15 @@ What type of website interests you most? Or tell me more about your specific nee
             />
             Auto-apply
           </label>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <input
+              type="checkbox"
+              checked={preferMarkdown}
+              onChange={(e) => setPreferMarkdown(e.target.checked)}
+              title="Prefer Markdown when auto-applying code blocks"
+            />
+            Prefer Markdown
+          </label>
           <span
             aria-live="polite"
             style={{ fontSize: 12, color: connected ? '#1f883d' : '#666' }}
@@ -606,24 +620,7 @@ What type of website interests you most? Or tell me more about your specific nee
       </div>
 
       <div className="chat-input">
-        {toast && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              position: 'absolute',
-              bottom: 80,
-              left: 16,
-              background: 'rgba(17,24,39,0.9)',
-              color: '#fff',
-              padding: '6px 10px',
-              borderRadius: 6,
-              fontSize: 12,
-            }}
-          >
-            {toast}
-          </div>
-        )}
+        <Toast message={toast} visible={!!toast} />
         <div className="input-container">
           <textarea
             ref={inputRef}

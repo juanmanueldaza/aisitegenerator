@@ -8,8 +8,7 @@ import './ChatInterface.css';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAIProvider } from '@/services/ai';
 import GeminiProvider from '@/services/ai/gemini';
-import { renderMarkdown } from '@/utils/content';
-import { Toast } from '@/components/ui';
+import { Toast, MarkdownView } from '@/components/ui';
 import type { AIMessage } from '@/types/ai';
 
 interface Message {
@@ -516,11 +515,7 @@ What type of website interests you most? Or tell me more about your specific nee
                     <code>{message.content}</code>
                   </pre>
                 ) : (
-                  <div
-                    className="message-text"
-                    // Safe: renderMarkdown sanitizes HTML with DOMPurify
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
-                  />
+                  <MarkdownView className="message-text" content={message.content} />
                 )}
                 {(best || message.sender === 'ai') && (
                   <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>

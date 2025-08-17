@@ -19,6 +19,7 @@ export class GitHubService {
   private apiService: GitHubAPIService;
   private currentUser: GitHubUser | null = null;
   private currentToken: string | null = null;
+  private currentScopes: string[] = [];
 
   constructor(config: GitHubAuthConfig) {
     this.authService = new GitHubAuthService(config);
@@ -115,6 +116,12 @@ export class GitHubService {
     try {
       dlog('fetch current user');
       this.currentUser = await this.apiService.getUser();
+      // Also fetch token scopes
+      try {
+        this.currentScopes = await this.apiService.getTokenScopes();
+      } catch {
+        this.currentScopes = [];
+      }
     } catch {
       // If we can't get user info, the token is likely invalid
       dlog('fetch user failed, clearing token');
@@ -172,7 +179,7 @@ export class GitHubService {
       isAuthenticated: !!this.currentToken && !!this.currentUser,
       user: this.currentUser,
       token: this.currentToken,
-      scopes: [], // TODO: Implement scope detection
+      scopes: this.currentScopes,
     };
   }
 

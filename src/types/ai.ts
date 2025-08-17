@@ -12,6 +12,8 @@ export interface ProviderOptions {
   systemInstruction?: string;
   temperature?: number;
   thinkingBudgetTokens?: number; // optional thinking budget when supported
+  // Optional callback invoked when a retry is scheduled by the provider
+  onRetry?: (info: { attempt: number; delayMs: number; error: unknown }) => void;
 }
 
 export interface GenerateResult {

@@ -98,6 +98,10 @@ Notas técnicas:
 - Los estados/tokens temporales se almacenan en `sessionStorage`.
 - En desarrollo, existe un proxy dev para endpoints de OAuth cuando es necesario.
 
+### Seguridad y CSP
+
+Lee SECURITY.md para recomendaciones de almacenamiento de tokens, pautas de Content Security Policy y cómo revocar permisos.
+
 ## 🚀 Despliegue a GitHub Pages
 
 - El flujo de subida a Contents API incluye `sha` al actualizar archivos para evitar errores de conflicto.

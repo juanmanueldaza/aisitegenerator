@@ -9,8 +9,8 @@ import type {
   CreateRepositoryParams,
   GitHubFileContent,
   GitHubPagesConfig,
-  GitHubAPIError,
 } from '../../types/github';
+import { normalizeGitHubError, sleep } from '@/utils/githubErrors';
 
 export class GitHubAPIService {
   private baseURL = 'https://api.github.com';
@@ -53,40 +53,49 @@ export class GitHubAPIService {
       ...options.headers,
     };
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
+    // Simple retry with backoff for rate limit and 5xx
+    const maxAttempts = 2;
+    let attempt = 0;
+    while (true) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers,
+        });
 
-      // Handle rate limiting
-      if (response.status === 403) {
-        const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
-        const rateLimitReset = response.headers.get('X-RateLimit-Reset');
-
-        if (rateLimitRemaining === '0') {
-          const resetTime = rateLimitReset ? new Date(parseInt(rateLimitReset) * 1000) : new Date();
-          throw new Error(`Rate limit exceeded. Resets at ${resetTime.toLocaleTimeString()}`);
+        if (!response.ok) {
+          // Normalize and maybe retry
+          const text = await response.text().catch(() => '');
+          const norm = normalizeGitHubError(
+            new Error(text || response.statusText),
+            response.status,
+            response.headers
+          );
+          if ((norm.code === 'rate_limited' || norm.code === 'server') && attempt < maxAttempts) {
+            attempt++;
+            const delay = norm.retryAfterMs ?? 1000 * attempt;
+            await sleep(delay);
+            continue;
+          }
+          throw new Error(norm.message);
         }
-      }
 
-      if (!response.ok) {
-        const errorData = (await response.json().catch(() => ({}))) as GitHubAPIError;
-        const message = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(message);
-      }
+        // Handle empty responses (like 204 No Content)
+        if (response.status === 204) {
+          return {} as T;
+        }
 
-      // Handle empty responses (like 204 No Content)
-      if (response.status === 204) {
-        return {} as T;
+        return (await response.json().catch(() => ({}))) as T;
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Network error occurred';
+        // Non-HTTP errors won't have status, try retry a bit
+        if (attempt < maxAttempts) {
+          attempt++;
+          await sleep(500 * attempt);
+          continue;
+        }
+        throw new Error(msg);
       }
-
-      return await response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Network error occurred');
     }
   }
 

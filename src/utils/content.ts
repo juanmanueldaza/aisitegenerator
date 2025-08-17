@@ -1,11 +1,36 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import Prism from 'prismjs';
+import { markedHighlight } from 'marked-highlight';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-markup';
+import 'prismjs/components/prism-markdown';
 
 // Configure marked for security and basic features
 marked.setOptions({
   gfm: true,
   breaks: true,
 });
+
+marked.use(
+  markedHighlight({
+    highlight(code: string, lang?: string) {
+      try {
+        const P = Prism as unknown as {
+          languages: Record<string, unknown>;
+          highlight: (c: string, g: unknown, l: string) => string;
+        };
+        const language = lang && P.languages[lang] ? lang : 'markup';
+        return P.highlight(code, P.languages[language], language);
+      } catch {
+        return code;
+      }
+    },
+  })
+);
 
 // Safely render markdown content to sanitized HTML
 export function renderMarkdown(content: string): string {
@@ -63,6 +88,8 @@ export function renderMarkdown(content: string): string {
         'th',
         'td',
         'hr',
+        // Code highlighting wrappers
+        'span',
       ],
       ALLOWED_ATTR: [
         'href',
@@ -73,6 +100,7 @@ export function renderMarkdown(content: string): string {
         'class',
         'id',
         'style',
+        'language',
         // Common SVG attributes
         'viewBox',
         'xmlns',

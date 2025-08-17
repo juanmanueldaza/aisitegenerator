@@ -8,6 +8,7 @@ import './ChatInterface.css';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAIProvider } from '@/services/ai';
 import GeminiProvider from '@/services/ai/gemini';
+import { renderMarkdown } from '@/utils/content';
 import type { AIMessage } from '@/types/ai';
 
 interface Message {
@@ -386,14 +387,11 @@ What type of website interests you most? Or tell me more about your specific nee
                   <code>{message.content}</code>
                 </pre>
               ) : (
-                <div className="message-text">
-                  {message.content.split('\n').map((line, index) => (
-                    <React.Fragment key={index}>
-                      {line}
-                      {index < message.content.split('\n').length - 1 && <br />}
-                    </React.Fragment>
-                  ))}
-                </div>
+                <div
+                  className="message-text"
+                  // Safe: renderMarkdown sanitizes HTML with DOMPurify
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                />
               )}
             </div>
             <div className="message-time">

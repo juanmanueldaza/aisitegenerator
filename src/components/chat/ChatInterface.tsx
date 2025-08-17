@@ -10,6 +10,7 @@ import { useAIProvider } from '@/services/ai';
 import GeminiProvider from '@/services/ai/gemini';
 import { Toast, MarkdownView } from '@/components/ui';
 import type { AIMessage } from '@/types/ai';
+import { useSiteStore } from '@/store/siteStore';
 
 interface Message {
   id: string;
@@ -25,6 +26,7 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, className = '' }) => {
+  const store = useSiteStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -39,12 +41,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useLocalStorage<string>('GEMINI_API_KEY', '');
-  const [model, setModel] = useState<string>('gemini-2.0-flash');
+  const [model, setModel] = useState<string>('gemini-2.5-flash');
   const ai = useAIProvider('gemini');
   const [connected, setConnected] = useState<boolean>(false);
   const [connectMsg, setConnectMsg] = useState<string>('');
   const [validating, setValidating] = useState<boolean>(false);
   const [toast, setToast] = useState<string>('');
+  // Rate limit UX: show countdown when provider schedules a retry
+  const [retryInfo, setRetryInfo] = useState<{ nextInMs: number; attempt: number } | null>(null);
+  const retryTimerRef = useRef<number | null>(null);
   const [autoApply, setAutoApply] = useLocalStorage<boolean>('CHAT_AUTO_APPLY', true);
   const [preferMarkdown, setPreferMarkdown] = useLocalStorage<boolean>('CHAT_PREFER_MD', false);
   const [lastApplied, setLastApplied] = useLocalStorage<string>('CHAT_LAST_APPLIED', '');
@@ -57,6 +62,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Hydrate from store on mount/when store messages change
+  useEffect(() => {
+    if (store.messages.length > 0) {
+      const hydrated: Message[] = store.messages.map((m) => ({
+        id: m.id,
+        content: m.content,
+        sender: m.role === 'assistant' ? 'ai' : 'user',
+        timestamp: new Date(m.timestamp),
+        type: 'text',
+      }));
+      setMessages(hydrated);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.messages.length]);
 
   // Focus input on mount
   useEffect(() => {
@@ -112,6 +132,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
       return;
     }
     if (onSiteGenerated) onSiteGenerated({ content });
+    store.setContent(content);
+    store.commit();
     setLastApplied(content);
     showToast('Re-applied last AI code');
   };
@@ -149,6 +171,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    store.appendMessage({
+      id: userMessage.id,
+      role: 'user',
+      content: userMessage.content,
+      timestamp: Date.now(),
+    });
     setInputValue('');
     setIsLoading(true);
     setIsTyping(true);
@@ -177,6 +205,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
         systemInstruction:
           'You are a helpful assistant that generates website plans and code snippets when asked. Prefer concise, actionable responses.',
         temperature: 0.6,
+        onRetry: ({ attempt, delayMs }) => {
+          // Start/refresh a simple countdown
+          if (retryTimerRef.current) window.clearInterval(retryTimerRef.current);
+          const endAt = Date.now() + delayMs;
+          const tick = () => {
+            const remaining = Math.max(0, endAt - Date.now());
+            setRetryInfo({ nextInMs: remaining, attempt });
+            if (remaining <= 0 && retryTimerRef.current) {
+              window.clearInterval(retryTimerRef.current);
+              retryTimerRef.current = null;
+            }
+          };
+          tick();
+          retryTimerRef.current = window.setInterval(tick, 500) as unknown as number;
+        },
       })) {
         accumulated += chunk.text;
         setMessages((prev) => {
@@ -200,12 +243,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
             },
           ];
         });
+        // mirror streaming assistant message into store in-place
+        store.upsertStreamingAssistant(accumulated);
       }
 
       // finalize message id
       setMessages((prev) =>
         prev.map((m) => (m.id === 'streaming' ? { ...m, id: (Date.now() + 1).toString() } : m))
       );
+      store.replaceLastAssistantMessage(accumulated);
+      store.commit();
 
       // Try to auto-apply previewable content (HTML/Markdown code fences)
       const picks = extractPreviewables(accumulated);
@@ -214,6 +261,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
         setLastCandidate(best.body);
         if (autoApply && onSiteGenerated) {
           onSiteGenerated({ content: best.body });
+          store.setContent(best.body);
+          store.commit();
           setLastApplied(best.body);
           showToast('Applied AI code to editor');
         } else if (!autoApply) {
@@ -236,6 +285,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
     } finally {
       setIsLoading(false);
       setIsTyping(false);
+      // Clear retry banner
+      if (retryTimerRef.current) {
+        window.clearInterval(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+      setRetryInfo(null);
     }
   };
 
@@ -404,9 +459,18 @@ What type of website interests you most? Or tell me more about your specific nee
 
     setMessages((prev) => [...prev, aiMessage]);
 
-    // Call the callback if provided and we have generated content
-    if (onSiteGenerated && responseType === 'code') {
-      onSiteGenerated({ content: aiResponse });
+    // Extract previewable blocks and optionally auto-apply best block like streaming path
+    const picks = extractPreviewables(aiResponse);
+    const best = getBestPreviewable(picks);
+    if (best) {
+      setLastCandidate(best.body);
+      if (autoApply) {
+        if (onSiteGenerated) onSiteGenerated({ content: best.body });
+        store.setContent(best.body);
+        store.commit();
+        setLastApplied(best.body);
+        showToast('Applied AI code to editor');
+      }
     }
   };
 
@@ -422,6 +486,8 @@ What type of website interests you most? Or tell me more about your specific nee
         type: 'text',
       },
     ]);
+    // Also clear messages in the store without touching content/history
+    store.clearMessages();
   };
 
   return (
@@ -431,6 +497,24 @@ What type of website interests you most? Or tell me more about your specific nee
           <h2>AI Website Assistant</h2>
           <span className="chat-status">Online</span>
         </div>
+        {retryInfo && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              background: '#fff3cd',
+              color: '#664d03',
+              border: '1px solid #ffecb5',
+              borderRadius: 6,
+              padding: '6px 10px',
+              fontSize: 12,
+            }}
+            title="Rate limited: auto-retrying"
+          >
+            Rate limited. Retrying (attempt {retryInfo.attempt + 1}) in{' '}
+            {Math.ceil(retryInfo.nextInMs / 1000)}s…
+          </div>
+        )}
         <div className="chat-controls" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             type="password"
@@ -440,8 +524,9 @@ What type of website interests you most? Or tell me more about your specific nee
             style={{ width: 220 }}
           />
           <select value={model} onChange={(e) => setModel(e.target.value)}>
-            <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
             <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash</option>
             <option value="gemini-2.5-flash">gemini-2.5-flash</option>
             <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
           </select>
@@ -524,6 +609,8 @@ What type of website interests you most? Or tell me more about your specific nee
                         className="btn btn-secondary btn-small"
                         onClick={() => {
                           if (onSiteGenerated) onSiteGenerated({ content: best.body });
+                          store.setContent(best.body);
+                          store.commit();
                           setLastApplied(best.body);
                           showToast('Applied AI code to editor');
                         }}
@@ -567,6 +654,8 @@ What type of website interests you most? Or tell me more about your specific nee
                                 className="btn btn-secondary btn-small"
                                 onClick={() => {
                                   if (onSiteGenerated) onSiteGenerated({ content: b.body });
+                                  store.setContent(b.body);
+                                  store.commit();
                                   setLastApplied(b.body);
                                   showToast('Applied AI code to editor');
                                 }}

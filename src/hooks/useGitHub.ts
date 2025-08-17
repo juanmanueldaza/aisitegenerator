@@ -23,6 +23,7 @@ interface UseGitHubReturn {
   user: GitHubUser | null;
   isLoading: boolean;
   error: string | null;
+  scopes: string[];
 
   // Authentication methods
   login: () => Promise<void>;
@@ -252,6 +253,7 @@ export const useGitHub = (): UseGitHubReturn => {
     user: authStatus.user,
     isLoading,
     error,
+    scopes: authStatus.scopes,
 
     // Authentication methods
     login,

@@ -6,12 +6,15 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   build: {
+    chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
         manualChunks: {
           // Ensure these heavy libraries are in their own chunks
           mermaid: ['mermaid'],
           markdown: ['marked', 'marked-highlight', 'dompurify', 'prismjs'],
+          // Group test-only artifacts to avoid impacting main bundle
+          testing: ['@testing-library/react', '@testing-library/user-event'],
         },
       },
     },
@@ -38,6 +41,11 @@ export default defineConfig({
           Accept: 'application/json',
         },
         rewrite: (p) => p.replace(/^\/__gh\/device/, '/login/device'),
+      },
+      // Local AI proxy pass-through (if you run `npm run proxy`)
+      '/api/ai': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
       },
     },
   },

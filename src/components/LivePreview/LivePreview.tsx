@@ -143,7 +143,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
             style={iframeStyle}
             onLoad={handleIframeLoad}
             onError={handleIframeError}
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+            // Keep sandbox strict: no same-origin to avoid "escape its sandboxing" warnings
+            // Allow scripts so previews can run inline JS; allow-forms is optional
+            sandbox="allow-scripts allow-forms"
             loading="lazy"
             title="Live Preview"
             aria-label="Website preview"

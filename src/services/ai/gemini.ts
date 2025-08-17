@@ -1,4 +1,5 @@
 import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk, AIError } from '@/types/ai';
+import { withRetry } from './retry';
 
 // Lazy import to avoid bundling when unused
 async function getClient(apiKey: string) {
@@ -27,23 +28,31 @@ export class GeminiProvider {
   }
 
   async generate(messages: AIMessage[], options: ProviderOptions = {}): Promise<GenerateResult> {
-    const { model = 'gemini-2.0-flash', systemInstruction, thinkingBudgetTokens } = options;
+    const { model = 'gemini-2.5-flash', systemInstruction, thinkingBudgetTokens } = options;
 
     try {
-      const client = await getClient(this.apiKey);
-      const gen = await client.getGenerativeModel({
-        model,
-        systemInstruction,
-        // thinking is experimental; guard just in case
-        ...(thinkingBudgetTokens ? { thinking: { budgetTokens: thinkingBudgetTokens } } : {}),
-      });
+      return await withRetry(
+        async () => {
+          const client = await getClient(this.apiKey);
+          const gen = await client.getGenerativeModel({
+            model,
+            systemInstruction,
+            // thinking is experimental; guard just in case
+            ...(thinkingBudgetTokens ? { thinking: { budgetTokens: thinkingBudgetTokens } } : {}),
+          });
 
-      const last = messages[messages.length - 1];
-      const prompt = last?.content ?? '';
-      const chat = gen.startChat({ history: toHistory(messages.slice(0, -1)) });
-      const res = await chat.sendMessage(prompt);
-      const text = res.response?.text?.() ?? '';
-      return { text };
+          const last = messages[messages.length - 1];
+          const prompt = last?.content ?? '';
+          const chat = gen.startChat({ history: toHistory(messages.slice(0, -1)) });
+          const res = await chat.sendMessage(prompt);
+          const text = res.response?.text?.() ?? '';
+          return { text };
+        },
+        {
+          maxAttempts: 3,
+          onRetry: options.onRetry,
+        }
+      );
     } catch (e) {
       const err = e as AIError;
       err.message = normalizeGeminiError(err);
@@ -55,22 +64,29 @@ export class GeminiProvider {
     messages: AIMessage[],
     options: ProviderOptions = {}
   ): AsyncGenerator<StreamChunk, void, unknown> {
-    const { model = 'gemini-2.0-flash', systemInstruction, thinkingBudgetTokens } = options;
+    const { model = 'gemini-2.5-flash', systemInstruction, thinkingBudgetTokens } = options;
 
     try {
-      const client = await getClient(this.apiKey);
-      const gen = await client.getGenerativeModel({
-        model,
-        systemInstruction,
-        ...(thinkingBudgetTokens ? { thinking: { budgetTokens: thinkingBudgetTokens } } : {}),
-      });
+      // For streaming, we attempt to establish the stream with retry, but once streaming, errors break out
+      const result = await withRetry(
+        async () => {
+          const client = await getClient(this.apiKey);
+          const gen = await client.getGenerativeModel({
+            model,
+            systemInstruction,
+            ...(thinkingBudgetTokens ? { thinking: { budgetTokens: thinkingBudgetTokens } } : {}),
+          });
 
-      const last = messages[messages.length - 1];
-      const prompt = last?.content ?? '';
-      const chat = gen.startChat({ history: toHistory(messages.slice(0, -1)) });
-      const stream = await chat.sendMessageStream(prompt);
+          const last = messages[messages.length - 1];
+          const prompt = last?.content ?? '';
+          const chat = gen.startChat({ history: toHistory(messages.slice(0, -1)) });
+          const stream = await chat.sendMessageStream(prompt);
+          return stream;
+        },
+        { maxAttempts: 3, onRetry: options.onRetry }
+      );
 
-      for await (const chunk of stream.stream) {
+      for await (const chunk of result.stream) {
         const partText = chunk.text();
         if (partText) {
           yield { text: partText };
@@ -90,7 +106,7 @@ function normalizeGeminiError(err: Partial<AIError>): string {
     return 'Gemini: Bad request. Check model name and input format.';
   if (/401|unauthorized|api key/i.test(msg)) return 'Gemini: Unauthorized. Check your API key.';
   if (/429|rate|quota/i.test(msg))
-    return 'Gemini: Rate limit or quota exceeded. Please retry later.';
+    return 'Gemini: Rate limit or quota exceeded. Please retry later. We will auto-retry a few times.';
   if (/safety|blocked/i.test(msg)) return 'Gemini: Response blocked by safety filters.';
   return `Gemini error: ${msg}`;
 }

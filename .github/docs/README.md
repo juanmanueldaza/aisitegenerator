@@ -9,3 +9,5 @@ This folder centralizes the project docs. Use the links below:
 - Implementation Status: ./IMPLEMENTATION_STATUS.md
 - Repo Hygiene / Removal Candidates: ./REMOVAL_CANDIDATES.md
 - Contributing: ./CONTRIBUTING.md
+- Labels seed: ./LABELS.json
+- Branch protection: ./BRANCH_PROTECTION.md

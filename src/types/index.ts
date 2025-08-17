@@ -81,3 +81,5 @@ export interface AppError {
 }
 // Export GitHub types
 export * from './github';
+// Export AI types
+export * from './ai';

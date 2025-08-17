@@ -5,6 +5,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatInterface.css';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useAIProvider } from '@/services/ai';
+import GeminiProvider from '@/services/ai/gemini';
+import type { AIMessage } from '@/types/ai';
 
 interface Message {
   id: string;
@@ -33,6 +37,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useLocalStorage<string>('GEMINI_API_KEY', '');
+  const [model, setModel] = useState<string>('gemini-2.0-flash');
+  const ai = useAIProvider('gemini');
+  const [connected, setConnected] = useState<boolean>(false);
+  const [connectMsg, setConnectMsg] = useState<string>('');
+  const [validating, setValidating] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -46,6 +56,48 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // When API key changes, prompt to connect/validate
+  useEffect(() => {
+    if (!apiKey.trim()) {
+      setConnected(false);
+      setConnectMsg('Enter your Gemini API key and click Connect.');
+    } else {
+      setConnected(false);
+      setConnectMsg('Click Connect to validate your key.');
+    }
+  }, [apiKey]);
+
+  const handleConnect = async () => {
+    if (!apiKey.trim()) {
+      setConnected(false);
+      setConnectMsg('Enter an API key to connect.');
+      return;
+    }
+    try {
+      setValidating(true);
+      setConnectMsg('Validating key…');
+      const provider = new GeminiProvider(apiKey.trim());
+      // minimal ping to validate credentials
+      await provider.generate([{ role: 'user', content: 'ping' }], { model });
+      setConnected(true);
+      setConnectMsg('Gemini connected.');
+    } catch (err) {
+      setConnected(false);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/unauthorized|401/i.test(msg)) {
+        setConnectMsg('Unauthorized: Check your API key.');
+      } else if (/quota|rate|429/i.test(msg)) {
+        setConnectMsg('Rate limit or quota exceeded. Try again later.');
+      } else if (/safety|blocked/i.test(msg)) {
+        setConnectMsg('Blocked by safety filters. Try a different prompt.');
+      } else {
+        setConnectMsg('Failed to connect. Verify key and network.');
+      }
+    } finally {
+      setValidating(false);
+    }
+  };
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -90,8 +142,53 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
     }
 
     try {
-      // Simulate AI response (replace with actual AI service)
-      await simulateAIResponse(trimmedInput);
+      // Use Gemini provider streaming
+      const history: AIMessage[] = messages.map((m) => ({
+        role: m.sender === 'ai' ? 'assistant' : 'user',
+        content: m.content,
+      }));
+      history.push({ role: 'user', content: trimmedInput });
+
+      if (!ai.ready) {
+        await simulateAIResponse(trimmedInput);
+        return;
+      }
+
+      let accumulated = '';
+      for await (const chunk of ai.generateStream(history, {
+        model,
+        systemInstruction:
+          'You are a helpful assistant that generates website plans and code snippets when asked. Prefer concise, actionable responses.',
+        temperature: 0.6,
+      })) {
+        accumulated += chunk.text;
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.sender === 'ai' && last.id === 'streaming') {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...last,
+              content: accumulated,
+            };
+            return updated;
+          }
+          return [
+            ...prev,
+            {
+              id: 'streaming',
+              content: accumulated,
+              sender: 'ai',
+              timestamp: new Date(),
+              type: 'text',
+            },
+          ];
+        });
+      }
+
+      // finalize message id
+      setMessages((prev) =>
+        prev.map((m) => (m.id === 'streaming' ? { ...m, id: (Date.now() + 1).toString() } : m))
+      );
     } catch (error) {
       console.error('Error sending message:', error);
 
@@ -236,6 +333,41 @@ What type of website interests you most? Or tell me more about your specific nee
           <h2>AI Website Assistant</h2>
           <span className="chat-status">Online</span>
         </div>
+        <div className="chat-controls" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="password"
+            placeholder="Gemini API Key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            style={{ width: 220 }}
+          />
+          <select value={model} onChange={(e) => setModel(e.target.value)}>
+            <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+          </select>
+          <button
+            onClick={handleConnect}
+            className="btn btn-primary btn-small"
+            title="Connect to Gemini"
+            disabled={!apiKey.trim() || validating}
+          >
+            {validating ? 'Connecting…' : 'Connect'}
+          </button>
+          <span
+            aria-live="polite"
+            style={{ fontSize: 12, color: connected ? '#1f883d' : '#666' }}
+            title={connectMsg || (connected ? 'Connected' : 'Not connected')}
+          >
+            {connected ? 'Gemini: Connected' : 'Gemini: Not connected'}
+          </span>
+          {connectMsg && (
+            <span style={{ fontSize: 12, color: '#6a737d' }} aria-live="polite">
+              {connectMsg}
+            </span>
+          )}
+        </div>
         <button
           onClick={handleClearChat}
           className="btn btn-secondary btn-small"
@@ -305,10 +437,18 @@ What type of website interests you most? Or tell me more about your specific nee
             disabled={!inputValue.trim() || isLoading}
             className="send-button"
             title="Send message"
+            aria-label="Send message"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              style={{ marginRight: 6 }}
+            >
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>
+            <span>Send</span>
           </button>
         </div>
       </div>

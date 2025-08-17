@@ -9,4 +9,7 @@ This folder contains templates, workflows, and chat modes that help maintain and
 - SECURITY.md: Security guidance
 - copilot-chat/: Guided checklists for production hardening, auth diagnostics, and hygiene
 
+Docs index: `.github/docs/README.md`.
+Copilot chatmodes: `.github/chatmodes/`.
+
 See root `README.md` for getting started and architecture.

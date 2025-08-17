@@ -44,6 +44,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   const [connected, setConnected] = useState<boolean>(false);
   const [connectMsg, setConnectMsg] = useState<string>('');
   const [validating, setValidating] = useState<boolean>(false);
+  const [toast, setToast] = useState<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -190,6 +191,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
       setMessages((prev) =>
         prev.map((m) => (m.id === 'streaming' ? { ...m, id: (Date.now() + 1).toString() } : m))
       );
+
+      // Try to auto-apply previewable content (HTML/Markdown code fences)
+      const picks = extractPreviewables(accumulated);
+      const best = getBestPreviewable(picks);
+      if (best && onSiteGenerated) {
+        onSiteGenerated({ content: best.body });
+        showToast('Applied AI code to editor');
+      }
     } catch (error) {
       console.error('Error sending message:', error);
 
@@ -208,6 +217,70 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
       setIsTyping(false);
     }
   };
+
+  // Extract all previewable blocks from AI output
+  function extractPreviewables(
+    text: string
+  ): Array<{ kind: 'html' | 'markdown'; body: string; index: number }> {
+    const out: Array<{ kind: 'html' | 'markdown'; body: string; index: number }> = [];
+    try {
+      const fenceRe = /```\s*([a-zA-Z0-9_-]+)?\s*\n([\s\S]*?)```/g;
+      let match: RegExpExecArray | null;
+      let i = 0;
+      while ((match = fenceRe.exec(text))) {
+        const lang = (match[1] || '').toLowerCase();
+        const code = (match[2] || '').trim();
+        if (!code) continue;
+        if (lang === 'html' || lang === 'htm' || lang === 'xhtml')
+          out.push({ kind: 'html', body: code, index: i });
+        if (lang === 'markdown' || lang === 'md')
+          out.push({ kind: 'markdown', body: code, index: i });
+        i += 1;
+      }
+      if (!out.length) {
+        // Heuristic: looks like raw HTML without fences
+        const looksHTML = /<!DOCTYPE|<html[\s>]|<body[\s>]|<div[\s>]/i.test(text);
+        if (looksHTML) out.push({ kind: 'html', body: text, index: -1 });
+      }
+    } catch {
+      // ignore
+    }
+    return out;
+  }
+
+  function getBestPreviewable(
+    items: Array<{ kind: 'html' | 'markdown'; body: string; index: number }>
+  ): { kind: 'html' | 'markdown'; body: string; index: number } | null {
+    if (!items.length) return null;
+    // Prefer HTML if present, else first markdown
+    const html = items.find((b) => b.kind === 'html');
+    return html || items[0];
+  }
+
+  // Copy helpers
+  async function copyToClipboard(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Copied to clipboard');
+    } catch {
+      // Fallback for environments without clipboard
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'absolute';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Copied to clipboard');
+    }
+  }
+
+  function showToast(msg: string) {
+    setToast(msg);
+    window.setTimeout(() => setToast(''), 1500);
+  }
 
   // Simulate AI response (replace with actual AI service)
   const simulateAIResponse = async (userInput: string): Promise<void> => {
@@ -379,29 +452,102 @@ What type of website interests you most? Or tell me more about your specific nee
       </div>
 
       <div className="chat-messages">
-        {messages.map((message) => (
-          <div key={message.id} className={`message ${message.sender} ${message.type || 'text'}`}>
-            <div className="message-content">
-              {message.type === 'code' ? (
-                <pre>
-                  <code>{message.content}</code>
-                </pre>
-              ) : (
-                <div
-                  className="message-text"
-                  // Safe: renderMarkdown sanitizes HTML with DOMPurify
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
-                />
-              )}
+        {messages.map((message) => {
+          const aiBlocks = message.sender === 'ai' ? extractPreviewables(message.content) : [];
+          const best = getBestPreviewable(aiBlocks);
+          return (
+            <div key={message.id} className={`message ${message.sender} ${message.type || 'text'}`}>
+              <div className="message-content">
+                {message.type === 'code' ? (
+                  <pre>
+                    <code>{message.content}</code>
+                  </pre>
+                ) : (
+                  <div
+                    className="message-text"
+                    // Safe: renderMarkdown sanitizes HTML with DOMPurify
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                  />
+                )}
+                {(best || message.sender === 'ai') && (
+                  <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                    {best && (
+                      <button
+                        className="btn btn-secondary btn-small"
+                        onClick={() => {
+                          if (onSiteGenerated) onSiteGenerated({ content: best.body });
+                          showToast('Applied AI code to editor');
+                        }}
+                        title={
+                          best.kind === 'html'
+                            ? 'Apply HTML to Editor/Preview'
+                            : 'Apply Markdown to Editor/Preview'
+                        }
+                      >
+                        Use in Editor
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-secondary btn-small"
+                      onClick={() => copyToClipboard(message.content)}
+                      title="Copy full reply (markdown)"
+                    >
+                      Copy
+                    </button>
+                    {best && (
+                      <button
+                        className="btn btn-secondary btn-small"
+                        onClick={() => copyToClipboard(best.body)}
+                        title={
+                          best.kind === 'html' ? 'Copy HTML code block' : 'Copy Markdown code block'
+                        }
+                      >
+                        Copy code
+                      </button>
+                    )}
+                    {aiBlocks.length > 1 && (
+                      <details style={{ marginLeft: 8 }}>
+                        <summary style={{ cursor: 'pointer' }}>More blocks</summary>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                          {aiBlocks.map((b, idx) => (
+                            <div
+                              key={`${message.id}-blk-${idx}`}
+                              style={{ display: 'flex', gap: 6 }}
+                            >
+                              <button
+                                className="btn btn-secondary btn-small"
+                                onClick={() => {
+                                  if (onSiteGenerated) onSiteGenerated({ content: b.body });
+                                  showToast('Applied AI code to editor');
+                                }}
+                                title={b.kind === 'html' ? 'Apply HTML' : 'Apply Markdown'}
+                              >
+                                Apply {b.kind} #{idx + 1}
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-small"
+                                onClick={() => copyToClipboard(b.body)}
+                                title={b.kind === 'html' ? 'Copy HTML' : 'Copy Markdown'}
+                              >
+                                Copy #{idx + 1}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="message-time">
+                {message.timestamp.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </div>
             </div>
-            <div className="message-time">
-              {message.timestamp.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {isTyping && (
           <div className="message ai typing">
@@ -419,6 +565,24 @@ What type of website interests you most? Or tell me more about your specific nee
       </div>
 
       <div className="chat-input">
+        {toast && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              bottom: 80,
+              left: 16,
+              background: 'rgba(17,24,39,0.9)',
+              color: '#fff',
+              padding: '6px 10px',
+              borderRadius: 6,
+              fontSize: 12,
+            }}
+          >
+            {toast}
+          </div>
+        )}
         <div className="input-container">
           <textarea
             ref={inputRef}

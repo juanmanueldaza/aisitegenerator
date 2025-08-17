@@ -1,17 +1,79 @@
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+// Defer heavy libs (marked/Prism/DOMPurify) to lazy init
+type MarkedAPI = {
+  parse: (src: string) => string | Promise<string>;
+  setOptions: (opts: Record<string, unknown>) => void;
+  use: (ext: unknown) => void;
+};
+type DOMPurifyAPI = {
+  sanitize: (dirty: string, cfg?: unknown) => string;
+};
 
-// Configure marked for security and basic features
-marked.setOptions({
-  gfm: true,
-  breaks: true,
-});
+let _marked: MarkedAPI | null = null;
+let _DOMPurify: DOMPurifyAPI | null = null;
+let _Prism: typeof import('prismjs') | null = null;
+let _markedHighlight: (typeof import('marked-highlight'))['markedHighlight'] | null = null;
+let initPromise: Promise<void> | null = null;
+
+async function ensureMarkdownRuntime() {
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    const [markedMod, dompurifyMod, prismMod, mh] = await Promise.all([
+      import('marked'),
+      import('dompurify'),
+      import('prismjs'),
+      import('marked-highlight'),
+    ]);
+    // load minimal language
+    await import('prismjs/components/prism-markup');
+    _marked = markedMod.marked as unknown as MarkedAPI;
+    const dompurifyNs = dompurifyMod as unknown as { default: DOMPurifyAPI };
+    _DOMPurify = dompurifyNs.default as DOMPurifyAPI;
+    const prismNs = prismMod as unknown as { default?: typeof import('prismjs') };
+    _Prism = prismNs.default ?? (prismMod as unknown as typeof import('prismjs'));
+    _markedHighlight = (
+      mh as unknown as {
+        markedHighlight: (typeof import('marked-highlight'))['markedHighlight'];
+      }
+    ).markedHighlight;
+
+    // Configure marked only once
+    _marked!.setOptions({ gfm: true, breaks: true });
+    _marked!.use(
+      _markedHighlight!({
+        highlight(code: string, lang?: string) {
+          try {
+            const P = _Prism as unknown as {
+              languages: Record<string, unknown>;
+              highlight: (c: string, g: unknown, l: string) => string;
+            };
+            const language = lang && P.languages[lang] ? lang : 'markup';
+            return P.highlight(code, P.languages[language], language);
+          } catch {
+            return code;
+          }
+        },
+      })
+    );
+  })();
+  return initPromise;
+}
 
 // Safely render markdown content to sanitized HTML
 export function renderMarkdown(content: string): string {
   try {
-    const html = marked.parse(content) as string;
-    return DOMPurify.sanitize(html, {
+    // Note: this version is synchronous for convenience, but will rely on prior lazy init
+    // If not initialized, fall back to plain text escaping
+    if (!_marked || !_DOMPurify) {
+      // basic escape fallback
+      const escaped = content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+      return `<pre><code>${escaped}</code></pre>`;
+    }
+    const html = _marked.parse(content) as string;
+    return _DOMPurify.sanitize(html, {
       ALLOWED_TAGS: [
         'h1',
         'h2',
@@ -63,6 +125,8 @@ export function renderMarkdown(content: string): string {
         'th',
         'td',
         'hr',
+        // Code highlighting wrappers
+        'span',
       ],
       ALLOWED_ATTR: [
         'href',
@@ -73,6 +137,7 @@ export function renderMarkdown(content: string): string {
         'class',
         'id',
         'style',
+        'language',
         // Common SVG attributes
         'viewBox',
         'xmlns',
@@ -102,6 +167,8 @@ export function renderMarkdown(content: string): string {
 
 // Generate a complete HTML document for iframe preview
 export async function generatePreviewHTMLAsync(content: string): Promise<string> {
+  // Ensure markdown runtime is ready for marked parsing
+  await ensureMarkdownRuntime();
   // Detect mermaid code blocks and render them to SVG before sanitizing
   const mermaidBlockRegex = /```mermaid\s+([\s\S]*?)```/gi;
   const hasMermaid = mermaidBlockRegex.test(content);
@@ -136,7 +203,7 @@ export async function generatePreviewHTMLAsync(content: string): Promise<string>
   }
 
   // First, convert markdown (with placeholders) to HTML
-  let html = marked.parse(processedMarkdown) as string;
+  let html = _marked!.parse(processedMarkdown) as string;
 
   // Replace placeholders with SVG strings (or fallback) prior to sanitization
   if (svgMap.size) {
@@ -187,4 +254,9 @@ export async function generatePreviewHTMLAsync(content: string): Promise<string>
   ${renderedContent}
 </body>
 </html>`;
+}
+
+// Optional warmup to preload markdown/highlight stack without blocking UI
+export function warmupMarkdownRuntime(): Promise<void> {
+  return ensureMarkdownRuntime();
 }

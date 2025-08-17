@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { LivePreviewProps, DeviceType } from '../../types/preview';
 import { DEVICE_TYPES } from '../../types/preview';
-import { generatePreviewHTMLAsync } from '../../utils/content';
 import PreviewControls from './PreviewControls';
 import './LivePreview.css';
 
@@ -40,6 +39,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ content, className = '' }) =>
 
     (async () => {
       try {
+        const { generatePreviewHTMLAsync } = await import('../../utils/content');
         const html = await generatePreviewHTMLAsync(content);
         if (cancelled) return;
         const url = createPreviewURL(html);

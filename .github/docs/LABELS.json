@@ -1,0 +1,13 @@
+[
+  { "name": "type:feat", "color": "1f883d", "description": "New feature" },
+  { "name": "type:fix", "color": "d73a4a", "description": "Bug fix" },
+  { "name": "type:docs", "color": "0e8a16", "description": "Documentation" },
+  { "name": "type:test", "color": "a2eeef", "description": "Testing" },
+  { "name": "type:refactor", "color": "fbca04", "description": "Refactor or cleanup" },
+  { "name": "scope:auth", "color": "5319e7", "description": "Authentication" },
+  { "name": "scope:ui", "color": "cfd3d7", "description": "UI components" },
+  { "name": "scope:ci", "color": "5319e7", "description": "CI/CD" },
+  { "name": "impact:low", "color": "ededed", "description": "Low risk / small change" },
+  { "name": "impact:medium", "color": "bfe5bf", "description": "Moderate risk / visible change" },
+  { "name": "impact:high", "color": "e99695", "description": "High risk / major change" }
+]

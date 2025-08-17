@@ -5,6 +5,17 @@ import path from 'path';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Ensure these heavy libraries are in their own chunks
+          mermaid: ['mermaid'],
+          markdown: ['marked', 'marked-highlight', 'dompurify', 'prismjs'],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       // Dev-only proxy to bypass browser CORS when calling GitHub OAuth endpoints

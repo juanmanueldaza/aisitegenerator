@@ -109,10 +109,13 @@ Consulta el índice de documentación en `.github/docs/`:
 
 - Arquitectura, desarrollo, checklist de producción, investigación de OAuth y más: `.github/docs/README.md`
 
-## 🤖 Copilot chat mode
+## 🤖 Copilot chat modes
 
-Usa el modo de chat "GitHubCopilotExpert" para optimizar la carpeta `.github`, generar instrucciones del proyecto y curar documentación.
-Archivo: `.github/copilot-chat/modes.md` (entrypoints: optimize_github_folder, create_project_instructions, migrate_project_docs)
+Presets y guía en `.github/copilot-chat/README.md`.
+
+- "GitHubDocsRefactorExpert": auditar `.github` y refactorizar documentación.
+- "GitHubCopilotArchitect": estandarizar CI/plantillas y validar quality gates.
+- "CodeFixerEnhancer": encontrar issues y proponer refactors con verificación.
 
 ## 🎯 Roadmap
 

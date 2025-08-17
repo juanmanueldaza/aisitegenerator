@@ -45,6 +45,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
   const [connectMsg, setConnectMsg] = useState<string>('');
   const [validating, setValidating] = useState<boolean>(false);
   const [toast, setToast] = useState<string>('');
+  const [autoApply, setAutoApply] = useLocalStorage<boolean>('CHAT_AUTO_APPLY', true);
+  const [lastApplied, setLastApplied] = useState<string>('');
+  const [lastCandidate, setLastCandidate] = useState<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -99,6 +102,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
     } finally {
       setValidating(false);
     }
+  };
+
+  const handleReapply = () => {
+    const content = lastCandidate || lastApplied;
+    if (!content) {
+      showToast('Nothing to re-apply');
+      return;
+    }
+    if (onSiteGenerated) onSiteGenerated({ content });
+    setLastApplied(content);
+    showToast('Re-applied last AI code');
   };
 
   // Handle input changes
@@ -195,9 +209,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
       // Try to auto-apply previewable content (HTML/Markdown code fences)
       const picks = extractPreviewables(accumulated);
       const best = getBestPreviewable(picks);
-      if (best && onSiteGenerated) {
-        onSiteGenerated({ content: best.body });
-        showToast('Applied AI code to editor');
+      if (best) {
+        setLastCandidate(best.body);
+        if (autoApply && onSiteGenerated) {
+          onSiteGenerated({ content: best.body });
+          setLastApplied(best.body);
+          showToast('Applied AI code to editor');
+        } else if (!autoApply) {
+          showToast('AI code ready. Use "Use in Editor" or Re-apply.');
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -429,6 +449,15 @@ What type of website interests you most? Or tell me more about your specific nee
           >
             {validating ? 'Connecting…' : 'Connect'}
           </button>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <input
+              type="checkbox"
+              checked={autoApply}
+              onChange={(e) => setAutoApply(e.target.checked)}
+              title="Auto-apply the best AI code block when a reply finishes"
+            />
+            Auto-apply
+          </label>
           <span
             aria-live="polite"
             style={{ fontSize: 12, color: connected ? '#1f883d' : '#666' }}
@@ -442,13 +471,23 @@ What type of website interests you most? Or tell me more about your specific nee
             </span>
           )}
         </div>
-        <button
-          onClick={handleClearChat}
-          className="btn btn-secondary btn-small"
-          title="Clear chat"
-        >
-          Clear
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={handleReapply}
+            className="btn btn-secondary btn-small"
+            title="Re-apply the last AI code to the editor/preview"
+            disabled={!lastCandidate && !lastApplied}
+          >
+            Re-apply
+          </button>
+          <button
+            onClick={handleClearChat}
+            className="btn btn-secondary btn-small"
+            title="Clear chat"
+          >
+            Clear
+          </button>
+        </div>
       </div>
 
       <div className="chat-messages">
@@ -476,6 +515,7 @@ What type of website interests you most? Or tell me more about your specific nee
                         className="btn btn-secondary btn-small"
                         onClick={() => {
                           if (onSiteGenerated) onSiteGenerated({ content: best.body });
+                          setLastApplied(best.body);
                           showToast('Applied AI code to editor');
                         }}
                         title={
@@ -518,6 +558,7 @@ What type of website interests you most? Or tell me more about your specific nee
                                 className="btn btn-secondary btn-small"
                                 onClick={() => {
                                   if (onSiteGenerated) onSiteGenerated({ content: b.body });
+                                  setLastApplied(b.body);
                                   showToast('Applied AI code to editor');
                                 }}
                                 title={b.kind === 'html' ? 'Apply HTML' : 'Apply Markdown'}

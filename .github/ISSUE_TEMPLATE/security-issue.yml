@@ -1,0 +1,158 @@
+name: 🔒 Security Issue
+description: Report a security vulnerability (handled privately)
+title: "[Security]: "
+labels: ["security", "high-priority", "needs-immediate-attention"]
+assignees: ["juanmanueldaza"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔒 Security Issue Report
+
+        **⚠️ IMPORTANT: This is for security vulnerabilities only.**
+        
+        If this is not a security issue, please use the appropriate template:
+        - [Bug Report](?template=bug-report.yml) for regular bugs
+        - [Feature Request](?template=feature-request.yml) for enhancements
+
+        **🚨 SECURITY NOTICE:** This issue will be handled with appropriate confidentiality.
+
+  - type: checkboxes
+    id: security-confirmation
+    attributes:
+      label: 🔐 Security Confirmation
+      options:
+        - label: I confirm this is a security-related issue that could affect user safety or data
+          required: true
+        - label: I have NOT publicly disclosed this vulnerability elsewhere
+          required: true
+
+  - type: dropdown
+    id: vulnerability-type
+    attributes:
+      label: 🎯 Vulnerability Type
+      description: What type of security issue is this?
+      options:
+        - Cross-Site Scripting (XSS)
+        - Content Security Policy (CSP) Bypass
+        - Authentication/Authorization Issue
+        - Data Exposure/Privacy
+        - Code Injection
+        - Dependency Vulnerability
+        - Configuration Security
+        - Other Security Issue
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity-level
+    attributes:
+      label: ⚠️ Severity Level
+      description: How severe is this security issue?
+      options:
+        - Critical - Immediate exploitation possible, severe impact
+        - High - Exploitation likely, significant impact
+        - Medium - Exploitation possible with conditions, moderate impact
+        - Low - Limited exploitation, minimal impact
+    validations:
+      required: true
+
+  - type: textarea
+    id: vulnerability-description
+    attributes:
+      label: 📝 Vulnerability Description
+      description: Clear, detailed description of the security issue
+      placeholder: |
+        Describe the vulnerability, what it affects, and potential impact.
+        Be specific but avoid providing exploit code publicly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 🔄 Reproduction Steps
+      description: How to reproduce this security issue
+      placeholder: |
+        1. Go to...
+        2. Enter...
+        3. Observe...
+        
+        Please provide enough detail for verification but avoid full exploitation details.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact-assessment
+    attributes:
+      label: 💥 Impact Assessment
+      description: What could an attacker achieve with this vulnerability?
+      placeholder: |
+        - What data could be accessed?
+        - What actions could be performed?
+        - Who would be affected?
+        - What is the scope of the issue?
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected-components
+    attributes:
+      label: 🎯 Affected Components
+      description: Which parts of AI Site Generator are affected?
+      placeholder: |
+        - Specific files, functions, or features
+        - Browser environments
+        - User types affected
+    validations:
+      required: true
+
+  - type: input
+    id: discovery-context
+    attributes:
+      label: 🔍 Discovery Context
+      description: How did you discover this vulnerability?
+      placeholder: e.g., Security audit, penetration testing, code review, user report
+
+  - type: textarea
+    id: mitigation-suggestions
+    attributes:
+      label: 🛡️ Suggested Mitigation
+      description: Do you have suggestions for fixing this issue?
+      placeholder: |
+        Optional: Your thoughts on how to address this vulnerability.
+        Any specific security controls or code changes you'd recommend.
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📋 Additional Context
+      description: Any other relevant information
+      placeholder: |
+        - Related security issues
+        - Research references
+        - Similar vulnerabilities in other projects
+        - Any other context that might be helpful
+
+  - type: checkboxes
+    id: disclosure-timeline
+    attributes:
+      label: 📅 Disclosure Expectations
+      description: Your expectations for handling this issue
+      options:
+        - label: I understand this will be handled privately until patched
+        - label: I'm willing to work with maintainers on responsible disclosure
+        - label: I would like to be credited for this discovery (optional)
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🤝 Next Steps
+        
+        1. This issue will be reviewed privately by maintainers
+        2. We'll work on a fix and security advisory
+        3. A coordinated disclosure will be planned
+        4. You'll be kept informed throughout the process
+        
+        **Thank you for helping keep AI Site Generator secure!**

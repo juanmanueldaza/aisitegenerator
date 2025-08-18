@@ -1,9 +1,120 @@
----
-name: Feature request
-about: Suggest an idea or improvement
-labels: enhancement
-assignees: ''
----
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for AI Site Generator
+title: "[Feature]: "
+labels: ["enhancement", "needs-review"]
+assignees: []
+
+body:
+
+- type: markdown
+  attributes:
+  value: | ## ✨ Feature Request
+
+      Thank you for suggesting a feature! Please provide detailed information about your idea.
+
+- type: checkboxes
+  id: preliminary-checks
+  attributes:
+  label: 🔍 Preliminary Checks
+  description: Please confirm you've done these basic checks
+  options: - label: I've searched existing issues to ensure this feature hasn't been requested
+  required: true - label: This feature aligns with AI Site Generator's goals and constraints
+  required: true
+
+- type: textarea
+  id: feature-summary
+  attributes:
+  label: 📝 Feature Summary
+  description: Brief, clear description of the feature
+  placeholder: What feature would you like to see added?
+  validations:
+  required: true
+
+- type: textarea
+  id: problem-statement
+  attributes:
+  label: 🎯 Problem Statement
+  description: What problem does this feature solve?
+  placeholder: |
+  Is your feature request related to a problem? Please describe.
+  A clear and concise description of what the problem is.
+  validations:
+  required: true
+
+- type: textarea
+  id: proposed-solution
+  attributes:
+  label: 💡 Proposed Solution
+  description: How should this feature work?
+  placeholder: |
+  A clear and concise description of what you want to happen.
+  Include specific details about the user experience.
+  validations:
+  required: true
+
+- type: textarea
+  id: alternative-solutions
+  attributes:
+  label: 🔄 Alternative Solutions
+  description: Have you considered other approaches?
+  placeholder: |
+  A clear and concise description of any alternative solutions
+  or features you've considered.
+
+- type: dropdown
+  id: feature-category
+  attributes:
+  label: 🏷️ Feature Category
+  description: What area does this feature relate to?
+  options: - AI Integration - Site Generation - User Interface - GitHub Integration - Authentication - Performance - Security - Developer Experience - Documentation - Other
+  validations:
+  required: true
+
+- type: dropdown
+  id: priority
+  attributes:
+  label: ⚡ Priority
+  description: How important is this feature to you?
+  options: - Critical - Blocking current workflow - High - Would significantly improve experience - Medium - Nice to have - Low - Minor improvement
+  validations:
+  required: true
+
+- type: textarea
+  id: use-cases
+  attributes:
+  label: 🎯 Use Cases
+  description: Describe specific scenarios where this feature would be used
+  placeholder: |
+  Example scenarios: 1. As a developer, I want to... 2. When building a site, I need to... 3. To improve workflow, it would help if...
+
+- type: checkboxes
+  id: constraints-compliance
+  attributes:
+  label: 📊 Constraints Compliance
+  description: Ensure this feature aligns with project constraints
+  options: - label: Feature can work within 20KB bundle size limit - label: Feature doesn't require backend infrastructure - label: Feature maintains current security standards - label: Feature is compatible with existing architecture
+
+- type: textarea
+  id: implementation-notes
+  attributes:
+  label: 🛠️ Implementation Ideas
+  description: Any thoughts on how this could be implemented?
+  placeholder: |
+  Optional: If you have ideas about implementation,
+  technical considerations, or potential challenges.
+
+- type: textarea
+  id: additional-context
+  attributes:
+  label: 📋 Additional Context
+  description: Screenshots, mockups, or other relevant information
+  placeholder: Add any screenshots, links, examples, or additional context
+
+- type: checkboxes
+  id: contribution-willingness
+  attributes:
+  label: 🤝 Contribution
+  options: - label: I'm willing to help implement this feature
 
 ## Summary
 

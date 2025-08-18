@@ -1,20 +1,79 @@
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { DiffHunk } from '@/utils/diff';
 import { buildInlineBlocks } from '@/utils/inlineDiff';
 
 export interface InlineDiffViewProps {
   original: string;
   hunks: DiffHunk[];
+  onActiveChange?: (index: number) => void;
 }
 
-export const InlineDiffView: React.FC<InlineDiffViewProps> = ({ original, hunks }) => {
-  const blocks = buildInlineBlocks(original, hunks, 2);
+export const InlineDiffView: React.FC<InlineDiffViewProps> = ({
+  original,
+  hunks,
+  onActiveChange,
+}) => {
+  const blocks = useMemo(() => buildInlineBlocks(original, hunks, 2), [original, hunks]);
+  const [active, setActive] = useState(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  useEffect(() => {
+    // Reset active when blocks change
+    setActive(0);
+  }, [blocks.length]);
+
+  useEffect(() => {
+    // Scroll currently active block into view
+    const el = itemRefs.current[active];
+    const canScroll = (
+      node: Element | null
+    ): node is Element & { scrollIntoView: (opts?: ScrollIntoViewOptions) => void } => {
+      return (
+        !!node &&
+        typeof (node as Element & { scrollIntoView?: unknown }).scrollIntoView === 'function'
+      );
+    };
+    if (canScroll(el)) {
+      el.scrollIntoView({ block: 'nearest' });
+    }
+  }, [active]);
+
+  useEffect(() => {
+    if (onActiveChange) onActiveChange(active);
+  }, [active, onActiveChange]);
+
   if (!hunks.length) return <div style={{ fontSize: 12, color: '#6b7280' }}>No differences</div>;
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'j') {
+      e.preventDefault();
+      setActive((i) => Math.min(i + 1, Math.max(0, blocks.length - 1)));
+    } else if (e.key === 'k') {
+      e.preventDefault();
+      setActive((i) => Math.max(i - 1, 0));
+    }
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div
+      ref={containerRef}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      role="list"
+      aria-label={`Inline diff (${blocks.length} block${blocks.length === 1 ? '' : 's'})`}
+      style={{ display: 'flex', flexDirection: 'column', gap: 12, outline: 'none' }}
+    >
       {blocks.map((block, idx) => (
         <div
           key={idx}
+          ref={(el) => {
+            itemRefs.current[idx] = el;
+          }}
+          role="listitem"
+          aria-current={idx === active}
+          data-testid={`diff-block-${idx}`}
+          data-active={idx === active ? 'true' : 'false'}
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -22,6 +81,7 @@ export const InlineDiffView: React.FC<InlineDiffViewProps> = ({ original, hunks 
             border: '1px solid #e5e7eb',
             borderRadius: 6,
             overflow: 'hidden',
+            boxShadow: idx === active ? '0 0 0 2px #3b82f6 inset' : 'none',
           }}
         >
           <div style={{ padding: 8, background: '#fafafa' }}>

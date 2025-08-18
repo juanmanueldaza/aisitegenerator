@@ -17,7 +17,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    setupFiles: './src/setupTests.ts',
+    setupFiles: ['./src/setupTests.ts'],
     css: true,
     globals: false,
     // Explicitly exclude node_modules and other common folders in addition to our e2e tests.
@@ -30,7 +30,24 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'html', 'json'],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+      },
+      exclude: [
+        'node_modules/',
+        'dist/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        'src/setupTests.ts',
+        'src/main.tsx',
+        'src/vite-env.d.ts',
+      ],
     },
   },
 });

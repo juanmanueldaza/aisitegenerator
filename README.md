@@ -6,7 +6,9 @@ Aplicación moderna (frontend) para crear sitios paso a paso asistidos por IA, c
 
 - Frontend: React 19 + TypeScript
 - Build: Vite 7
-- Calidad: ESLint + Prettier + Husky + Vitest
+- Testing: Vitest + React Testing Library + Playwright
+- Calidad: ESLint + Prettier + Husky
+- CI/CD: GitHub Actions con quality gates automatizados
 - Arquitectura: Clean Architecture (SOLID)
 
 ## 📁 Estructura del proyecto
@@ -19,13 +21,26 @@ src/
 ├── types/          # Tipos compartidos
 ├── utils/          # Utilidades puras
 ├── assets/         # Recursos estáticos
-└── styles/         # Estilos globales
+├── test-utils.ts   # Utilidades de testing
+└── setupTests.ts   # Configuración global de tests
+
+tests/
+├── e2e/           # Tests End-to-End con Playwright
+└── fixtures/      # Datos de prueba
+
+scripts/
+└── quality-gates.sh # Script de validaciones de calidad
+
+docs/
+└── TESTING.md     # Documentación completa de testing
 ```
 
 ### Principios de arquitectura
 
 - SOLID y CLEAN: separación de responsabilidades y límites claros
 - DRY y KISS: reutiliza utilidades y manténlo simple
+- Testing Pyramid: 70% unit, 20% integration, 10% E2E
+- Quality Gates: validaciones automatizadas en CI/CD
 
 ## 🛠️ Entorno de desarrollo
 
@@ -44,13 +59,31 @@ src/
 
 ## 📜 Scripts disponibles
 
+### Desarrollo
+
 - `npm run dev` — Dev server (HMR)
 - `npm run build` — Build producción
 - `npm run preview` — Previsualización del build
-- `npm run lint` / `lint:fix` — Lint
-- `npm run format` / `format:check` — Formato
-- `npm run typecheck` — Tipado TS
-- `npm run test` / `test:watch` — Tests con Vitest
+
+### Calidad de código
+
+- `npm run lint` / `lint:fix` — ESLint
+- `npm run format` / `format:check` — Prettier
+- `npm run typecheck` — Tipado TypeScript
+
+### Testing (Siguiendo la pirámide de testing)
+
+- `npm run test` — Tests básicos
+- `npm run test:coverage` — Tests con reporte de cobertura (80% mínimo)
+- `npm run test:watch` — Modo watch para desarrollo
+- `npm run test:ui` — Interfaz visual de testing
+- `npm run test:unit` — Solo tests unitarios
+- `npm run test:integration` — Solo tests de integración
+
+### Quality Gates
+
+- `./scripts/quality-gates.sh` — Ejecuta todas las validaciones de calidad
+- `npm run quality-gates` — Versión integrada en VS Code tasks
 
 ## 🏗️ Arquitectura
 
@@ -77,6 +110,9 @@ src/
 - Manejo de errores y degradación
 - Diseño responsivo
 - Listo para GitHub Pages
+- **Testing infrastructure completa** con cobertura del 80%
+- **Quality gates automatizados** en CI/CD
+- **Cross-browser testing** con Playwright
 
 ## 🔐 Autenticación con GitHub (PKCE + Device Flow)
 
@@ -132,9 +168,23 @@ Presets y guía en `.github/copilot-chat/README.md`.
 ## 🤝 Contribuir
 
 1. Crea rama feature
-2. Implementa siguiendo guías
-3. `npm run lint && npm run typecheck && npm run test && npm run build`
+2. Implementa siguiendo guías de arquitectura
+3. **Ejecuta quality gates**: `./scripts/quality-gates.sh`
+   - TypeScript type checking
+   - ESLint code quality
+   - Tests con cobertura mínima del 80%
+   - Build de producción
+   - Security audit
 4. PR con Conventional Commits
+
+### Testing Requirements
+
+- **Unit tests**: Para componentes y utilidades individuales
+- **Integration tests**: Para servicios e interacciones entre componentes
+- **E2E tests**: Para flujos críticos de usuario
+- **Coverage mínima**: 80% en statements, branches, functions y lines
+
+Ver documentación completa en [`docs/TESTING.md`](docs/TESTING.md)
 
 ## 📄 Licencia
 

@@ -4,10 +4,14 @@ This is a pragmatic checklist to take the app to production.
 
 ## Quality gates
 
-- [ ] Typecheck passes (`npm run typecheck`)
-- [ ] Unit tests pass (`npm test`)
-- [ ] E2E smoke test passes (`npm run e2e`)
-- [ ] CI green on PRs (see `.github/workflows/ci.yml`)
+- [ ] **Quality Gates Script**: Run `./scripts/quality-gates.sh` successfully
+  - [ ] TypeScript type checking passes (`npm run typecheck`)
+  - [ ] ESLint code quality passes (`npm run lint`)
+  - [ ] Unit & Integration tests pass with 80% coverage (`npm run test:coverage`)
+  - [ ] Production build succeeds (`npm run build`)
+  - [ ] Security audit passes (`npm audit`)
+- [ ] **E2E Tests**: Cross-browser validation (`npx playwright test`)
+- [ ] **CI/CD Pipeline**: All GitHub Actions jobs pass on PRs
 
 ## Auth
 

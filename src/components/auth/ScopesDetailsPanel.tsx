@@ -22,7 +22,7 @@ export const ScopesDetailsPanel: React.FC<ScopesDetailsPanelProps> = ({
   scopes,
   onReauth,
 }) => {
-  const [helpOpen, setHelpOpen] = useState<false | 'scopes'>(false);
+  const [helpOpen, setHelpOpen] = useState<false | 'scopes' | 'access'>(false);
   if (!open) return null;
   const list = scopes.length ? scopes : ['public_repo', 'user:email'];
   const missingCritical = !list.includes('public_repo');
@@ -99,7 +99,10 @@ export const ScopesDetailsPanel: React.FC<ScopesDetailsPanelProps> = ({
         )}
         <div style={{ fontSize: 12, color: '#6b7280', marginTop: 12 }}>
           To revoke access at any time, visit GitHub → Settings → Applications → Authorized OAuth
-          Apps.
+          Apps.{' '}
+          <button className="btn btn-link btn-small" onClick={() => setHelpOpen('access')}>
+            Learn how
+          </button>
         </div>
         <div style={{ marginTop: 12 }}>
           <button className="btn btn-secondary btn-small" onClick={() => setHelpOpen('scopes')}>
@@ -108,6 +111,7 @@ export const ScopesDetailsPanel: React.FC<ScopesDetailsPanelProps> = ({
         </div>
       </div>
       <HelpPanel open={helpOpen === 'scopes'} onClose={() => setHelpOpen(false)} topic="scopes" />
+      <HelpPanel open={helpOpen === 'access'} onClose={() => setHelpOpen(false)} topic="access" />
     </div>
   );
 };

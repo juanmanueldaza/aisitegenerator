@@ -4,7 +4,7 @@ import { MarkdownView } from './MarkdownView/MarkdownView';
 export interface HelpPanelProps {
   open: boolean;
   onClose: () => void;
-  topic: 'auth' | 'scopes' | 'pages';
+  topic: 'auth' | 'scopes' | 'pages' | 'access';
 }
 
 async function loadTopic(topic: HelpPanelProps['topic']): Promise<string> {
@@ -19,6 +19,10 @@ async function loadTopic(topic: HelpPanelProps['topic']): Promise<string> {
     }
     case 'pages': {
       const mod = await import('@/assets/help/pages.md?raw');
+      return (mod as unknown as { default: string }).default || String(mod);
+    }
+    case 'access': {
+      const mod = await import('@/assets/help/access.md?raw');
       return (mod as unknown as { default: string }).default || String(mod);
     }
   }

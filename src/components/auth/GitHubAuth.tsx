@@ -16,6 +16,7 @@ import {
 import { isAuthDebugEnabled, mask } from '../../utils/debug';
 import './GitHubAuth.css';
 import { ScopesBadge } from './ScopesBadge';
+import { HelpPanel } from '@/components/ui';
 
 interface GitHubAuthProps {
   className?: string;
@@ -41,6 +42,7 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ className = '' }) => {
   const [cid, setCid] = useState(getRuntimeClientId() || '');
   const [redirect, setRedirect] = useState(getRuntimeRedirectUri() || '');
   const hasClientId = !!cid;
+  const [helpOpen, setHelpOpen] = useState<false | 'access'>(false);
 
   if (isLoading) {
     return (
@@ -266,8 +268,12 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ className = '' }) => {
       </div>
       <div className="auth-tips" style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>
         To revoke permissions completely, visit GitHub → Settings → Applications → Authorized OAuth
-        Apps.
+        Apps.{' '}
+        <button className="btn btn-link btn-small" onClick={() => setHelpOpen('access')}>
+          Manage access
+        </button>
       </div>
+      <HelpPanel open={helpOpen === 'access'} onClose={() => setHelpOpen(false)} topic="access" />
     </div>
   );
 };

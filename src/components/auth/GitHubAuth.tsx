@@ -15,6 +15,7 @@ import {
 } from '../../utils/githubConfig';
 import { isAuthDebugEnabled, mask } from '../../utils/debug';
 import './GitHubAuth.css';
+import { ScopesBadge } from './ScopesBadge';
 
 interface GitHubAuthProps {
   className?: string;
@@ -272,27 +273,3 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ className = '' }) => {
 };
 
 export default GitHubAuth;
-
-// Small internal badge to display granted scopes
-const ScopesBadge: React.FC = () => {
-  const { isAuthenticated, user, scopes } = useGitHub();
-  // We don't have a direct scopes getter here; display a minimal hint
-  // Now threaded from hook.
-  if (!isAuthenticated || !user) return null;
-  return (
-    <div style={{ marginTop: 6 }}>
-      <span
-        style={{
-          fontSize: 12,
-          background: '#eef2ff',
-          color: '#3730a3',
-          padding: '2px 6px',
-          borderRadius: 999,
-        }}
-        title={`OAuth scopes: ${scopes.join(', ') || 'none'}`}
-      >
-        Scopes: {scopes.join(', ') || 'none'}
-      </span>
-    </div>
-  );
-};

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import GitHubService from '../services/github';
+import GitHubService, { getGitHubServiceSingleton } from '../services/github';
 import { getRuntimeClientId, getRuntimeRedirectUri } from '../utils/githubConfig';
 import { dlog, mask } from '../utils/debug';
 import type {
@@ -63,17 +63,27 @@ export const useGitHub = (): UseGitHubReturn => {
   // Use refs to maintain service instance and current clientId across renders
   const serviceRef = useRef<GitHubService | null>(null);
   const clientIdRef = useRef<string>('');
+  // Track last logged values across hook instances (module scope via static properties on function)
+  // @ts-expect-error - augmenting function object for simple cross-instance state
+  useGitHub.__LAST_LOGGED_CLIENT_ID = useGitHub.__LAST_LOGGED_CLIENT_ID || '';
+  // @ts-expect-error - augmenting function object for simple cross-instance state
+  useGitHub.__LAST_AUTH_SNAPSHOT = useGitHub.__LAST_AUTH_SNAPSHOT || '';
 
   // Initialize service
   const getService = useCallback(() => {
     const runtimeId = getRuntimeClientId() || ENV_CLIENT_ID || '';
-    dlog('resolve clientId', { runtime: mask(runtimeId) });
+    // Log clientId resolution only when it changes
+    // @ts-expect-error - read/write on augmented function object
+    if (useGitHub.__LAST_LOGGED_CLIENT_ID !== runtimeId) {
+      dlog('resolve clientId', { runtime: mask(runtimeId) });
+      // @ts-expect-error - read/write on augmented function object
+      useGitHub.__LAST_LOGGED_CLIENT_ID = runtimeId;
+    }
 
     // (Re)create service when first used or when clientId changed
     if (!serviceRef.current || clientIdRef.current !== runtimeId) {
-      dlog('create GitHubService', { clientId: mask(runtimeId) });
       const redirectOverride = getRuntimeRedirectUri();
-      serviceRef.current = new GitHubService({
+      serviceRef.current = getGitHubServiceSingleton({
         clientId: runtimeId,
         redirectUri: redirectOverride || `${window.location.origin}/oauth/callback`,
         scopes: ['user:email', 'public_repo'],
@@ -92,7 +102,24 @@ export const useGitHub = (): UseGitHubReturn => {
 
         const service = getService();
         const status = await service.initialize();
-        dlog('initialize status', { isAuthenticated: status.isAuthenticated, user: status.user });
+        // Log status only when it changes (dedupe across components)
+        const uid = status.user
+          ? String(
+              (status.user as { id?: number; login?: string }).id ??
+                (status.user as { login?: string }).login ??
+                'user'
+            )
+          : 'null';
+        const snapshot = `${status.isAuthenticated}:${uid}`;
+        // @ts-expect-error - read/write on augmented function object
+        if (useGitHub.__LAST_AUTH_SNAPSHOT !== snapshot) {
+          dlog('initialize status', {
+            isAuthenticated: status.isAuthenticated,
+            user: status.user,
+          });
+          // @ts-expect-error - read/write on augmented function object
+          useGitHub.__LAST_AUTH_SNAPSHOT = snapshot;
+        }
 
         setAuthStatus(status);
 

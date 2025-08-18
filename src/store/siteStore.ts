@@ -17,6 +17,11 @@ export interface SiteState {
   past: Array<Pick<SiteState, 'content' | 'messages'>>;
   future: Array<Pick<SiteState, 'content' | 'messages'>>;
 
+  // Onboarding wizard persisted state
+  wizardStep: 1 | 2 | 3 | 4;
+  projectName: string;
+  onboardingCompleted: boolean;
+
   // Actions
   setContent: (content: string) => void;
   setMessages: (messages: ChatMessage[]) => void;
@@ -28,6 +33,11 @@ export interface SiteState {
   undo: () => void;
   redo: () => void;
   clear: () => void;
+
+  // Onboarding actions
+  setWizardStep: (step: 1 | 2 | 3 | 4) => void;
+  setProjectName: (name: string) => void;
+  setOnboardingCompleted: (completed: boolean) => void;
 }
 
 export const useSiteStore = create<SiteState>()(
@@ -38,6 +48,11 @@ export const useSiteStore = create<SiteState>()(
       past: [],
       future: [],
       lastUpdatedAt: undefined,
+
+      // Onboarding defaults
+      wizardStep: 1,
+      projectName: 'my-site',
+      onboardingCompleted: false,
 
       setContent: (content: string) =>
         set(() => ({
@@ -60,7 +75,9 @@ export const useSiteStore = create<SiteState>()(
           if (idx === -1) return {};
           const i = state.messages.length - 1 - idx;
           const messages = state.messages.slice();
-          messages[i] = { ...messages[i], content };
+          const m = messages[i];
+          const finalizedId = m.id === 'streaming' ? Date.now().toString() : m.id;
+          messages[i] = { ...m, id: finalizedId, content };
           return { messages, lastUpdatedAt: Date.now() };
         }),
 
@@ -126,6 +143,11 @@ export const useSiteStore = create<SiteState>()(
 
       clear: () =>
         set({ content: '', messages: [], past: [], future: [], lastUpdatedAt: Date.now() }),
+
+      // Onboarding actions
+      setWizardStep: (step: 1 | 2 | 3 | 4) => set({ wizardStep: step }),
+      setProjectName: (name: string) => set({ projectName: name }),
+      setOnboardingCompleted: (completed: boolean) => set({ onboardingCompleted: completed }),
     }),
     {
       name: 'site-state',
@@ -136,6 +158,9 @@ export const useSiteStore = create<SiteState>()(
         content: state.content,
         messages: state.messages,
         lastUpdatedAt: state.lastUpdatedAt,
+        wizardStep: state.wizardStep,
+        projectName: state.projectName,
+        onboardingCompleted: state.onboardingCompleted,
       }),
     }
   )

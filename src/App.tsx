@@ -8,6 +8,7 @@ import { useSiteStore } from './store/siteStore';
 import { Toast } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
+import { OnboardingWizard } from '@/components';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -55,6 +56,14 @@ function App() {
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [toast, setToast] = useState<string>('');
   const [selectedHunks, setSelectedHunks] = useState<boolean[]>([]);
+  const [showWizard, setShowWizard] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '?') setShowWizard(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const lastAIContent = useMemo(() => {
     const msgs = store.messages;
@@ -148,6 +157,15 @@ function App() {
           </div>
           <div className="header-auth">
             <GitHubAuth />
+            <div style={{ marginTop: 6, textAlign: 'right' }}>
+              <button
+                className="btn btn-secondary btn-small"
+                onClick={() => setShowWizard(true)}
+                title="Open onboarding wizard (? also works)"
+              >
+                Help / Onboard
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -274,6 +292,13 @@ function App() {
             </div>
           </div>
         </div>
+
+        <OnboardingWizard
+          open={showWizard}
+          onClose={() => setShowWizard(false)}
+          onOpenEditor={() => setActiveTab('editor')}
+          onOpenDeploy={() => setActiveTab('deploy')}
+        />
 
         {showConflictModal && (
           <div
@@ -403,6 +428,12 @@ function App() {
           </div>
         )}
       </main>
+      <footer style={{ textAlign: 'center', padding: 12, color: '#6b7280', fontSize: 12 }}>
+        Need help?{' '}
+        <button className="btn btn-secondary btn-small" onClick={() => setShowWizard(true)}>
+          Open onboarding
+        </button>
+      </footer>
     </div>
   );
 }

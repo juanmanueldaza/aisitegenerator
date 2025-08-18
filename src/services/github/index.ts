@@ -20,6 +20,8 @@ export class GitHubService {
   private currentUser: GitHubUser | null = null;
   private currentToken: string | null = null;
   private currentScopes: string[] = [];
+  private initialized: boolean = false;
+  private initializingPromise: Promise<AuthStatus> | null = null;
 
   constructor(config: GitHubAuthConfig) {
     this.authService = new GitHubAuthService(config);
@@ -30,39 +32,53 @@ export class GitHubService {
    * Initialize service and handle OAuth callback if present
    */
   async initialize(): Promise<AuthStatus> {
-    // Check if we're in an OAuth callback
-    if (this.authService.isCallback()) {
-      try {
+    // Avoid redundant initialization when we already have a token and user
+    if (this.initialized && this.currentToken && this.currentUser) {
+      return this.getAuthStatus();
+    }
+    // Deduplicate concurrent calls
+    if (this.initializingPromise) {
+      return this.initializingPromise;
+    }
+
+    this.initializingPromise = (async () => {
+      // Check if we're in an OAuth callback
+      if (this.authService.isCallback()) {
         dlog('OAuth callback detected');
         const token = await this.authService.handleCallback(window.location.href);
         dlog('OAuth token obtained', { token: mask(token) });
         await this.setToken(token);
-
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
 
+        this.initialized = true;
         return this.getAuthStatus();
-      } catch (error) {
-        console.error('OAuth callback error:', error);
-        throw error;
       }
-    }
 
-    // Check for existing token
-    const existingToken = this.getStoredToken();
-    if (existingToken) {
-      try {
-        dlog('existing token found', { token: mask(existingToken) });
-        await this.setToken(existingToken);
-        return this.getAuthStatus();
-      } catch {
-        // Token might be invalid, clear it
-        dlog('existing token invalid, clearing');
-        this.clearToken();
+      // Check for existing token
+      const existingToken = this.getStoredToken();
+      if (existingToken) {
+        try {
+          dlog('existing token found', { token: mask(existingToken) });
+          await this.setToken(existingToken);
+          this.initialized = true;
+          return this.getAuthStatus();
+        } catch {
+          // Token might be invalid, clear it
+          dlog('existing token invalid, clearing');
+          this.clearToken();
+        }
       }
-    }
 
-    return this.getAuthStatus();
+      this.initialized = true;
+      return this.getAuthStatus();
+    })();
+
+    try {
+      return await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
   }
 
   /**
@@ -287,3 +303,16 @@ export class GitHubService {
 
 export default GitHubService;
 export { GitHubAuthService, GitHubAPIService };
+
+// Lightweight singleton cache by clientId to avoid duplicate instances/log spam
+const instanceCache = new Map<string, GitHubService>();
+export function getGitHubServiceSingleton(config: GitHubAuthConfig): GitHubService {
+  const key = `${config.clientId}|${config.redirectUri}`;
+  let inst = instanceCache.get(key);
+  if (!inst) {
+    inst = new GitHubService(config);
+    dlog('create GitHubService', { clientId: mask(config.clientId) });
+    instanceCache.set(key, inst);
+  }
+  return inst;
+}

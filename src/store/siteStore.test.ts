@@ -35,7 +35,8 @@ describe('siteStore', () => {
     expect(useSiteStore.getState().messages.at(-1)?.content).toBe('AB');
     // finalize by replacing last assistant
     store.replaceLastAssistantMessage('Final');
-    expect(useSiteStore.getState().messages.at(-1)?.id).toBe('streaming');
+    // after finalization the placeholder id should be replaced with a unique id
+    expect(useSiteStore.getState().messages.at(-1)?.id).not.toBe('streaming');
     expect(useSiteStore.getState().messages.at(-1)?.content).toBe('Final');
   });
 

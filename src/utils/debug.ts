@@ -3,13 +3,16 @@
 export function isAuthDebugEnabled(): boolean {
   try {
     const url = new URL(window.location.href);
-    if (url.searchParams.get('auth_debug') === '1') return true;
+    const q = url.searchParams.get('auth_debug');
+    if (q === '1') return true;
+    if (q === '0') return false;
   } catch {
     // ignore URL parsing issues
   }
   try {
     const flag = localStorage.getItem('auth_debug');
     if (flag === '1') return true;
+    if (flag === '0') return false;
   } catch {
     // ignore localStorage access issues
   }

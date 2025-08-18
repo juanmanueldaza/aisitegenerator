@@ -200,6 +200,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
       }
 
       let accumulated = '';
+      // unique id per streaming response to avoid duplicate React keys
+      const streamingId = `stream-${Date.now()}`;
       for await (const chunk of ai.generateStream(history, {
         model,
         systemInstruction:
@@ -224,18 +226,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
         accumulated += chunk.text;
         setMessages((prev) => {
           const last = prev[prev.length - 1];
-          if (last && last.sender === 'ai' && last.id === 'streaming') {
+          if (last && last.sender === 'ai' && last.id === streamingId) {
             const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...last,
-              content: accumulated,
-            };
+            updated[updated.length - 1] = { ...last, content: accumulated };
             return updated;
           }
           return [
             ...prev,
             {
-              id: 'streaming',
+              id: streamingId,
               content: accumulated,
               sender: 'ai',
               timestamp: new Date(),
@@ -243,13 +242,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSiteGenerated, classNam
             },
           ];
         });
-        // mirror streaming assistant message into store in-place
+        // mirror streaming assistant message into store in-place (stable placeholder id inside store)
         store.upsertStreamingAssistant(accumulated);
       }
 
       // finalize message id
       setMessages((prev) =>
-        prev.map((m) => (m.id === 'streaming' ? { ...m, id: (Date.now() + 1).toString() } : m))
+        prev.map((m) => (m.id === streamingId ? { ...m, id: (Date.now() + 1).toString() } : m))
       );
       store.replaceLastAssistantMessage(accumulated);
       store.commit();
@@ -527,7 +526,6 @@ What type of website interests you most? Or tell me more about your specific nee
             <option value="gemini-2.5-flash">gemini-2.5-flash</option>
             <option value="gemini-1.5-pro">gemini-1.5-pro</option>
             <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
             <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
           </select>
           <button

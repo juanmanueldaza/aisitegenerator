@@ -20,6 +20,15 @@ export default defineConfig({
     },
   },
   server: {
+    // Respect a custom port (e.g., when running behind a proxy or task runner)
+    port: Number(process.env.PORT) || undefined,
+    host: process.env.HOST || undefined,
+    hmr: {
+      // Ensure the client connects back to the same port/host when served via a proxy (e.g., localhost:4000)
+      clientPort: Number(process.env.PORT) || undefined,
+      host: process.env.HOST || undefined,
+      protocol: (process.env.HMR_PROTOCOL as 'ws' | 'wss') || 'ws',
+    },
     proxy: {
       // Dev-only proxy to bypass browser CORS when calling GitHub OAuth endpoints
       '/__gh/oauth': {

@@ -5,7 +5,7 @@ import ChatInterface from './components/chat/ChatInterface';
 import RepositoryCreator from './components/deployment/RepositoryCreator';
 import { useGitHub } from './hooks/useGitHub';
 import { useSiteStore } from './store/siteStore';
-import { Toast } from '@/components/ui';
+import { Toast, InlineDiffView } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
@@ -57,6 +57,7 @@ function App() {
   const [toast, setToast] = useState<string>('');
   const [selectedHunks, setSelectedHunks] = useState<boolean[]>([]);
   const [showWizard, setShowWizard] = useState(false);
+  const [showInlineView, setShowInlineView] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === '?') setShowWizard(true);
@@ -348,6 +349,36 @@ function App() {
                   <textarea value={lastAIContent} readOnly style={{ width: '100%', height: 240 }} />
                 </div>
               </div>
+              {hunks.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={showInlineView}
+                      onChange={(e) => setShowInlineView(e.target.checked)}
+                    />
+                    <span>Show visual inline diff</span>
+                  </label>
+                  {showInlineView && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        maxHeight: 260,
+                        overflow: 'auto',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 6,
+                        padding: 8,
+                        background: '#f9fafb',
+                      }}
+                    >
+                      <InlineDiffView
+                        original={store.content || ''}
+                        hunks={hunks.filter((_, i) => selectedHunks[i])}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               {hunks.length > 0 && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontWeight: 600, marginBottom: 6 }}>Select changes to apply</div>

@@ -5,3 +5,4 @@ export * from './MarkdownView';
 export * from './HelpTooltip';
 export * from './InlineCallout';
 export * from './HelpPanel';
+export * from './InlineDiffView/InlineDiffView';

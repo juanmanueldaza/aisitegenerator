@@ -1,14 +1,18 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React from 'react';
 import LivePreview from './components/LivePreview/LivePreview';
 import GitHubAuth from './components/auth/GitHubAuth';
-import ChatInterface from './components/chat/ChatInterface';
+import { DeepChat } from 'deep-chat-react';
 import RepositoryCreator from './components/deployment/RepositoryCreator';
 import { useGitHub } from './hooks/useGitHub';
 import { useSiteStore } from './store/siteStore';
+import { useAIProvider } from '@/services/ai';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Toast, InlineDiffView } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
+import type { AIMessage, GenerateResult } from '@/types/ai';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -47,10 +51,229 @@ function greet(name) {
 
 > This is a blockquote showing how content will appear in the preview.`;
 
+// Memoized Deep Chat Component with stable props/handler to prevent resets
+const MemoizedDeepChat = React.memo<{
+  aiReady: boolean;
+  generate: (messages: AIMessage[]) => Promise<GenerateResult>;
+  apiKey: string;
+  setApiKey: (key: string) => void;
+  onSiteGenerated: (siteData: { content?: string }) => void;
+  appendMessage: (m: {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: number;
+  }) => void;
+  currentMessagesRef: React.MutableRefObject<
+    | Array<{ id: string; role: 'user' | 'assistant'; content?: string; timestamp: number }>
+    | undefined
+  >;
+  history: Array<{ role: 'user' | 'ai'; text: string }>;
+}>(
+  ({
+    aiReady,
+    generate,
+    apiKey,
+    setApiKey,
+    onSiteGenerated,
+    appendMessage,
+    currentMessagesRef,
+    history,
+  }) => {
+    // Minimal Deep Chat handler types
+    type DeepChatMessage = { role: 'user' | 'assistant' | 'system'; text?: string };
+    type DeepChatBody = { messages: DeepChatMessage[] };
+    type DeepChatSignals = { onResponse: (payload: { text?: string; error?: string }) => void };
+
+    // Keep latest readiness in a ref to avoid changing handler identity
+    const aiReadyRef = useRef(aiReady);
+    useEffect(() => {
+      aiReadyRef.current = aiReady;
+    }, [aiReady]);
+
+    // Stable handler that never changes identity
+    const stableHandler = useCallback(
+      (body: DeepChatBody, signals: DeepChatSignals) => {
+        console.log('🔗 Deep Chat handler called with:', body);
+
+        if (!aiReadyRef.current) {
+          signals.onResponse({
+            text: '**🔌 AI Not Connected**\n\nPlease enter your Gemini API key above.',
+          });
+          return;
+        }
+
+        const userMessage = body.messages?.[body.messages.length - 1];
+        console.log('👤 User message:', userMessage);
+        if (!userMessage?.text) {
+          signals.onResponse({ error: 'No message text received' });
+          return;
+        }
+        const userText: string = userMessage.text;
+
+        // Build full history from the store ref (Deep Chat might only send the last message)
+        const historyFromStore = currentMessagesRef?.current ?? [];
+        const historyAi: AIMessage[] = historyFromStore
+          .filter(
+            (m) =>
+              (m.role === 'user' || m.role === 'assistant') &&
+              !!m.content &&
+              m.content.trim() !== ''
+          )
+          .map((m) => ({ role: m.role, content: m.content as string }));
+        const aiMessages: AIMessage[] = [...historyAi, { role: 'user', content: userText }];
+        generate(aiMessages)
+          .then((result: GenerateResult) => {
+            console.log('🤖 AI result:', result);
+            const text: string | undefined = result?.text;
+            if (text) {
+              // Persist to store via stable action
+              appendMessage({
+                id: `user-${Date.now()}`,
+                role: 'user',
+                content: userText,
+                timestamp: Date.now(),
+              });
+              appendMessage({
+                id: `assistant-${Date.now()}`,
+                role: 'assistant',
+                content: text,
+                timestamp: Date.now(),
+              });
+
+              // Auto-switch to editor when full HTML detected
+              if (
+                text.includes('<!DOCTYPE html>') ||
+                (text.includes('<html') && text.includes('</html>'))
+              ) {
+                console.log('🌐 Website detected, switching to editor');
+                setTimeout(() => onSiteGenerated({ content: text }), 100);
+              }
+
+              signals.onResponse({ text });
+            } else {
+              signals.onResponse({ error: 'No response from AI service' });
+            }
+          })
+          .catch((error: unknown) => {
+            console.error('❌ AI generation error:', error);
+            const message = error instanceof Error ? error.message : 'Request failed';
+            signals.onResponse({ error: `AI Error: ${message}` });
+          });
+      },
+      [generate, appendMessage, onSiteGenerated, currentMessagesRef]
+    );
+
+    // Memoize config objects to avoid prop churn that could reset Deep Chat
+    const introMessage = useMemo(
+      () => ({
+        text: "🚀 **AI Site Generator**\\n\\nI'm your AI assistant for creating beautiful websites! Ask me to create any type of website and I'll generate complete HTML, CSS, and JavaScript code.\\n\\n**Try asking me:**\\n- Create a portfolio website\\n- Make a landing page for a restaurant\\n- Build a blog template\\n- Design a company homepage",
+      }),
+      []
+    );
+
+    const textInput = useMemo(
+      () => ({
+        placeholder: { text: 'Ask me to create a website...' },
+      }),
+      []
+    );
+
+    const requestBodyLimits = useMemo(() => ({ maxMessages: -1 }), []);
+
+    const connect = useMemo(() => ({ handler: stableHandler }), [stableHandler]);
+
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            padding: '16px',
+            backgroundColor: aiReady ? '#f0f9ff' : '#f8f9fa',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: `2px solid ${aiReady ? '#3b82f6' : '#e9ecef'}`,
+          }}
+        >
+          <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#374151' }}>
+            {aiReady ? '🟢' : '🔴'} Gemini AI Connection
+          </h4>
+          <input
+            type="password"
+            placeholder="Enter your Gemini API key..."
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '2px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '14px',
+              marginBottom: '8px',
+            }}
+          />
+          <div style={{ fontSize: '13px', color: aiReady ? '#059669' : '#6b7280' }}>
+            {aiReady ? '✅ Ready for AI responses' : 'Enter API key to enable AI'}
+            {!aiReady && (
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ marginLeft: '8px', color: '#3b82f6' }}
+              >
+                Get API Key
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div style={{ flex: 1, minHeight: '400px' }}>
+          <DeepChat
+            style={{
+              height: '100%',
+              width: '100%',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+            }}
+            introMessage={introMessage}
+            textInput={textInput}
+            requestBodyLimits={requestBodyLimits}
+            history={history}
+            connect={connect}
+          />
+        </div>
+      </div>
+    );
+  }
+);
+
+MemoizedDeepChat.displayName = 'MemoizedDeepChat';
+
 function App() {
   const store = useSiteStore();
   const [activeTab, setActiveTab] = useState<'chat' | 'editor' | 'deploy'>('chat');
   const { isAuthenticated, user, error: ghError, clearError } = useGitHub();
+
+  // AI provider initialization
+  const [apiKey, setApiKey] = useLocalStorage('GEMINI_API_KEY', '');
+  const ai = useAIProvider('gemini');
+  // Keep a stable ref to the AI provider to avoid changing handler identity
+  const aiRef = useRef(ai);
+  useEffect(() => {
+    aiRef.current = ai;
+  }, [ai]);
+  const aiReady = !!ai.ready;
+  // Stable generate() wrapper that uses ref so identity never changes
+  const generate = useCallback((messages: AIMessage[]) => {
+    const current = aiRef.current;
+    if (!current?.ready) {
+      return Promise.reject(new Error('AI Not Ready'));
+    }
+    return current.generate(messages);
+  }, []);
+
+  // Select stable store actions to avoid prop churn into DeepChat
+  const appendMessage = useSiteStore((s) => s.appendMessage);
+
   const commitTimerRef = useRef<number | null>(null);
   const [showConflict, setShowConflict] = useState(false);
   const [showConflictModal, setShowConflictModal] = useState(false);
@@ -76,14 +299,20 @@ function App() {
     return '';
   }, [store.messages]);
 
-  const handleSiteGenerated = (siteData: { content?: string }) => {
-    // Handle AI-generated site data
-    if (siteData && siteData.content) {
-      store.setContent(siteData.content);
-      store.commit();
-      setActiveTab('editor');
-    }
-  };
+  const setContentAction = useSiteStore((s) => s.setContent);
+  const commitAction = useSiteStore((s) => s.commit);
+
+  const handleSiteGenerated = useCallback(
+    (siteData: { content?: string }) => {
+      // Handle AI-generated site data
+      if (siteData && siteData.content) {
+        setContentAction(siteData.content);
+        commitAction();
+        setActiveTab('editor');
+      }
+    },
+    [setContentAction, commitAction]
+  );
 
   // Initialize store content from initial sample
   useEffect(() => {
@@ -147,6 +376,25 @@ function App() {
     setShowConflict(false);
   };
 
+  // Stable ref with the latest store messages to build AI history without re-rendering DeepChat
+  const messagesRef = useRef(store.messages);
+  useEffect(() => {
+    messagesRef.current = store.messages;
+  }, [store.messages]);
+
+  // Provide DeepChat-compatible history to avoid internal resets
+  const deepChatHistory = useMemo(() => {
+    return (store.messages || [])
+      .filter(
+        (m) =>
+          (m.role === 'user' || m.role === 'assistant') && !!m.content && m.content.trim() !== ''
+      )
+      .map((m) => ({
+        role: m.role === 'assistant' ? ('ai' as const) : ('user' as const),
+        text: m.content as string,
+      }));
+  }, [store.messages]);
+
   return (
     <div className="app">
       <Toast message={toast} visible={!!toast} />
@@ -197,7 +445,18 @@ function App() {
             </div>
 
             <div className="panel-content">
-              {activeTab === 'chat' && <ChatInterface onSiteGenerated={handleSiteGenerated} />}
+              {activeTab === 'chat' && (
+                <MemoizedDeepChat
+                  aiReady={aiReady}
+                  generate={generate}
+                  apiKey={apiKey}
+                  setApiKey={setApiKey}
+                  onSiteGenerated={handleSiteGenerated}
+                  appendMessage={appendMessage}
+                  currentMessagesRef={messagesRef}
+                  history={deepChatHistory}
+                />
+              )}
 
               {activeTab === 'editor' && (
                 <div className="editor-section">

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/141</span>
+                <span class='fraction'>0/144</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/141</span>
+                <span class='fraction'>0/144</span>
             </div>
         
             
@@ -303,7 +303,10 @@
 <a name='L238'></a><a href='#L238'>238</a>
 <a name='L239'></a><a href='#L239'>239</a>
 <a name='L240'></a><a href='#L240'>240</a>
-<a name='L241'></a><a href='#L241'>241</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -482,6 +485,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -559,10 +565,10 @@
 <span class="cstat-no" title="statement not covered" >  test('complete user journey: auth, generate, and preview', async ({ page }) =&gt; {</span>
     // Step 1: Check initial state
 <span class="cstat-no" title="statement not covered" >    await expect(page).toHaveTitle(/AI Site Generator/);</span>
-    
+&nbsp;
     // Step 2: Authentication flow
 <span class="cstat-no" title="statement not covered" >    await expect(page.getByText('Connect to GitHub')).toBeVisible();</span>
-    
+&nbsp;
     // Mock GitHub OAuth flow in test environment
 <span class="cstat-no" title="statement not covered" >    if (process.env.NODE_ENV === 'test') {</span>
       // In a real scenario, you would set up proper test authentication
@@ -576,18 +582,18 @@
 <span class="cstat-no" title="statement not covered" >    const chatInput = page.getByPlaceholder(/describe your website/i);</span>
 <span class="cstat-no" title="statement not covered" >    if (await chatInput.isVisible()) {</span>
 <span class="cstat-no" title="statement not covered" >      await chatInput.fill('Create a modern portfolio website with dark theme');</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      const generateButton = page.getByRole('button', { name: /generate/i });</span>
 <span class="cstat-no" title="statement not covered" >      await generateButton.click();</span>
-      
+&nbsp;
       // Step 4: Preview functionality
       // Wait for preview to load (in real tests this would be mocked)
 <span class="cstat-no" title="statement not covered" >      await page.waitForSelector('[data-testid="live-preview"]', { timeout: 10000 });</span>
-      
+&nbsp;
       // Test preview controls
 <span class="cstat-no" title="statement not covered" >      const previewFrame = page.getByTestId('preview-iframe');</span>
 <span class="cstat-no" title="statement not covered" >      await expect(previewFrame).toBeVisible();</span>
-      
+&nbsp;
       // Test responsive preview modes
 <span class="cstat-no" title="statement not covered" >      const mobileButton = page.getByRole('button', { name: /mobile/i });</span>
 <span class="cstat-no" title="statement not covered" >      if (await mobileButton.isVisible()) {</span>
@@ -600,42 +606,42 @@
 <span class="cstat-no" title="statement not covered" >  test('error handling: network failures and API errors', async ({ page }) =&gt; {</span>
     // Test offline behavior
 <span class="cstat-no" title="statement not covered" >    await page.context().setOffline(true);</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    const chatInput = page.getByPlaceholder(/describe your website/i);</span>
 <span class="cstat-no" title="statement not covered" >    if (await chatInput.isVisible()) {</span>
 <span class="cstat-no" title="statement not covered" >      await chatInput.fill('Create a website');</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      const generateButton = page.getByRole('button', { name: /generate/i });</span>
 <span class="cstat-no" title="statement not covered" >      await generateButton.click();</span>
-      
+&nbsp;
       // Should show error state
 <span class="cstat-no" title="statement not covered" >      await expect(page.getByText(/connection error/i)).toBeVisible();</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    await page.context().setOffline(false);</span>
 <span class="cstat-no" title="statement not covered" >  });</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  test('accessibility: keyboard navigation and screen reader support', async ({ page }) =&gt; {</span>
     // Test keyboard navigation
 <span class="cstat-no" title="statement not covered" >    await page.keyboard.press('Tab');</span>
-    
+&nbsp;
     // Focus should be on the first interactive element
 <span class="cstat-no" title="statement not covered" >    const focusedElement = page.locator(':focus');</span>
 <span class="cstat-no" title="statement not covered" >    await expect(focusedElement).toBeVisible();</span>
-    
+&nbsp;
     // Test skip links if they exist
 <span class="cstat-no" title="statement not covered" >    const skipLink = page.getByRole('link', { name: /skip to main content/i });</span>
 <span class="cstat-no" title="statement not covered" >    if (await skipLink.isVisible()) {</span>
 <span class="cstat-no" title="statement not covered" >      await skipLink.click();</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      const mainContent = page.getByRole('main');</span>
 <span class="cstat-no" title="statement not covered" >      await expect(mainContent).toBeFocused();</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
     // Test ARIA labels and roles
 <span class="cstat-no" title="statement not covered" >    const mainHeading = page.getByRole('heading', { level: 1 });</span>
 <span class="cstat-no" title="statement not covered" >    await expect(mainHeading).toBeVisible();</span>
-    
+&nbsp;
     // Test form accessibility
 <span class="cstat-no" title="statement not covered" >    const chatInput = page.getByPlaceholder(/describe your website/i);</span>
 <span class="cstat-no" title="statement not covered" >    if (await chatInput.isVisible()) {</span>
@@ -646,27 +652,27 @@
 <span class="cstat-no" title="statement not covered" >  test('responsive design: mobile and desktop layouts', async ({ page }) =&gt; {</span>
     // Test desktop layout
 <span class="cstat-no" title="statement not covered" >    await page.setViewportSize({ width: 1200, height: 800 });</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    const sidebar = page.getByTestId('sidebar');</span>
 <span class="cstat-no" title="statement not covered" >    if (await sidebar.isVisible()) {</span>
 <span class="cstat-no" title="statement not covered" >      await expect(sidebar).toBeVisible();</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
     // Test mobile layout
 <span class="cstat-no" title="statement not covered" >    await page.setViewportSize({ width: 375, height: 667 });</span>
-    
+&nbsp;
     // Mobile menu should be visible
 <span class="cstat-no" title="statement not covered" >    const mobileMenu = page.getByTestId('mobile-menu-trigger');</span>
 <span class="cstat-no" title="statement not covered" >    if (await mobileMenu.isVisible()) {</span>
 <span class="cstat-no" title="statement not covered" >      await mobileMenu.click();</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      const mobileNavigation = page.getByTestId('mobile-navigation');</span>
 <span class="cstat-no" title="statement not covered" >      await expect(mobileNavigation).toBeVisible();</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
     // Test tablet layout
 <span class="cstat-no" title="statement not covered" >    await page.setViewportSize({ width: 768, height: 1024 });</span>
-    
+&nbsp;
     // Elements should reflow appropriately
 <span class="cstat-no" title="statement not covered" >    const mainContent = page.getByRole('main');</span>
 <span class="cstat-no" title="statement not covered" >    await expect(mainContent).toBeVisible();</span>
@@ -674,26 +680,26 @@
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  test('performance: page load and interaction timing', async ({ page }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const startTime = Date.now();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    await page.goto('/');</span>
-    
+&nbsp;
     // Wait for the page to be fully interactive
 <span class="cstat-no" title="statement not covered" >    await page.waitForLoadState('networkidle');</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    const loadTime = Date.now() - startTime;</span>
-    
+&nbsp;
     // Page should load within reasonable time (3 seconds)
 <span class="cstat-no" title="statement not covered" >    expect(loadTime).toBeLessThan(3000);</span>
-    
+&nbsp;
     // Test interaction responsiveness
 <span class="cstat-no" title="statement not covered" >    const chatInput = page.getByPlaceholder(/describe your website/i);</span>
 <span class="cstat-no" title="statement not covered" >    if (await chatInput.isVisible()) {</span>
 <span class="cstat-no" title="statement not covered" >      const interactionStart = Date.now();</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      await chatInput.fill('Test input');</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      const interactionTime = Date.now() - interactionStart;</span>
-      
+&nbsp;
       // Interactions should be responsive (&lt; 100ms)
 <span class="cstat-no" title="statement not covered" >      expect(interactionTime).toBeLessThan(100);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -704,43 +710,46 @@
 <span class="cstat-no" title="statement not covered" >    if (await chatInput.isVisible()) {</span>
       // Enter some content
 <span class="cstat-no" title="statement not covered" >      await chatInput.fill('Create a portfolio website');</span>
-      
+&nbsp;
       // Check if content is saved to local storage
 <span class="cstat-no" title="statement not covered" >      const storedData = await page.evaluate(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        return localStorage.getItem('ai-site-generator-chat-history');</span>
 <span class="cstat-no" title="statement not covered" >      });</span>
-      
+&nbsp;
       // If the app implements persistence, verify it works
 <span class="cstat-no" title="statement not covered" >      if (storedData) {</span>
 <span class="cstat-no" title="statement not covered" >        expect(storedData).toContain('portfolio website');</span>
-        
+&nbsp;
         // Refresh page and check persistence
 <span class="cstat-no" title="statement not covered" >        await page.reload();</span>
-        
+&nbsp;
 <span class="cstat-no" title="statement not covered" >        await expect(chatInput).toHaveValue('Create a portfolio website');</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  });</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  test('browser compatibility: core functionality works across browsers', async ({ page, browserName }) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  test('browser compatibility: core functionality works across browsers', async ({</span>
+<span class="cstat-no" title="statement not covered" >    page,</span>
+<span class="cstat-no" title="statement not covered" >    browserName,</span>
+<span class="cstat-no" title="statement not covered" >  }) =&gt; {</span>
     // Test basic functionality in each browser
 <span class="cstat-no" title="statement not covered" >    console.log(`Testing in ${browserName}`);</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    await expect(page).toHaveTitle(/AI Site Generator/);</span>
-    
+&nbsp;
     // Test CSS support
 <span class="cstat-no" title="statement not covered" >    const body = page.locator('body');</span>
 <span class="cstat-no" title="statement not covered" >    const computedStyle = await body.evaluate((el) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      return window.getComputedStyle(el).display;</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    expect(computedStyle).toBeTruthy();</span>
-    
+&nbsp;
     // Test JavaScript functionality
 <span class="cstat-no" title="statement not covered" >    const isJSEnabled = await page.evaluate(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      return typeof window !== 'undefined' &amp;&amp; typeof document !== 'undefined';</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    expect(isJSEnabled).toBe(true);</span>
 <span class="cstat-no" title="statement not covered" >  });</span>
 <span class="cstat-no" title="statement not covered" >});</span>
@@ -790,7 +799,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-18T03:59:10.792Z
+                at 2025-08-21T01:39:27.620Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

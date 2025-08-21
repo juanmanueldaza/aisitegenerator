@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">99.2% </span>
+                <span class="strong">99.16% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>249/251</span>
+                <span class='fraction'>238/240</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">99.2% </span>
+                <span class="strong">99.16% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>249/251</span>
+                <span class='fraction'>238/240</span>
             </div>
         
             
@@ -392,18 +392,7 @@
 <a name='L327'></a><a href='#L327'>327</a>
 <a name='L328'></a><a href='#L328'>328</a>
 <a name='L329'></a><a href='#L329'>329</a>
-<a name='L330'></a><a href='#L330'>330</a>
-<a name='L331'></a><a href='#L331'>331</a>
-<a name='L332'></a><a href='#L332'>332</a>
-<a name='L333'></a><a href='#L333'>333</a>
-<a name='L334'></a><a href='#L334'>334</a>
-<a name='L335'></a><a href='#L335'>335</a>
-<a name='L336'></a><a href='#L336'>336</a>
-<a name='L337'></a><a href='#L337'>337</a>
-<a name='L338'></a><a href='#L338'>338</a>
-<a name='L339'></a><a href='#L339'>339</a>
-<a name='L340'></a><a href='#L340'>340</a>
-<a name='L341'></a><a href='#L341'>341</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L330'></a><a href='#L330'>330</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -539,8 +528,6 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -578,13 +565,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -593,8 +576,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -621,8 +602,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -648,8 +627,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -734,6 +711,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -781,19 +759,19 @@ class TestGeminiProvider {
     void messages;
     void options;
     void this.apiKey;
-    
+&nbsp;
     const mockResponse = await mockSendMessage();
     return {
       text: mockResponse?.response?.text?.(<span class="branch-0 cbranch-no" title="branch not covered" >) ?? 'Default response',</span>
-      finishReason: 'stop'
+      finishReason: 'stop',
     };
   }
 &nbsp;
-  async* generateStream(messages: AIMessage[], options = {}) {
+  async *generateStream(messages: AIMessage[], options = {}) {
     // Use parameters to avoid lint warnings
     void messages;
     void options;
-    
+&nbsp;
     const stream = mockGenerateContentStream();
     for await (const chunk of stream) {
       yield { text: chunk?.response?.text?.(<span class="branch-0 cbranch-no" title="branch not covered" >) ?? '' }</span>;
@@ -814,15 +792,15 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
       'Create a simple portfolio website with HTML and CSS',
       'Build an e-commerce landing page',
       'Design a blog website with modern layout',
-      'Make a restaurant website with menu'
+      'Make a restaurant website with menu',
     ];
 &nbsp;
     it('should handle various website generation prompts', async () =&gt; {
       for (const prompt of websitePrompts) {
         const mockResponse = {
           response: {
-            text: () =&gt; `Generated ${prompt.split(' ')[2]} website with HTML, CSS, and JavaScript`
-          }
+            text: () =&gt; `Generated ${prompt.split(' ')[2]} website with HTML, CSS, and JavaScript`,
+          },
         };
 &nbsp;
         mockSendMessage.mockResolvedValue(mockResponse);
@@ -844,13 +822,13 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         { role: 'assistant' as const, content: 'Created a basic HTML website' },
         { role: 'user' as const, content: 'Add CSS styling' },
         { role: 'assistant' as const, content: 'Added CSS styling' },
-        { role: 'user' as const, content: 'Make it responsive' }
+        { role: 'user' as const, content: 'Make it responsive' },
       ];
 &nbsp;
       const mockResponse = {
         response: {
-          text: () =&gt; 'Made the website responsive with mobile-first design'
-        }
+          text: () =&gt; 'Made the website responsive with mobile-first design',
+        },
       };
 &nbsp;
       mockSendMessage.mockResolvedValue(mockResponse);
@@ -866,21 +844,19 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         'HTML structure',
         'CSS styling',
         'JavaScript functionality',
-        'Complete webpage'
+        'Complete webpage',
       ];
 &nbsp;
       for (let i = 0; i &lt; contentTypes.length; i++) {
         const mockResponse = {
           response: {
-            text: () =&gt; `Generated ${contentTypes[i]} content`
-          }
+            text: () =&gt; `Generated ${contentTypes[i]} content`,
+          },
         };
 &nbsp;
         mockSendMessage.mockResolvedValue(mockResponse);
 &nbsp;
-        const messages: AIMessage[] = [
-          { role: 'user', content: `Create ${contentTypes[i]}` }
-        ];
+        const messages: AIMessage[] = [{ role: 'user', content: `Create ${contentTypes[i]}` }];
 &nbsp;
         const result = await provider.generate(messages);
         expect(result.text).toContain(contentTypes[i]);
@@ -894,7 +870,7 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         { error: new Error('Rate limit exceeded'), expectedMessage: 'Rate limit' },
         { error: new Error('Invalid API key'), expectedMessage: 'API key' },
         { error: new Error('Safety filters triggered'), expectedMessage: 'Safety filters' },
-        { error: new Error('Network timeout'), expectedMessage: 'timeout' }
+        { error: new Error('Network timeout'), expectedMessage: 'timeout' },
       ];
 &nbsp;
       for (const scenario of errorScenarios) {
@@ -913,29 +889,23 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
     it('should handle retry logic for transient errors', async () =&gt; {
       const transientError = new Error('Temporary server error');
       const successResponse = {
-        response: { text: () =&gt; 'Success after retry' }
+        response: { text: () =&gt; 'Success after retry' },
       };
 &nbsp;
       // Mock the retry pattern - first call fails, second succeeds
-      mockSendMessage
-        .mockRejectedValueOnce(transientError)
-        .mockResolvedValueOnce(successResponse);
+      mockSendMessage.mockRejectedValueOnce(transientError).mockResolvedValueOnce(successResponse);
 &nbsp;
       // This test demonstrates the retry pattern, even though our test provider
       // doesn't implement actual retry logic
       try {
-        await provider.generate([
-          { role: 'user', content: 'Create a website' }
-        ]<span class="branch-0 cbranch-no" title="branch not covered" >);</span>
+        await provider.generate([{ role: 'user', content: 'Create a website' }]<span class="branch-0 cbranch-no" title="branch not covered" >);</span>
       } catch (error) {
         // First attempt should fail
         expect((error as Error).message).toContain('Temporary server error');
       }
 &nbsp;
       // Second attempt should succeed
-      const result = await provider.generate([
-        { role: 'user', content: 'Create a website' }
-      ]);
+      const result = await provider.generate([{ role: 'user', content: 'Create a website' }]);
 &nbsp;
       expect(result.text).toBe('Success after retry');
     });
@@ -949,7 +919,7 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         { response: { text: () =&gt; '&lt;title&gt;My Website&lt;/title&gt;' } },
         { response: { text: () =&gt; '&lt;/head&gt;&lt;body&gt;' } },
         { response: { text: () =&gt; '&lt;h1&gt;Welcome&lt;/h1&gt;' } },
-        { response: { text: () =&gt; '&lt;/body&gt;&lt;/html&gt;' } }
+        { response: { text: () =&gt; '&lt;/body&gt;&lt;/html&gt;' } },
       ];
 &nbsp;
       async function* mockStream() {
@@ -960,9 +930,7 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
 &nbsp;
       mockGenerateContentStream.mockReturnValue(mockStream());
 &nbsp;
-      const messages: AIMessage[] = [
-        { role: 'user', content: 'Create an HTML page' }
-      ];
+      const messages: AIMessage[] = [{ role: 'user', content: 'Create an HTML page' }];
 &nbsp;
       const chunks = [];
       for await (const chunk of provider.generateStream(messages)) {
@@ -975,7 +943,7 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         '&lt;title&gt;My Website&lt;/title&gt;',
         '&lt;/head&gt;&lt;body&gt;',
         '&lt;h1&gt;Welcome&lt;/h1&gt;',
-        '&lt;/body&gt;&lt;/html&gt;'
+        '&lt;/body&gt;&lt;/html&gt;',
       ]);
     });
 &nbsp;
@@ -988,9 +956,7 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
 &nbsp;
       mockGenerateContentStream.mockReturnValue(mockErrorStream());
 &nbsp;
-      const messages: AIMessage[] = [
-        { role: 'user', content: 'Create a webpage' }
-      ];
+      const messages: AIMessage[] = [{ role: 'user', content: 'Create a webpage' }];
 &nbsp;
       const chunks = [];
       try {
@@ -1013,18 +979,18 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         [{ role: 'user' as const, content: 'Simple request' }],
         [
           { role: 'system' as const, content: 'You are a helpful assistant' },
-          { role: 'user' as const, content: 'Create a website' }
+          { role: 'user' as const, content: 'Create a website' },
         ],
         [
           { role: 'user' as const, content: 'Create a website' },
           { role: 'assistant' as const, content: 'I created a website' },
-          { role: 'user' as const, content: 'Add more features' }
-        ]
+          { role: 'user' as const, content: 'Add more features' },
+        ],
       ];
 &nbsp;
       for (const messages of messageFormats) {
         const mockResponse = {
-          response: { text: () =&gt; `Processed ${messages.length} messages` }
+          response: { text: () =&gt; `Processed ${messages.length} messages` },
         };
 &nbsp;
         mockSendMessage.mockResolvedValue(mockResponse);
@@ -1039,19 +1005,19 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         [],
         [{ role: 'user' as const, content: '' }],
         [{ role: 'user' as const, content: '   ' }],
-        [{ role: 'system' as const, content: 'System only message' }]
+        [{ role: 'system' as const, content: 'System only message' }],
       ];
 &nbsp;
       for (const messages of edgeCases) {
         const mockResponse = {
-          response: { text: () =&gt; 'Default response for edge case' }
+          response: { text: () =&gt; 'Default response for edge case' },
         };
 &nbsp;
         mockSendMessage.mockResolvedValue(mockResponse);
 &nbsp;
         const result = await provider.generate(messages);
         expect(result.text).toContain('Default response');
-        
+&nbsp;
         // Reset mock for next iteration
         mockSendMessage.mockClear();
       }
@@ -1064,19 +1030,20 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
         { model: 'gemini-pro', temperature: 0.7 },
         { model: 'gemini-2.5-flash', temperature: 0.3 },
         { systemInstruction: 'You are a web developer' },
-        { thinkingBudgetTokens: 1000 }
+        { thinkingBudgetTokens: 1000 },
       ];
 &nbsp;
       for (const options of optionsVariants) {
         const mockResponse = {
-          response: { text: () =&gt; `Generated with ${JSON.stringify(options)}` }
+          response: { text: () =&gt; `Generated with ${JSON.stringify(options)}` },
         };
 &nbsp;
         mockSendMessage.mockResolvedValue(mockResponse);
 &nbsp;
-        const result = await provider.generate([
-          { role: 'user', content: 'Create content' }
-        ], options);
+        const result = await provider.generate(
+          [{ role: 'user', content: 'Create content' }],
+          options
+        );
 &nbsp;
         expect(result.text).toContain('Generated with');
       }
@@ -1090,7 +1057,7 @@ describe('AI Service Integration Testing Patterns', () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-18T03:59:10.792Z
+                at 2025-08-21T01:39:27.620Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -75,6 +75,7 @@ const MemoizedDeepChat = React.memo<{
   }) => void;
   upsertStreamingAssistant: (content: string) => void;
   replaceLastAssistantMessage: (content: string) => void;
+  setToast?: (msg: string) => void;
   currentMessagesRef: React.MutableRefObject<
     | Array<{ id: string; role: 'user' | 'assistant'; content?: string; timestamp: number }>
     | undefined
@@ -91,6 +92,7 @@ const MemoizedDeepChat = React.memo<{
     appendMessage,
     upsertStreamingAssistant,
     replaceLastAssistantMessage,
+    setToast,
     currentMessagesRef,
     history,
   }) => {
@@ -98,6 +100,53 @@ const MemoizedDeepChat = React.memo<{
     const [model, setModel] = useLocalStorage<string>('AI_MODEL', 'gemini-2.0-flash');
     const [isStreaming, setIsStreaming] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
+
+    // Typed guard for AbortError without using 'any'
+    const isAbortError = (e: unknown): e is { name: string } => {
+      return !!(
+        e &&
+        typeof e === 'object' &&
+        'name' in (e as Record<string, unknown>) &&
+        (e as { name?: unknown }).name === 'AbortError'
+      );
+    };
+
+    // Provider-specific model presets and validation
+    const MODEL_PRESETS: Record<string, string[]> = useMemo(
+      () => ({
+        google: ['gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-1.5-flash', 'gemini-1.5-pro'],
+        openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'],
+        anthropic: ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest', 'claude-3-opus-latest'],
+        cohere: ['command-r-plus', 'command-r', 'command'],
+      }),
+      []
+    );
+    const DEFAULT_MODEL_FOR: Record<string, string> = useMemo(
+      () => ({
+        google: 'gemini-2.0-flash',
+        openai: 'gpt-4o-mini',
+        anthropic: 'claude-3-5-sonnet-latest',
+        cohere: 'command-r-plus',
+      }),
+      []
+    );
+    const isModelValid = useMemo(() => {
+      if (!model) return true;
+      const v = model.toLowerCase();
+      switch (provider) {
+        case 'google':
+          return v.startsWith('gemini');
+        case 'openai':
+          return v.startsWith('gpt');
+        case 'anthropic':
+          return v.startsWith('claude');
+        case 'cohere':
+          return v.startsWith('command');
+        default:
+          return true;
+      }
+    }, [model, provider]);
+    const presetListId = `model-presets-${provider}`;
 
     // Minimal Deep Chat handler types
     type DeepChatMessage = { role: 'user' | 'assistant' | 'system'; text?: string };
@@ -205,7 +254,14 @@ const MemoizedDeepChat = React.memo<{
           } catch (error) {
             console.error('❌ AI generation error:', error);
             const message = error instanceof Error ? error.message : 'Request failed';
-            signals.onResponse({ error: `AI Error: ${message}` });
+            // Surface nicer UX for aborts
+            if (isAbortError(error)) {
+              setToast?.('Generation cancelled');
+              signals.onResponse({ error: 'Generation cancelled' });
+            } else {
+              setToast?.(`AI Error: ${message}`);
+              signals.onResponse({ error: `AI Error: ${message}` });
+            }
           } finally {
             setIsStreaming(false);
             abortRef.current = null;
@@ -222,6 +278,7 @@ const MemoizedDeepChat = React.memo<{
         currentMessagesRef,
         provider,
         model,
+        setToast,
       ]
     );
 
@@ -273,7 +330,7 @@ const MemoizedDeepChat = React.memo<{
               marginBottom: '8px',
             }}
           />
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
               Provider
               <select
@@ -293,8 +350,14 @@ const MemoizedDeepChat = React.memo<{
                 type="text"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                placeholder="gemini-2.0-flash"
-                style={{ padding: 6, borderRadius: 6, border: '1px solid #d1d5db', width: 220 }}
+                placeholder={DEFAULT_MODEL_FOR[provider] || 'model'}
+                list={presetListId}
+                style={{
+                  padding: 6,
+                  borderRadius: 6,
+                  border: `1px solid ${isModelValid ? '#d1d5db' : '#ef4444'}`,
+                  width: 240,
+                }}
               />
             </label>
             <button
@@ -306,7 +369,21 @@ const MemoizedDeepChat = React.memo<{
             >
               {isStreaming ? '⏹ Stop' : 'Stop'}
             </button>
+            {!isModelValid && (
+              <button
+                className="btn btn-secondary btn-small"
+                onClick={() => setModel(DEFAULT_MODEL_FOR[provider] || model)}
+                title="Use a recommended default model for the selected provider"
+              >
+                Use default
+              </button>
+            )}
           </div>
+          <datalist id={presetListId}>
+            {(MODEL_PRESETS[provider] || []).map((m) => (
+              <option value={m} key={m} />
+            ))}
+          </datalist>
           <div style={{ fontSize: '13px', color: aiReady ? '#059669' : '#6b7280' }}>
             {aiReady ? '✅ Ready for AI responses' : 'Enter API key to enable AI'}
             {isStreaming && <span style={{ marginLeft: 8 }}>• Generating…</span>}
@@ -319,6 +396,11 @@ const MemoizedDeepChat = React.memo<{
               >
                 Get API Key
               </a>
+            )}
+            {!!model && !isModelValid && (
+              <span style={{ marginLeft: 8, color: '#b91c1c' }}>
+                Model may not match {provider}. Try a preset.
+              </span>
             )}
           </div>
         </div>
@@ -600,6 +682,7 @@ function App() {
                       appendMessage={appendMessage}
                       upsertStreamingAssistant={upsertStreamingAssistant}
                       replaceLastAssistantMessage={replaceLastAssistantMessage}
+                      setToast={setToast}
                       currentMessagesRef={messagesRef}
                       history={deepChatHistory}
                     />

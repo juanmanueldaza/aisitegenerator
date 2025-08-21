@@ -13,6 +13,7 @@ import './App.css';
 import { OnboardingWizard } from '@/components';
 import type { AIMessage, GenerateResult, StreamChunk, ProviderOptions } from '@/types/ai';
 import { MessageAdapter } from '@/services/messageAdapter';
+import { AI_CONFIG } from '@/constants/config';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -96,8 +97,11 @@ const MemoizedDeepChat = React.memo<{
     currentMessagesRef,
     history,
   }) => {
-    const [provider, setProvider] = useLocalStorage<string>('AI_PROVIDER', 'google');
-    const [model, setModel] = useLocalStorage<string>('AI_MODEL', 'gemini-2.0-flash');
+    const [provider, setProvider] = useLocalStorage<string>(
+      'AI_PROVIDER',
+      AI_CONFIG.DEFAULT_PROVIDER
+    );
+    const [model, setModel] = useLocalStorage<string>('AI_MODEL', AI_CONFIG.DEFAULT_MODEL);
     const [isStreaming, setIsStreaming] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
 

@@ -49,4 +49,10 @@ export const AI_CONFIG = {
   PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '', // e.g., '/api/ai'
   AI_SDK_PROXY_BASE_URL:
     readEnv('VITE_AI_SDK_PROXY_BASE_URL', 'REACT_APP_AI_SDK_PROXY_BASE_URL') || '', // e.g., '/api/ai-sdk'
+  // Client-side defaults for chat provider/model
+  DEFAULT_PROVIDER: (
+    readEnv('VITE_AI_DEFAULT_PROVIDER', 'REACT_APP_AI_DEFAULT_PROVIDER') || 'google'
+  ).toLowerCase(),
+  DEFAULT_MODEL:
+    readEnv('VITE_AI_DEFAULT_MODEL', 'REACT_APP_AI_DEFAULT_MODEL') || 'gemini-2.0-flash',
 } as const;

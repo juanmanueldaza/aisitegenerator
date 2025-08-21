@@ -11,7 +11,7 @@ import { Toast, InlineDiffView } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
-import type { AIMessage, GenerateResult } from '@/types/ai';
+import type { AIMessage, GenerateResult, StreamChunk } from '@/types/ai';
 import { MessageAdapter } from '@/services/messageAdapter';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
@@ -60,6 +60,7 @@ const LazyDeepChat = React.lazy(() =>
 const MemoizedDeepChat = React.memo<{
   aiReady: boolean;
   generate: (messages: AIMessage[]) => Promise<GenerateResult>;
+  generateStream: (messages: AIMessage[]) => AsyncGenerator<StreamChunk, void, unknown>;
   apiKey: string;
   setApiKey: (key: string) => void;
   onSiteGenerated: (siteData: { content?: string }) => void;
@@ -69,6 +70,8 @@ const MemoizedDeepChat = React.memo<{
     content: string;
     timestamp: number;
   }) => void;
+  upsertStreamingAssistant: (content: string) => void;
+  replaceLastAssistantMessage: (content: string) => void;
   currentMessagesRef: React.MutableRefObject<
     | Array<{ id: string; role: 'user' | 'assistant'; content?: string; timestamp: number }>
     | undefined
@@ -78,10 +81,13 @@ const MemoizedDeepChat = React.memo<{
   ({
     aiReady,
     generate,
+    generateStream,
     apiKey,
     setApiKey,
     onSiteGenerated,
     appendMessage,
+    upsertStreamingAssistant,
+    replaceLastAssistantMessage,
     currentMessagesRef,
     history,
   }) => {
@@ -127,46 +133,69 @@ const MemoizedDeepChat = React.memo<{
           )
           .map((m) => ({ role: m.role, content: m.content as string }));
         const aiMessages: AIMessage[] = [...historyAi, { role: 'user', content: userText }];
-        generate(aiMessages)
-          .then((result: GenerateResult) => {
-            console.log('🤖 AI result:', result);
-            const text: string | undefined = result?.text;
-            if (text) {
-              // Persist to store via stable action
-              appendMessage({
-                id: `user-${Date.now()}`,
-                role: 'user',
-                content: userText,
-                timestamp: Date.now(),
-              });
-              appendMessage({
-                id: `assistant-${Date.now()}`,
-                role: 'assistant',
-                content: text,
-                timestamp: Date.now(),
-              });
 
-              // Auto-switch to editor when full HTML detected
+        // Append the user message immediately
+        appendMessage({
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content: userText,
+          timestamp: Date.now(),
+        });
+
+        // Prefer streaming; fall back to single-shot
+        (async () => {
+          try {
+            let combined = '';
+            for await (const chunk of generateStream(aiMessages)) {
+              if (chunk?.text) {
+                combined += chunk.text;
+                upsertStreamingAssistant(combined);
+              }
+            }
+
+            if (combined) {
+              replaceLastAssistantMessage(combined);
+              if (
+                combined.includes('<!DOCTYPE html>') ||
+                (combined.includes('<html') && combined.includes('</html>'))
+              ) {
+                console.log('🌐 Website detected, switching to editor');
+                setTimeout(() => onSiteGenerated({ content: combined }), 100);
+              }
+              signals.onResponse({ text: combined });
+              return;
+            }
+
+            const result = await generate(aiMessages);
+            const text = result?.text;
+            if (text) {
+              replaceLastAssistantMessage(text);
               if (
                 text.includes('<!DOCTYPE html>') ||
                 (text.includes('<html') && text.includes('</html>'))
               ) {
-                console.log('🌐 Website detected, switching to editor');
                 setTimeout(() => onSiteGenerated({ content: text }), 100);
               }
-
               signals.onResponse({ text });
             } else {
               signals.onResponse({ error: 'No response from AI service' });
             }
-          })
-          .catch((error: unknown) => {
+          } catch (error) {
             console.error('❌ AI generation error:', error);
             const message = error instanceof Error ? error.message : 'Request failed';
             signals.onResponse({ error: `AI Error: ${message}` });
-          });
+          }
+        })();
       },
-      [generate, appendMessage, onSiteGenerated, currentMessagesRef]
+      [
+        generate,
+        generateStream,
+        appendMessage,
+        upsertStreamingAssistant,
+        replaceLastAssistantMessage,
+        onSiteGenerated,
+        currentMessagesRef,
+      ]
     );
 
     // Memoize config objects to avoid prop churn that could reset Deep Chat
@@ -293,9 +322,24 @@ function App() {
     }
     return current.generate(messages);
   }, []);
+  const generateStream = useCallback((messages: AIMessage[]) => {
+    const current = aiRef.current as unknown as {
+      ready: boolean;
+      generateStream: (msgs: AIMessage[]) => AsyncGenerator<StreamChunk, void, unknown>;
+    };
+    if (!current?.ready) {
+      async function* empty() {
+        /* no-op */
+      }
+      return empty();
+    }
+    return current.generateStream(messages);
+  }, []);
 
   // Select stable store actions to avoid prop churn into DeepChat
   const appendMessage = useSiteStore((s) => s.appendMessage);
+  const upsertStreamingAssistant = useSiteStore((s) => s.upsertStreamingAssistant);
+  const replaceLastAssistantMessage = useSiteStore((s) => s.replaceLastAssistantMessage);
   const clearMessages = useSiteStore((s) => s.clearMessages);
 
   const commitTimerRef = useRef<number | null>(null);
@@ -482,10 +526,13 @@ function App() {
                     <MemoizedDeepChat
                       aiReady={aiReady}
                       generate={generate}
+                      generateStream={generateStream}
                       apiKey={apiKey}
                       setApiKey={setApiKey}
                       onSiteGenerated={handleSiteGenerated}
                       appendMessage={appendMessage}
+                      upsertStreamingAssistant={upsertStreamingAssistant}
+                      replaceLastAssistantMessage={replaceLastAssistantMessage}
                       currentMessagesRef={messagesRef}
                       history={deepChatHistory}
                     />

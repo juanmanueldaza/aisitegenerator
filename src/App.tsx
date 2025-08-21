@@ -14,7 +14,12 @@ import { OnboardingWizard } from '@/components';
 import type { AIMessage, GenerateResult, StreamChunk, ProviderOptions } from '@/types/ai';
 import { MessageAdapter } from '@/services/messageAdapter';
 import { AI_CONFIG } from '@/constants/config';
-import { AI_MODEL_PRESETS, getDefaultModel, isModelValidForProvider } from '@/constants/ai';
+import {
+  AI_MODEL_PRESETS,
+  AI_PROVIDERS,
+  getDefaultModel,
+  isModelValidForProvider,
+} from '@/constants/ai';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -318,10 +323,11 @@ const MemoizedDeepChat = React.memo<{
                 onChange={(e) => setProvider(e.target.value)}
                 style={{ padding: 6, borderRadius: 6, border: '1px solid #d1d5db' }}
               >
-                <option value="google">Google</option>
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Anthropic</option>
-                <option value="cohere">Cohere</option>
+                {AI_PROVIDERS.map((p) => (
+                  <option key={p} value={p}>
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </option>
+                ))}
               </select>
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>

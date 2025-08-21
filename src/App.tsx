@@ -110,6 +110,7 @@ const MemoizedDeepChat = React.memo<{
     const [model, setModel] = useLocalStorage<string>('AI_MODEL', AI_CONFIG.DEFAULT_MODEL);
     const [isStreaming, setIsStreaming] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
+    const [proxyHealthy, setProxyHealthy] = useState<boolean | null>(null);
 
     // Typed guard for AbortError without using 'any'
     const isAbortError = (e: unknown): e is { name: string } => {
@@ -143,6 +144,29 @@ const MemoizedDeepChat = React.memo<{
     useEffect(() => {
       aiReadyRef.current = aiReady;
     }, [aiReady]);
+
+    // Non-blocking AI SDK proxy health check (only when configured)
+    useEffect(() => {
+      const base = (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').replace(/\/$/, '');
+      if (!base) {
+        setProxyHealthy(null);
+        return;
+      }
+      let active = true;
+      (async () => {
+        try {
+          const res = await fetch(`${base}/health`, { method: 'GET' });
+          if (!active) return;
+          setProxyHealthy(res.ok);
+        } catch {
+          if (!active) return;
+          setProxyHealthy(false);
+        }
+      })();
+      return () => {
+        active = false;
+      };
+    }, []);
 
     // Stable handler that never changes identity
     const stableHandler = useCallback(
@@ -388,6 +412,17 @@ const MemoizedDeepChat = React.memo<{
             {!!model && !isModelValid && (
               <span style={{ marginLeft: 8, color: '#b91c1c' }}>
                 Model may not match {provider}. Try a preset.
+              </span>
+            )}
+            {proxyHealthy !== null && (
+              <span
+                style={{
+                  marginLeft: 8,
+                  color: proxyHealthy ? '#059669' : '#b91c1c',
+                }}
+                title={proxyHealthy ? 'AI SDK proxy is reachable' : 'AI SDK proxy not reachable'}
+              >
+                AI SDK Proxy: {proxyHealthy ? 'Online' : 'Offline'}
               </span>
             )}
           </div>

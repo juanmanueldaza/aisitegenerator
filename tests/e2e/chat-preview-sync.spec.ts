@@ -8,10 +8,11 @@ test('chat generates code that applies to editor and appears in preview', async 
   await page.getByRole('button', { name: '💬 AI Assistant' }).click();
 
   // Type a prompt that triggers code response in simulateAIResponse
-  const textbox = page.getByPlaceholder('Describe the website you want to create...');
+  // Deep Chat uses a contenteditable input; target by role=textbox for reliability
+  const textbox = page.getByRole('textbox', { name: /Describe the website you want to create/ });
   await textbox.click();
   await textbox.fill('Please provide some HTML code for a basic website');
-  await page.getByRole('button', { name: 'Send' }).click();
+  await textbox.press('Enter');
 
   // Wait for the toast indicating auto-apply or the Use in Editor button then click it
   const maybeToast = page.getByText('Applied AI code to editor');

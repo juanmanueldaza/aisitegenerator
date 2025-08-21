@@ -47,4 +47,6 @@ export const API_CONFIG = {
 export const AI_CONFIG = {
   // Prefer VITE_* in Vite projects; keep REACT_APP_* as a fallback for compatibility
   PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '', // e.g., '/api/ai'
+  AI_SDK_PROXY_BASE_URL:
+    readEnv('VITE_AI_SDK_PROXY_BASE_URL', 'REACT_APP_AI_SDK_PROXY_BASE_URL') || '', // e.g., '/api/ai-sdk'
 } as const;

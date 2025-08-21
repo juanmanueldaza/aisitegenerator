@@ -12,6 +12,9 @@ export interface ProviderOptions {
   systemInstruction?: string;
   temperature?: number;
   thinkingBudgetTokens?: number; // optional thinking budget when supported
+  // Optional provider hint for proxy/AI SDK backed requests
+  // Examples: 'google' | 'openai' | 'anthropic' | 'cohere'
+  provider?: string;
   // Optional callback invoked when a retry is scheduled by the provider
   onRetry?: (info: { attempt: number; delayMs: number; error: unknown }) => void;
 }

@@ -11,7 +11,7 @@ import { Toast, InlineDiffView } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
-import type { AIMessage, GenerateResult, StreamChunk } from '@/types/ai';
+import type { AIMessage, GenerateResult, StreamChunk, ProviderOptions } from '@/types/ai';
 import { MessageAdapter } from '@/services/messageAdapter';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
@@ -59,8 +59,11 @@ const LazyDeepChat = React.lazy(() =>
 // Memoized Deep Chat Component with stable props/handler to prevent resets
 const MemoizedDeepChat = React.memo<{
   aiReady: boolean;
-  generate: (messages: AIMessage[]) => Promise<GenerateResult>;
-  generateStream: (messages: AIMessage[]) => AsyncGenerator<StreamChunk, void, unknown>;
+  generate: (messages: AIMessage[], options?: ProviderOptions) => Promise<GenerateResult>;
+  generateStream: (
+    messages: AIMessage[],
+    options?: ProviderOptions
+  ) => AsyncGenerator<StreamChunk, void, unknown>;
   apiKey: string;
   setApiKey: (key: string) => void;
   onSiteGenerated: (siteData: { content?: string }) => void;
@@ -91,6 +94,11 @@ const MemoizedDeepChat = React.memo<{
     currentMessagesRef,
     history,
   }) => {
+    const [provider, setProvider] = useLocalStorage<string>('AI_PROVIDER', 'google');
+    const [model, setModel] = useLocalStorage<string>('AI_MODEL', 'gemini-2.0-flash');
+    const [isStreaming, setIsStreaming] = useState(false);
+    const abortRef = useRef<AbortController | null>(null);
+
     // Minimal Deep Chat handler types
     type DeepChatMessage = { role: 'user' | 'assistant' | 'system'; text?: string };
     type DeepChatBody = { messages: DeepChatMessage[] };
@@ -155,8 +163,12 @@ const MemoizedDeepChat = React.memo<{
         // Prefer streaming; fall back to single-shot
         (async () => {
           try {
+            const controller = new AbortController();
+            abortRef.current = controller;
+            setIsStreaming(true);
+            const opts: ProviderOptions = { provider, model, signal: controller.signal };
             let combined = '';
-            for await (const chunk of generateStream(aiMessages)) {
+            for await (const chunk of generateStream(aiMessages, opts)) {
               if (chunk?.text) {
                 combined += chunk.text;
                 upsertStreamingAssistant(combined);
@@ -176,7 +188,7 @@ const MemoizedDeepChat = React.memo<{
               return;
             }
 
-            const result = await generate(aiMessages);
+            const result = await generate(aiMessages, opts);
             const text = result?.text;
             if (text) {
               replaceLastAssistantMessage(text);
@@ -194,6 +206,9 @@ const MemoizedDeepChat = React.memo<{
             console.error('❌ AI generation error:', error);
             const message = error instanceof Error ? error.message : 'Request failed';
             signals.onResponse({ error: `AI Error: ${message}` });
+          } finally {
+            setIsStreaming(false);
+            abortRef.current = null;
           }
         })();
       },
@@ -205,6 +220,8 @@ const MemoizedDeepChat = React.memo<{
         replaceLastAssistantMessage,
         onSiteGenerated,
         currentMessagesRef,
+        provider,
+        model,
       ]
     );
 
@@ -256,8 +273,43 @@ const MemoizedDeepChat = React.memo<{
               marginBottom: '8px',
             }}
           />
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+              Provider
+              <select
+                value={provider}
+                onChange={(e) => setProvider(e.target.value)}
+                style={{ padding: 6, borderRadius: 6, border: '1px solid #d1d5db' }}
+              >
+                <option value="google">Google</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="cohere">Cohere</option>
+              </select>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+              Model
+              <input
+                type="text"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="gemini-2.0-flash"
+                style={{ padding: 6, borderRadius: 6, border: '1px solid #d1d5db', width: 220 }}
+              />
+            </label>
+            <button
+              className="btn btn-secondary btn-small"
+              onClick={() => abortRef.current?.abort()}
+              disabled={!isStreaming}
+              title={isStreaming ? 'Stop generating' : 'No active generation'}
+              style={{ marginLeft: 'auto' }}
+            >
+              {isStreaming ? '⏹ Stop' : 'Stop'}
+            </button>
+          </div>
           <div style={{ fontSize: '13px', color: aiReady ? '#059669' : '#6b7280' }}>
             {aiReady ? '✅ Ready for AI responses' : 'Enter API key to enable AI'}
+            {isStreaming && <span style={{ marginLeft: 8 }}>• Generating…</span>}
             {!aiReady && (
               <a
                 href="https://aistudio.google.com/app/apikey"
@@ -295,6 +347,7 @@ const MemoizedDeepChat = React.memo<{
                 width: '100%',
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
+                opacity: isStreaming ? 0.98 : 1,
               }}
               introMessage={introMessage}
               textInput={textInput}
@@ -326,17 +379,20 @@ function App() {
   }, [ai]);
   const aiReady = !!ai.ready;
   // Stable generate() wrapper that uses ref so identity never changes
-  const generate = useCallback((messages: AIMessage[]) => {
+  const generate = useCallback((messages: AIMessage[], options?: ProviderOptions) => {
     const current = aiRef.current;
     if (!current?.ready) {
       return Promise.reject(new Error('AI Not Ready'));
     }
-    return current.generate(messages);
+    return current.generate(messages, options);
   }, []);
-  const generateStream = useCallback((messages: AIMessage[]) => {
+  const generateStream = useCallback((messages: AIMessage[], options?: ProviderOptions) => {
     const current = aiRef.current as unknown as {
       ready: boolean;
-      generateStream: (msgs: AIMessage[]) => AsyncGenerator<StreamChunk, void, unknown>;
+      generateStream: (
+        msgs: AIMessage[],
+        options?: ProviderOptions
+      ) => AsyncGenerator<StreamChunk, void, unknown>;
     };
     if (!current?.ready) {
       async function* empty() {
@@ -344,7 +400,7 @@ function App() {
       }
       return empty();
     }
-    return current.generateStream(messages);
+    return current.generateStream(messages, options);
   }, []);
 
   // Select stable store actions to avoid prop churn into DeepChat

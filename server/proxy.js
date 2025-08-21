@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import createAiSdkRouter from './ai-sdk-router.js';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
 const BASE_PATH = '/api/ai';
@@ -13,6 +14,15 @@ if (!API_KEY) {
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
+
+// Optionally mount Vercel AI SDK endpoints alongside legacy ones
+try {
+  const base = process.env.AI_SDK_BASE_PATH || '/api/ai-sdk';
+  app.use(createAiSdkRouter(base));
+  console.log(`[ai-proxy] AI SDK router mounted at ${base}`);
+} catch (e) {
+  console.warn('[ai-proxy] AI SDK router not mounted:', e?.message || e);
+}
 
 function toHistory(messages) {
   const hist = [];

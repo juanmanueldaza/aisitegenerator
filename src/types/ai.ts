@@ -15,6 +15,8 @@ export interface ProviderOptions {
   // Optional provider hint for proxy/AI SDK backed requests
   // Examples: 'google' | 'openai' | 'anthropic' | 'cohere'
   provider?: string;
+  // Optional external AbortSignal to support cancellation
+  signal?: AbortSignal;
   // Optional callback invoked when a retry is scheduled by the provider
   onRetry?: (info: { attempt: number; delayMs: number; error: unknown }) => void;
 }

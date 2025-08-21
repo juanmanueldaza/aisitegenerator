@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import React from 'react';
 import LivePreview from './components/LivePreview/LivePreview';
 import GitHubAuth from './components/auth/GitHubAuth';
-import { DeepChat } from 'deep-chat-react';
 import RepositoryCreator from './components/deployment/RepositoryCreator';
 import { useGitHub } from './hooks/useGitHub';
 import { useSiteStore } from './store/siteStore';
@@ -13,6 +12,7 @@ import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
 import type { AIMessage, GenerateResult } from '@/types/ai';
+import { MessageAdapter } from '@/services/messageAdapter';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -50,6 +50,11 @@ function greet(name) {
 - Final point
 
 > This is a blockquote showing how content will appear in the preview.`;
+
+// Lazy-load Deep Chat to reduce initial bundle size
+const LazyDeepChat = React.lazy(() =>
+  import('deep-chat-react').then((m) => ({ default: m.DeepChat }))
+);
 
 // Memoized Deep Chat Component with stable props/handler to prevent resets
 const MemoizedDeepChat = React.memo<{
@@ -227,19 +232,37 @@ const MemoizedDeepChat = React.memo<{
         </div>
 
         <div style={{ flex: 1, minHeight: '400px' }}>
-          <DeepChat
-            style={{
-              height: '100%',
-              width: '100%',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-            }}
-            introMessage={introMessage}
-            textInput={textInput}
-            requestBodyLimits={requestBodyLimits}
-            history={history}
-            connect={connect}
-          />
+          <React.Suspense
+            fallback={
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  color: '#6b7280',
+                }}
+              >
+                Loading chat…
+              </div>
+            }
+          >
+            <LazyDeepChat
+              style={{
+                height: '100%',
+                width: '100%',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+              introMessage={introMessage}
+              textInput={textInput}
+              requestBodyLimits={requestBodyLimits}
+              history={history}
+              connect={connect}
+            />
+          </React.Suspense>
         </div>
       </div>
     );
@@ -273,6 +296,7 @@ function App() {
 
   // Select stable store actions to avoid prop churn into DeepChat
   const appendMessage = useSiteStore((s) => s.appendMessage);
+  const clearMessages = useSiteStore((s) => s.clearMessages);
 
   const commitTimerRef = useRef<number | null>(null);
   const [showConflict, setShowConflict] = useState(false);
@@ -384,15 +408,13 @@ function App() {
 
   // Provide DeepChat-compatible history to avoid internal resets
   const deepChatHistory = useMemo(() => {
-    return (store.messages || [])
-      .filter(
-        (m) =>
-          (m.role === 'user' || m.role === 'assistant') && !!m.content && m.content.trim() !== ''
-      )
-      .map((m) => ({
-        role: m.role === 'assistant' ? ('ai' as const) : ('user' as const),
-        text: m.content as string,
-      }));
+    const filtered = (store.messages || []).filter(
+      (m) => (m.role === 'user' || m.role === 'assistant') && !!m.content && m.content.trim() !== ''
+    );
+    const adapted = MessageAdapter.toChatMessages(filtered);
+    return adapted
+      .filter((m) => Boolean((m.text ?? '').trim()))
+      .map((m) => ({ role: m.role, text: m.text as string }));
   }, [store.messages]);
 
   return (
@@ -446,16 +468,29 @@ function App() {
 
             <div className="panel-content">
               {activeTab === 'chat' && (
-                <MemoizedDeepChat
-                  aiReady={aiReady}
-                  generate={generate}
-                  apiKey={apiKey}
-                  setApiKey={setApiKey}
-                  onSiteGenerated={handleSiteGenerated}
-                  appendMessage={appendMessage}
-                  currentMessagesRef={messagesRef}
-                  history={deepChatHistory}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      className="btn btn-secondary btn-small"
+                      onClick={() => clearMessages()}
+                      title="Clear conversation history"
+                    >
+                      Clear chat
+                    </button>
+                  </div>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <MemoizedDeepChat
+                      aiReady={aiReady}
+                      generate={generate}
+                      apiKey={apiKey}
+                      setApiKey={setApiKey}
+                      onSiteGenerated={handleSiteGenerated}
+                      appendMessage={appendMessage}
+                      currentMessagesRef={messagesRef}
+                      history={deepChatHistory}
+                    />
+                  </div>
+                </div>
               )}
 
               {activeTab === 'editor' && (

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/185</span>
+                <span class='fraction'>0/192</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/185</span>
+                <span class='fraction'>0/192</span>
             </div>
         
             
@@ -412,7 +412,14 @@
 <a name='L347'></a><a href='#L347'>347</a>
 <a name='L348'></a><a href='#L348'>348</a>
 <a name='L349'></a><a href='#L349'>349</a>
-<a name='L350'></a><a href='#L350'>350</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -560,8 +567,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -631,6 +636,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -675,6 +682,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -763,10 +777,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Deep Chat Message System Integration
- * 
- * This module provides the bridge between Deep Chat React and the existing 
+ *
+ * This module provides the bridge between Deep Chat React and the existing
  * Zustand store system, ensuring seamless message persistence and state management.
- * 
+ *
  * Epic 1, Issue #3: Message System Migration
  */
 &nbsp;
@@ -836,10 +850,10 @@ export interface DeepChatMessageContent {
 <span class="cstat-no" title="statement not covered" >  static toStoreMessage(deepChatMsg: DeepChatMessage): ChatMessage {</span>
     // Generate ID if not provided
 <span class="cstat-no" title="statement not covered" >    const id = deepChatMsg._id || Date.now().toString();</span>
-    
+&nbsp;
     // Convert role (Deep Chat uses 'ai', Zustand uses 'assistant')
 <span class="cstat-no" title="statement not covered" >    const role = deepChatMsg.role === 'ai' ? 'assistant' : 'user';</span>
-    
+&nbsp;
     // Combine content from different possible sources
 <span class="cstat-no" title="statement not covered" >    let content = '';</span>
 <span class="cstat-no" title="statement not covered" >    if (deepChatMsg.text) {</span>
@@ -851,10 +865,10 @@ export interface DeepChatMessageContent {
 &nbsp;
     // Handle file attachments by creating a textual representation
 <span class="cstat-no" title="statement not covered" >    if (deepChatMsg.files &amp;&amp; deepChatMsg.files.length &gt; 0) {</span>
-<span class="cstat-no" title="statement not covered" >      const fileDescriptions = deepChatMsg.files.map(file =&gt; </span>
-<span class="cstat-no" title="statement not covered" >        `[File: ${file.name || 'Unknown'} (${file.type || 'unknown type'})]`</span>
-<span class="cstat-no" title="statement not covered" >      ).join('\n');</span>
-      
+<span class="cstat-no" title="statement not covered" >      const fileDescriptions = deepChatMsg.files</span>
+<span class="cstat-no" title="statement not covered" >        .map((file) =&gt; `[File: ${file.name || 'Unknown'} (${file.type || 'unknown type'})]`)</span>
+<span class="cstat-no" title="statement not covered" >        .join('\n');</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      content = content ? `${content}\n\n${fileDescriptions}` : fileDescriptions;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 &nbsp;
@@ -908,9 +922,7 @@ export interface DeepChatMessageContent {
    * Finalize a streaming message with proper ID
    */
 <span class="cstat-no" title="statement not covered" >  static finalizeStreamingMessage(content: string, originalId?: string): ChatMessage {</span>
-<span class="cstat-no" title="statement not covered" >    const finalId = originalId &amp;&amp; originalId !== 'streaming' </span>
-<span class="cstat-no" title="statement not covered" >      ? originalId </span>
-<span class="cstat-no" title="statement not covered" >      : Date.now().toString();</span>
+<span class="cstat-no" title="statement not covered" >    const finalId = originalId &amp;&amp; originalId !== 'streaming' ? originalId : Date.now().toString();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return {</span>
 <span class="cstat-no" title="statement not covered" >      id: finalId,</span>
@@ -929,9 +941,9 @@ export interface DeepChatMessageContent {
    * Merge new messages with existing store messages, avoiding duplicates
    */
 <span class="cstat-no" title="statement not covered" >  static mergeMesages(storeMessages: ChatMessage[], newMessages: ChatMessage[]): ChatMessage[] {</span>
-<span class="cstat-no" title="statement not covered" >    const existingIds = new Set(storeMessages.map(msg =&gt; msg.id));</span>
-<span class="cstat-no" title="statement not covered" >    const uniqueNewMessages = newMessages.filter(msg =&gt; !existingIds.has(msg.id));</span>
-    
+<span class="cstat-no" title="statement not covered" >    const existingIds = new Set(storeMessages.map((msg) =&gt; msg.id));</span>
+<span class="cstat-no" title="statement not covered" >    const uniqueNewMessages = newMessages.filter((msg) =&gt; !existingIds.has(msg.id));</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return [...storeMessages, ...uniqueNewMessages];</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
@@ -939,7 +951,7 @@ export interface DeepChatMessageContent {
    * Clean up temporary/streaming messages from history
    */
 <span class="cstat-no" title="statement not covered" >  static cleanupStreamingMessages(messages: ChatMessage[]): ChatMessage[] {</span>
-<span class="cstat-no" title="statement not covered" >    return messages.filter(msg =&gt; msg.id !== 'streaming');</span>
+<span class="cstat-no" title="statement not covered" >    return messages.filter((msg) =&gt; msg.id !== 'streaming');</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   /**
@@ -972,12 +984,14 @@ export interface DeepChatMessageContent {
   /**
    * Create conversation context for AI from message history
    */
-<span class="cstat-no" title="statement not covered" >  static createAIContext(messages: ChatMessage[], maxMessages: number = 10): Array&lt;{role: 'user' | 'assistant', content: string}&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    return MessageHistory.getRecentMessages(messages, maxMessages)</span>
-<span class="cstat-no" title="statement not covered" >      .map(msg =&gt; ({</span>
-<span class="cstat-no" title="statement not covered" >        role: msg.role,</span>
-<span class="cstat-no" title="statement not covered" >        content: msg.content,</span>
-<span class="cstat-no" title="statement not covered" >      }));</span>
+<span class="cstat-no" title="statement not covered" >  static createAIContext(</span>
+<span class="cstat-no" title="statement not covered" >    messages: ChatMessage[],</span>
+<span class="cstat-no" title="statement not covered" >    maxMessages: number = 10</span>
+<span class="cstat-no" title="statement not covered" >  ): Array&lt;{ role: 'user' | 'assistant'; content: string }&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    return MessageHistory.getRecentMessages(messages, maxMessages).map((msg) =&gt; ({</span>
+<span class="cstat-no" title="statement not covered" >      role: msg.role,</span>
+<span class="cstat-no" title="statement not covered" >      content: msg.content,</span>
+<span class="cstat-no" title="statement not covered" >    }));</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -990,20 +1004,20 @@ export interface DeepChatMessageContent {
    */
 <span class="cstat-no" title="statement not covered" >  static validateContent(content: string): { valid: boolean; errors: string[] } {</span>
 <span class="cstat-no" title="statement not covered" >    const errors: string[] = [];</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!content || content.trim().length === 0) {</span>
 <span class="cstat-no" title="statement not covered" >      errors.push('Message content cannot be empty');</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    if (content.length &gt; 10000) {</span>
 <span class="cstat-no" title="statement not covered" >      errors.push('Message content exceeds maximum length (10,000 characters)');</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
     // Basic XSS prevention for HTML content
 <span class="cstat-no" title="statement not covered" >    if (content.includes('&lt;script')) {</span>
 <span class="cstat-no" title="statement not covered" >      errors.push('Script tags are not allowed in messages');</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return {</span>
 <span class="cstat-no" title="statement not covered" >      valid: errors.length === 0,</span>
 <span class="cstat-no" title="statement not covered" >      errors,</span>
@@ -1027,18 +1041,25 @@ export interface DeepChatMessageContent {
 <span class="cstat-no" title="statement not covered" >  static validateFiles(files: DeepChatFile[]): { valid: boolean; errors: string[] } {</span>
 <span class="cstat-no" title="statement not covered" >    const errors: string[] = [];</span>
 <span class="cstat-no" title="statement not covered" >    const maxFileSize = 10 * 1024 * 1024; // 10MB</span>
-<span class="cstat-no" title="statement not covered" >    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'text/plain', 'application/pdf'];</span>
-    
+<span class="cstat-no" title="statement not covered" >    const allowedTypes = [</span>
+<span class="cstat-no" title="statement not covered" >      'image/jpeg',</span>
+<span class="cstat-no" title="statement not covered" >      'image/png',</span>
+<span class="cstat-no" title="statement not covered" >      'image/gif',</span>
+<span class="cstat-no" title="statement not covered" >      'image/webp',</span>
+<span class="cstat-no" title="statement not covered" >      'text/plain',</span>
+<span class="cstat-no" title="statement not covered" >      'application/pdf',</span>
+<span class="cstat-no" title="statement not covered" >    ];</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    for (const file of files) {</span>
 <span class="cstat-no" title="statement not covered" >      if (file.size &amp;&amp; file.size &gt; maxFileSize) {</span>
 <span class="cstat-no" title="statement not covered" >        errors.push(`File "${file.name}" exceeds maximum size (10MB)`);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-      
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      if (file.type &amp;&amp; !allowedTypes.includes(file.type)) {</span>
 <span class="cstat-no" title="statement not covered" >        errors.push(`File type "${file.type}" is not allowed`);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return {</span>
 <span class="cstat-no" title="statement not covered" >      valid: errors.length === 0,</span>
 <span class="cstat-no" title="statement not covered" >      errors,</span>
@@ -1117,7 +1138,7 @@ export interface MessageSystemStatus {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-21T01:39:27.620Z
+                at 2025-08-21T01:55:53.677Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

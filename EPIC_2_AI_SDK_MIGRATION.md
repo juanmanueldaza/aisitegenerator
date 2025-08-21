@@ -1,5 +1,58 @@
 # EPIC 2: Vercel AI SDK Migration
 
+## Status Update (Aug 21, 2025)
+
+Overall: Not complete. Core foundation is in place (AI SDK router, packages, client adapter with streaming/retries, provider/model UI and validation, health badge), but full architecture migration, multi-provider UX/credentials, hooks-based streaming, advanced features, performance/security, and documentation remain.
+
+### Validation against Success Criteria
+
+- Complete replacement of current AI service architecture
+  - [ ] Legacy paths removed and unified on AI SDK
+  - [x] AI SDK router mounted alongside legacy proxy as foundation
+- Multi-provider AI support with seamless switching
+  - [x] Server supports Google/OpenAI/Anthropic/Cohere via AI SDK router
+  - [x] UI exposes provider/model with presets and validation
+  - [ ] End-to-end credential UX and seamless switching for all providers
+- All current AI functionality preserved and enhanced
+  - [x] Deep Chat works with history preservation and streaming + cancel
+  - [x] Offline simulation path for no-key runs
+  - [ ] Full migration to new service (legacy fallbacks still active)
+- Advanced features (tool calling, structured outputs)
+  - [ ] Not implemented
+- Performance equal to or better than current implementation
+  - [ ] Benchmarks/analysis not documented yet
+- Comprehensive test coverage for AI operations
+  - [x] Unit tests for proxyV2 (streaming, parsing, retry, error)
+  - [x] Tests for AI constants and Gemini provider
+  - [ ] Provider-switch integration, performance, and security tests
+
+### What’s done
+
+- AI SDK packages installed: `ai`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/anthropic`, `@ai-sdk/cohere`.
+- Server: `/api/ai-sdk/generate`, `/stream`, `/health` with dynamic provider loading.
+- Client: `ProxyAIProviderV2` with streaming, newline parsing, timeout, retries; unit-tested.
+- UI: Provider/model controls with presets and validation; Stop button; generating indicator; toasts.
+- Observability: AI SDK proxy health indicator in header.
+- Repo: Quality gates passing (typecheck, lint, tests with coverage, build).
+
+### Gaps (mapped to Issues)
+
+- Issue #2 Architecture migration: unify on AI SDK service, DI/factory, back-compat wrapper, logging/monitoring. [Open]
+- Issue #3 Streaming migration: integrate AI SDK React hooks (`useChat`/`useCompletion`) with Deep Chat. [Open]
+- Issue #4 Multi-provider mgmt: credential UX for OpenAI/Anthropic/Cohere, fallback chain, analytics. [Open]
+- Issue #5 Tools/structured outputs: design schemas and tool-calling flows. [Open]
+- Issue #7 Security/privacy: credential storage, audit logging, sanitization, policies. [Open]
+- Issue #8 Performance/monitoring: caching, batching, dashboards, benchmarks. [Open]
+- Issue #9 Testing: provider-switch integration, performance/security/E2E on AI SDK path. [Open]
+- Issue #10 Docs: migration guide, architecture docs, troubleshooting. [Open]
+
+### Short closure plan (Phase 1)
+
+1. Finalize AI service: default to AI SDK path; gate legacy behind feature flag; add DI factory and telemetry hooks.
+2. Provider creds UX: settings for OpenAI/Anthropic/Cohere keys; server-side storage/env mapping; health + fallback behavior.
+3. Streaming hooks: adapt Deep Chat bridge to AI SDK `useChat` or `useCompletion` while retaining cancellation and progressive updates.
+4. Tests + docs: provider-switch integration tests, minimal benchmarks, and a migration note added to docs.
+
 ## 🎯 **Epic Overview**
 
 **Epic Title:** Complete Migration to Vercel AI SDK Architecture  

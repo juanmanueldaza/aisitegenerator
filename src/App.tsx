@@ -14,6 +14,7 @@ import { OnboardingWizard } from '@/components';
 import type { AIMessage, GenerateResult, StreamChunk, ProviderOptions } from '@/types/ai';
 import { MessageAdapter } from '@/services/messageAdapter';
 import { AI_CONFIG } from '@/constants/config';
+import { AI_MODEL_PRESETS, getDefaultModel, isModelValidForProvider } from '@/constants/ai';
 
 const SAMPLE_CONTENT = `# Welcome to AI Site Generator
 
@@ -115,42 +116,17 @@ const MemoizedDeepChat = React.memo<{
       );
     };
 
-    // Provider-specific model presets and validation
-    const MODEL_PRESETS: Record<string, string[]> = useMemo(
-      () => ({
-        google: ['gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-1.5-flash', 'gemini-1.5-pro'],
-        openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'],
-        anthropic: ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest', 'claude-3-opus-latest'],
-        cohere: ['command-r-plus', 'command-r', 'command'],
-      }),
-      []
-    );
-    const DEFAULT_MODEL_FOR: Record<string, string> = useMemo(
-      () => ({
-        google: 'gemini-2.0-flash',
-        openai: 'gpt-4o-mini',
-        anthropic: 'claude-3-5-sonnet-latest',
-        cohere: 'command-r-plus',
-      }),
-      []
-    );
-    const isModelValid = useMemo(() => {
-      if (!model) return true;
-      const v = model.toLowerCase();
-      switch (provider) {
-        case 'google':
-          return v.startsWith('gemini');
-        case 'openai':
-          return v.startsWith('gpt');
-        case 'anthropic':
-          return v.startsWith('claude');
-        case 'cohere':
-          return v.startsWith('command');
-        default:
-          return true;
-      }
-    }, [model, provider]);
+    // Provider-specific model presets and validation (centralized)
+    const isModelValid = useMemo(() => isModelValidForProvider(provider, model), [model, provider]);
     const presetListId = `model-presets-${provider}`;
+    const placeholderDefaultModel = useMemo(
+      () => getDefaultModel(provider, AI_CONFIG.DEFAULT_MODEL),
+      [provider]
+    );
+    const providerPresets = useMemo(
+      () => (AI_MODEL_PRESETS as Record<string, string[]>)[provider] || [],
+      [provider]
+    );
 
     // Minimal Deep Chat handler types
     type DeepChatMessage = { role: 'user' | 'assistant' | 'system'; text?: string };
@@ -354,7 +330,7 @@ const MemoizedDeepChat = React.memo<{
                 type="text"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                placeholder={DEFAULT_MODEL_FOR[provider] || 'model'}
+                placeholder={placeholderDefaultModel || 'model'}
                 list={presetListId}
                 style={{
                   padding: 6,
@@ -376,7 +352,9 @@ const MemoizedDeepChat = React.memo<{
             {!isModelValid && (
               <button
                 className="btn btn-secondary btn-small"
-                onClick={() => setModel(DEFAULT_MODEL_FOR[provider] || model)}
+                onClick={() =>
+                  setModel(getDefaultModel(provider, AI_CONFIG.DEFAULT_MODEL) || model)
+                }
                 title="Use a recommended default model for the selected provider"
               >
                 Use default
@@ -384,7 +362,7 @@ const MemoizedDeepChat = React.memo<{
             )}
           </div>
           <datalist id={presetListId}>
-            {(MODEL_PRESETS[provider] || []).map((m) => (
+            {providerPresets.map((m) => (
               <option value={m} key={m} />
             ))}
           </datalist>

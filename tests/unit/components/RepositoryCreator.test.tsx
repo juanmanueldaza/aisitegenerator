@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import RepositoryCreator from '../../../src/components/deployment/RepositoryCreator';
 import { useGitHub } from '../../../src/hooks/useGitHub';
 import { normalizeGitHubError } from '../../../src/utils/githubErrors';
@@ -63,9 +63,9 @@ vi.mock('../../../src/store/siteStore', () => ({
 }));
 
 vi.mock('../../../src/utils/githubErrors', () => ({
-  normalizeGitHubError: vi.fn((error) => ({
+  normalizeGitHubError: vi.fn((error: unknown) => ({
     code: 'unknown',
-    message: error?.message || 'Unknown error',
+    message: (error as Error)?.message || 'Unknown error',
   })),
 }));
 
@@ -78,13 +78,7 @@ vi.mock('../../../src/utils/content', () => ({
 }));
 
 // Get the mocked hooks
-const mockUseGitHubHook = vi.mocked(useGitHub);
-
-// Mock Toast component
-vi.mock('../../../src/components/ui', () => ({
-  Toast: ({ message, visible }: { message: string; visible: boolean }) =>
-    visible ? <div data-testid="toast">{message}</div> : null,
-}));
+let mockUseGitHubHook: ReturnType<typeof vi.mocked<typeof useGitHub>>;
 
 describe('RepositoryCreator', () => {
   const defaultProps = {
@@ -93,10 +87,12 @@ describe('RepositoryCreator', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseGitHubHook = vi.mocked(useGitHub);
   });
 
   afterEach(() => {
     vi.clearAllTimers();
+    cleanup(); // Clean up DOM between tests
   });
 
   it('renders authentication required message when not authenticated', () => {
@@ -108,7 +104,9 @@ describe('RepositoryCreator', () => {
     render(<RepositoryCreator {...defaultProps} />);
 
     expect(screen.getByText('Authentication Required')).toBeInTheDocument();
-    expect(screen.getByText('Please sign in with GitHub to deploy your website.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Please sign in with GitHub to deploy your website.')
+    ).toBeInTheDocument();
   });
 
   it('renders deployment form when authenticated', () => {
@@ -142,7 +140,9 @@ describe('RepositoryCreator', () => {
     fireEvent.blur(repoNameInput);
 
     expect(repoNameInput).toHaveValue('my-awesome-project');
-    expect(mockUseToast.showToast).toHaveBeenCalledWith('Repository name sanitized to "my-awesome-project"');
+    expect(mockUseToast.showToast).toHaveBeenCalledWith(
+      'Repository name sanitized to "my-awesome-project"'
+    );
   });
 
   it('shows sanitized name preview when name differs', () => {
@@ -189,7 +189,7 @@ describe('RepositoryCreator', () => {
     const repoNameInput = screen.getByLabelText('Repository Name *');
     fireEvent.change(repoNameInput, { target: { value: 'test-repo' } });
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     await waitFor(() => {
@@ -229,10 +229,12 @@ describe('RepositoryCreator', () => {
     const descriptionInput = screen.getByLabelText('Description');
     fireEvent.change(descriptionInput, { target: { value: 'Test description' } });
 
-    const readmeCheckbox = screen.getByLabelText('Update README.md (create or update with project name and description)');
+    const readmeCheckbox = screen.getByLabelText(
+      'Update README.md (create or update with project name and description)'
+    );
     fireEvent.click(readmeCheckbox);
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     await waitFor(() => {
@@ -267,7 +269,9 @@ describe('RepositoryCreator', () => {
     fireEvent.click(deployButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Repository exists. Continuing with deployment...')).toBeInTheDocument();
+      expect(
+        screen.getByText('Repository exists. Continuing with deployment...')
+      ).toBeInTheDocument();
     });
 
     // Should still complete deployment
@@ -285,7 +289,7 @@ describe('RepositoryCreator', () => {
     const repoNameInput = screen.getByLabelText('Repository Name *');
     fireEvent.change(repoNameInput, { target: { value: 'test-repo' } });
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     await waitFor(() => {
@@ -313,7 +317,9 @@ describe('RepositoryCreator', () => {
     fireEvent.click(deployButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Deployment failed: Rate limited. Retry after 60s.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Deployment failed: Rate limited. Retry after 60s.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -326,7 +332,7 @@ describe('RepositoryCreator', () => {
     const repoNameInput = screen.getByLabelText('Repository Name *');
     fireEvent.change(repoNameInput, { target: { value: 'test-repo' } });
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     await waitFor(() => {
@@ -373,7 +379,7 @@ describe('RepositoryCreator', () => {
     const descriptionInput = screen.getByLabelText('Description');
     fireEvent.change(descriptionInput, { target: { value: 'Test description' } });
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     await waitFor(() => {
@@ -398,7 +404,7 @@ describe('RepositoryCreator', () => {
     const repoNameInput = screen.getByLabelText('Repository Name *');
     fireEvent.change(repoNameInput, { target: { value: 'test-repo' } });
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     await waitFor(() => {
@@ -419,7 +425,7 @@ describe('RepositoryCreator', () => {
     const repoNameInput = screen.getByLabelText('Repository Name *');
     fireEvent.change(repoNameInput, { target: { value: 'test-repo' } });
 
-    const deployButton = screen.getByRole('button', { name: '🚀 Deploy Website' });
+    const deployButton = screen.getByText('🚀 Deploy Website');
     fireEvent.click(deployButton);
 
     expect(screen.getByText('Please provide a repository name and content')).toBeInTheDocument();

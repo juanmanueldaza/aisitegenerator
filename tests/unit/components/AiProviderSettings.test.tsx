@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { AiProviderSettings } from '../../../src/components/features/AiProviderSettings';
 import { useLocalStorageSync } from '../../../src/hooks';
 
@@ -39,12 +39,7 @@ vi.mock('../../../src/components/ui', () => ({
     variant?: string;
     [key: string]: unknown;
   }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      data-variant={variant}
-      {...props}
-    >
+    <button onClick={onClick} disabled={disabled} data-variant={variant} {...props}>
       {children}
     </button>
   ),
@@ -58,6 +53,7 @@ describe('AiProviderSettings', () => {
 
   afterEach(() => {
     vi.clearAllTimers();
+    cleanup(); // Clean up DOM between tests
   });
 
   it('renders provider settings interface', () => {
@@ -65,7 +61,9 @@ describe('AiProviderSettings', () => {
 
     expect(screen.getByText('AI Provider Settings')).toBeInTheDocument();
     expect(
-      screen.getByText('Configure API keys for different AI providers to enable seamless switching.')
+      screen.getByText(
+        'Configure API keys for different AI providers to enable seamless switching.'
+      )
     ).toBeInTheDocument();
     expect(screen.getByText('Select Provider:')).toBeInTheDocument();
   });
@@ -89,7 +87,9 @@ describe('AiProviderSettings', () => {
     // Default selected provider should be Google
     expect(screen.getByText('Google Gemini')).toBeInTheDocument();
     expect(
-      screen.getByText("Google's Gemini models with excellent performance and multimodal capabilities.")
+      screen.getByText(
+        "Google's Gemini models with excellent performance and multimodal capabilities."
+      )
     ).toBeInTheDocument();
 
     // Check that models are displayed
@@ -138,7 +138,9 @@ describe('AiProviderSettings', () => {
     render(<AiProviderSettings />);
 
     expect(
-      screen.getByText('Your API key is stored locally in your browser and never sent to our servers.')
+      screen.getByText(
+        'Your API key is stored locally in your browser and never sent to our servers.'
+      )
     ).toBeInTheDocument();
   });
 

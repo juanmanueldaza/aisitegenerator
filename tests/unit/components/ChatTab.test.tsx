@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { ChatTab } from '../../../src/components/tabs/ChatTab';
 import { useSiteStore } from '../../../src/store/siteStore';
@@ -35,23 +35,39 @@ vi.mock('../../../src/services/ai', () => ({
 
 // Mock deep-chat-react with a simple implementation
 vi.mock('deep-chat-react', () => ({
-  DeepChat: vi.fn().mockImplementation(() => React.createElement('div', { 'data-testid': 'deep-chat' }, 'Mock Deep Chat Component'))
+  DeepChat: vi.fn().mockImplementation((props) => {
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'deep-chat',
+        style: props.style || {},
+      },
+      'Mock Deep Chat Component'
+    );
+  }),
 }));
 
-// Mock the entire deep-chat module to prevent any internal calls
-vi.mock('deep-chat/dist/deepChat.js', () => ({
-  de: {
-    renderText: vi.fn((text) => text || ''),
-    addInnerContainerElements: vi.fn(),
-    createElements: vi.fn(),
-    createMessageElements: vi.fn(),
-    createNewMessageElement: vi.fn(),
-    createAndAppendNewMessageElementDefault: vi.fn(),
-    createAndAppendNewMessageElement: vi.fn(),
-    addSetupMessageIfNeeded: vi.fn(),
-  },
-  default: vi.fn(),
-}));
+// Mock React.lazy to return the mocked component immediately
+const originalLazy = React.lazy;
+
+beforeAll(() => {
+  React.lazy = vi.fn().mockImplementation(() => {
+    return vi.fn().mockImplementation((props) => {
+      return React.createElement(
+        'div',
+        {
+          'data-testid': 'deep-chat',
+          style: props.style || {},
+        },
+        'Mock Deep Chat Component'
+      );
+    });
+  });
+});
+
+afterAll(() => {
+  React.lazy = originalLazy;
+});
 
 const mockedUseSiteStore = vi.mocked(useSiteStore);
 const mockedUseAIProvider = vi.mocked(useAIProvider);
@@ -60,7 +76,9 @@ describe('ChatTab', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedUseSiteStore.mockReturnValue(mockStore as unknown as ReturnType<typeof useSiteStore>);
-    mockedUseAIProvider.mockReturnValue(mockAIProvider as unknown as ReturnType<typeof useAIProvider>);
+    mockedUseAIProvider.mockReturnValue(
+      mockAIProvider as unknown as ReturnType<typeof useAIProvider>
+    );
   });
 
   afterEach(() => {
@@ -95,7 +113,9 @@ describe('ChatTab', () => {
     expect(aiConnectionHeader.textContent).toContain('🔴');
     expect(screen.getByText('❌ AI provider not configured')).toBeInTheDocument();
     expect(
-      screen.getByText('Configure your AI provider in the Settings tab to enable chat functionality.')
+      screen.getByText(
+        'Configure your AI provider in the Settings tab to enable chat functionality.'
+      )
     ).toBeInTheDocument();
   });
 
@@ -151,24 +171,26 @@ describe('ChatTab', () => {
     render(<ChatTab />);
 
     // Error handling is tested implicitly through the component's error boundaries
-    expect(screen.getByText((content, element) => {
-      return element?.tagName === 'H4' && content.includes('AI Connection');
-    })).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return element?.tagName === 'H4' && content.includes('AI Connection');
+      })
+    ).toBeInTheDocument();
   });
 
   it('shows loading state while chat is initializing', () => {
     render(<ChatTab />);
 
     // Initially shows loading or the chat interface
-    expect(screen.getByText((content, element) => {
-      return element?.tagName === 'H4' && content.includes('AI Connection');
-    })).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return element?.tagName === 'H4' && content.includes('AI Connection');
+      })
+    ).toBeInTheDocument();
   });
 
   it('maintains message history across re-renders', () => {
-    const messages = [
-      { role: 'user', content: 'Test message', id: '1', timestamp: 123 },
-    ];
+    const messages = [{ role: 'user', content: 'Test message', id: '1', timestamp: 123 }];
 
     mockedUseSiteStore.mockReturnValue({
       ...mockStore,
@@ -177,16 +199,20 @@ describe('ChatTab', () => {
 
     const { rerender } = render(<ChatTab />);
 
-    expect(screen.getByText((content, element) => {
-      return element?.tagName === 'H4' && content.includes('AI Connection');
-    })).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return element?.tagName === 'H4' && content.includes('AI Connection');
+      })
+    ).toBeInTheDocument();
 
     // Re-render with same messages
     rerender(<ChatTab />);
 
-    expect(screen.getByText((content, element) => {
-      return element?.tagName === 'H4' && content.includes('AI Connection');
-    })).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return element?.tagName === 'H4' && content.includes('AI Connection');
+      })
+    ).toBeInTheDocument();
   });
 
   it('handles abort controller for request cancellation', async () => {

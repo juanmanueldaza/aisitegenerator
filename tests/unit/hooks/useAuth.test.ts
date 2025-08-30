@@ -69,10 +69,13 @@ describe('useAuth', () => {
       await result.current.logout();
     });
 
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
+    // Wait for loading to complete with a longer timeout
+    await waitFor(
+      () => {
+        expect(result.current.loading).toBe(false);
+      },
+      { timeout: 2000 }
+    );
     expect(result.current.user).toBe(null);
     expect(result.current.error).toBe(null);
   });

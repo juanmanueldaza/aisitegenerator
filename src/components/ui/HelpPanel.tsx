@@ -38,15 +38,20 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ open, onClose, topic }) =>
   }, [open, topic]);
   if (!open) return null;
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-4xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 id="help-title" className="text-lg font-bold">Help</h3>
-          <button className="btn btn-secondary btn-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+        <div className="flex justify-between items-center mb-4 p-6 pb-0">
+          <h3 id="help-title" className="text-lg font-bold">
+            Help
+          </h3>
+          <button
+            className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200"
+            onClick={onClose}
+          >
             Close
           </button>
         </div>
-        <div className="prose max-w-none">
+        <div className="prose max-w-none p-6 pt-0">
           <MarkdownView content={md} />
         </div>
       </div>

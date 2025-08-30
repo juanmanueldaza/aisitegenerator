@@ -2,7 +2,20 @@
 
 Aplicación moderna (frontend) para crear sitios paso a paso asistidos por IA, con vista previa en vivo, soporte de Markdown y diagramas Mermaid. Autenticación con GitHub y despliegue vía GitHub Pages.
 
-## 🚀 Tech Stack
+## 🎨 Design System - Sci-Fi Theme
+
+This project features a cutting-edge **sci-fi minimal design system** built with DaisyUI and Tailwind CSS, creating an immersive and futuristic user experience.
+
+### ✨ Key Design Features
+
+- **Minimalist Layout**: Clean, spacious design with strategic use of whitespace
+- **Sci-Fi Color Palette**: Electric cyan (#00d4ff), indigo (#6366f1), and purple (#a855f7) accents
+- **Glassmorphism Effects**: Backdrop blur and translucent surfaces for depth
+- **Neon Glow Effects**: Subtle lighting effects on interactive elements
+- **Smooth Animations**: Micro-interactions and transitions for enhanced UX
+- **Responsive Design**: Optimized for all screen sizes with mobile-first approach
+
+### �️ Tech Stack
 
 - Frontend: React 19 + TypeScript
 - Build: Vite 7
@@ -10,6 +23,39 @@ Aplicación moderna (frontend) para crear sitios paso a paso asistidos por IA, c
 - Calidad: ESLint + Prettier + Husky
 - CI/CD: GitHub Actions con quality gates automatizados
 - Arquitectura: Clean Architecture (SOLID)
+- **UI Framework**: DaisyUI v5 + Tailwind CSS v4
+- **Design**: Custom Sci-Fi Theme with glassmorphism and neon effects
+
+### 🎯 Component Library
+
+The project includes enhanced UI components with sci-fi styling:
+
+- **Layout**: Responsive grid system with sidebar navigation
+- **Card**: Glassmorphism cards with glow effects and animations
+- **Button**: Multiple variants with hover animations and loading states
+- **Input/Textarea**: Floating labels and validation states
+- **Modal**: Full-screen overlays with backdrop blur
+- **Tabs**: Animated tab switching with sci-fi styling
+
+### 🎨 Theme Configuration
+
+```javascript
+// tailwind.config.js
+{
+  themes: {
+    'sci-fi': {
+      primary: '#00d4ff',    // Electric cyan
+      secondary: '#6366f1',  // Indigo
+      accent: '#a855f7',     // Purple
+      neutral: '#1e293b',    // Slate-800
+      'base-100': '#0f172a', // Slate-900 (dark background)
+      'base-200': '#1e293b', // Slate-800 (card backgrounds)
+      'base-300': '#334155', // Slate-700 (borders)
+      'base-content': '#f1f5f9' // Slate-100 (text)
+    }
+  }
+}
+```
 
 ## 📁 Estructura del proyecto
 

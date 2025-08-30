@@ -1,32 +1,50 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ThemeContext, type Theme } from './useTheme';
 
-export type Theme = 'light' | 'dark' | 'aisite' | 'cupcake' | 'bumblebee' | 'emerald' | 'corporate' | 'synthwave' | 'retro' | 'cyberpunk' | 'valentine' | 'halloween' | 'garden' | 'forest' | 'aqua' | 'lofi' | 'pastel' | 'fantasy' | 'wireframe' | 'black' | 'luxury' | 'dracula' | 'cmyk' | 'autumn' | 'business' | 'acid' | 'lemonade' | 'night' | 'coffee' | 'winter';
-
-interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  availableThemes: Theme[];
+// Helper function to validate theme
+function isValidTheme(theme: string): theme is Theme {
+  const validThemes: Theme[] = [
+    'light',
+    'dark',
+    'sci-fi',
+    'aisite',
+    'cupcake',
+    'bumblebee',
+    'emerald',
+    'corporate',
+    'synthwave',
+    'retro',
+    'cyberpunk',
+    'valentine',
+    'halloween',
+    'garden',
+    'forest',
+    'aqua',
+    'lofi',
+    'pastel',
+    'fantasy',
+    'wireframe',
+    'black',
+    'luxury',
+    'dracula',
+    'cmyk',
+    'autumn',
+    'business',
+    'acid',
+    'lemonade',
+    'night',
+    'coffee',
+    'winter',
+  ];
+  return validThemes.includes(theme as Theme);
 }
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
 
 interface ThemeProviderProps {
   children: React.ReactNode;
   defaultTheme?: Theme;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-  children,
-  defaultTheme = 'light'
-}) => {
+const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultTheme = 'sci-fi' }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Check localStorage first, then system preference, then default
     if (typeof window !== 'undefined') {
@@ -44,11 +62,37 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   });
 
   const availableThemes: Theme[] = [
-    'light', 'dark', 'aisite', 'cupcake', 'bumblebee', 'emerald', 'corporate',
-    'synthwave', 'retro', 'cyberpunk', 'valentine', 'halloween', 'garden',
-    'forest', 'aqua', 'lofi', 'pastel', 'fantasy', 'wireframe', 'black',
-    'luxury', 'dracula', 'cmyk', 'autumn', 'business', 'acid', 'lemonade',
-    'night', 'coffee', 'winter'
+    'light',
+    'dark',
+    'sci-fi',
+    'aisite',
+    'cupcake',
+    'bumblebee',
+    'emerald',
+    'corporate',
+    'synthwave',
+    'retro',
+    'cyberpunk',
+    'valentine',
+    'halloween',
+    'garden',
+    'forest',
+    'aqua',
+    'lofi',
+    'pastel',
+    'fantasy',
+    'wireframe',
+    'black',
+    'luxury',
+    'dracula',
+    'cmyk',
+    'autumn',
+    'business',
+    'acid',
+    'lemonade',
+    'night',
+    'coffee',
+    'winter',
   ];
 
   const setTheme = (newTheme: Theme) => {
@@ -95,23 +139,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     availableThemes,
   };
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
-
-// Helper function to validate theme
-function isValidTheme(theme: string): theme is Theme {
-  const validThemes: Theme[] = [
-    'light', 'dark', 'aisite', 'cupcake', 'bumblebee', 'emerald', 'corporate',
-    'synthwave', 'retro', 'cyberpunk', 'valentine', 'halloween', 'garden',
-    'forest', 'aqua', 'lofi', 'pastel', 'fantasy', 'wireframe', 'black',
-    'luxury', 'dracula', 'cmyk', 'autumn', 'business', 'acid', 'lemonade',
-    'night', 'coffee', 'winter'
-  ];
-  return validThemes.includes(theme as Theme);
-}
 
 export default ThemeProvider;

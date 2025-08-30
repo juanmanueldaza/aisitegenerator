@@ -8,7 +8,7 @@ AI Site Generator prioritizes **perceived performance** and **actual performance
 
 ```
 📊 Core Metrics
-├── Bundle Size: Stay within reasonable limits
+├── Bundle Size: 18.86 kB CSS (4.71 kB gzipped) - DaisyUI optimized
 ├── Initial Load: < 3 seconds on slow 3G
 ├── Time to Interactive: < 5 seconds
 ├── Core Web Vitals: All green scores

@@ -43,8 +43,13 @@ When making technical decisions for AI Site Generator, consider these priorities
 
 **Styling Approach**
 
-- ✅ CSS Modules/Plain CSS: Simple, no runtime overhead
+- ✅ Tailwind CSS v4.1.12 + DaisyUI v4.12.10: Utility-first CSS with 35+ built-in themes
+- ✅ Custom "aisite" theme: Project-specific theming with DaisyUI variables
+- ✅ ThemeProvider + ThemeController: Dynamic theme switching with persistence
 - ❌ Styled-components: Runtime overhead, bundle size impact
+- ❌ CSS-in-JS: Adds complexity and bundle size
+
+**Current Bundle Size**: 18.86 kB CSS (4.71 kB gzipped) with full DaisyUI integration
 
 ### **🔧 Implementation Decisions**
 

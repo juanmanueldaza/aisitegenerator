@@ -37,12 +37,14 @@ We follow a **continuous deployment approach** emphasizing:
 
 ### Technology Stack
 
-- **Frontend**: React + TypeScript + Vite
+- **Frontend**: React 19 + TypeScript + Vite 7
+- **Styling**: Tailwind CSS v4.1.12 + DaisyUI v4.12.10 (35+ themes)
 - **Hosting**: GitHub Pages (static hosting)
 - **CI/CD**: GitHub Actions
 - **Package Manager**: npm
-- **Build Tool**: Vite
+- **Build Tool**: Vite 7
 - **Testing**: Vitest + Playwright
+- **Quality Gates**: TypeScript + ESLint + Pre-commit hooks (Husky)
 
 ## 🚀 Deployment Strategies
 

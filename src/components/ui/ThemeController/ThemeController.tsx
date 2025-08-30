@@ -13,38 +13,43 @@ export const ThemeController: React.FC<ThemeControllerProps> = ({ className = ''
     light: 'Light',
     dark: 'Dark',
     aisite: 'AI Site',
-    cupcake: 'Cupcake',
-    bumblebee: 'Bumblebee',
-    emerald: 'Emerald',
-    corporate: 'Corporate',
-    synthwave: 'Synthwave',
-    retro: 'Retro',
-    cyberpunk: 'Cyberpunk',
-    valentine: 'Valentine',
-    halloween: 'Halloween',
-    garden: 'Garden',
-    forest: 'Forest',
     aqua: 'Aqua',
-    lofi: 'Lo-fi',
-    pastel: 'Pastel',
-    fantasy: 'Fantasy',
-    wireframe: 'Wireframe',
-    black: 'Black',
-    luxury: 'Luxury',
-    dracula: 'Dracula',
-    cmyk: 'CMYK',
     autumn: 'Autumn',
-    business: 'Business',
     acid: 'Acid',
-    lemonade: 'Lemonade',
-    night: 'Night',
+    black: 'Black',
+    bumblebee: 'Bumblebee',
+    business: 'Business',
     coffee: 'Coffee',
+    corporate: 'Corporate',
+    cupcake: 'Cupcake',
+    cmyk: 'CMYK',
+    cyberpunk: 'Cyberpunk',
+    dracula: 'Dracula',
+    emerald: 'Emerald',
+    fantasy: 'Fantasy',
+    forest: 'Forest',
+    garden: 'Garden',
+    halloween: 'Halloween',
+    lemonade: 'Lemonade',
+    lofi: 'Lo-fi',
+    luxury: 'Luxury',
+    night: 'Night',
+    pastel: 'Pastel',
+    retro: 'Retro',
+    'sci-fi': 'Sci-Fi',
+    synthwave: 'Synthwave',
+    valentine: 'Valentine',
     winter: 'Winter',
+    wireframe: 'Wireframe',
   };
 
   return (
-    <div className={`dropdown dropdown-end ${className}`}>
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
+    <div className={`relative ${className}`}>
+      <div
+        tabIndex={0}
+        role="button"
+        className="flex items-center px-3 py-1.5 text-sm bg-transparent hover:bg-gray-100 text-gray-700 border border-gray-300 rounded-md transition-colors duration-200 cursor-pointer"
+      >
         <svg
           width="20"
           height="20"
@@ -60,20 +65,23 @@ export const ThemeController: React.FC<ThemeControllerProps> = ({ className = ''
         </svg>
         Theme
       </div>
-      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+      <ul
+        tabIndex={0}
+        className="absolute top-full right-0 bg-white rounded-lg z-[1] w-52 p-2 shadow-lg border border-gray-200 mt-1"
+      >
         {availableThemes.map((themeOption) => (
           <li key={themeOption}>
             <a
-              className={theme === themeOption ? 'active' : ''}
+              className={`flex items-center px-3 py-2 text-sm rounded-md cursor-pointer transition-colors duration-200 ${
+                theme === themeOption
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
               onClick={() => setTheme(themeOption)}
             >
               {themeLabels[themeOption]}
               {theme === themeOption && (
-                <svg
-                  className="w-4 h-4 ml-auto"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-4 h-4 ml-auto" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

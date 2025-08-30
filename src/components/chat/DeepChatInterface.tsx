@@ -38,14 +38,8 @@ const DeepChatInterface: React.FC<DeepChatInterfaceProps> = ({
   );
   const [proxyHealthy, setProxyHealthy] = useState<boolean | null>(null);
 
-  // Determine if we're using a proxy (AI SDK or legacy)
-  const isProxyMode = useMemo(
-    () =>
-      Boolean(
-        (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').trim() || (AI_CONFIG.PROXY_BASE_URL || '').trim()
-      ),
-    []
-  );
+  // Determine if we're using a proxy (simplified to single proxy)
+  const isProxyMode = useMemo(() => Boolean((AI_CONFIG.PROXY_BASE_URL || '').trim()), []);
 
   // When not using a proxy, the only working local provider is Gemini
   const effectiveProvider = useMemo(
@@ -73,7 +67,7 @@ const DeepChatInterface: React.FC<DeepChatInterfaceProps> = ({
 
   // Non-blocking AI SDK proxy health/capability check
   useEffect(() => {
-    const base = (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').replace(/\/$/, '');
+    const base = (AI_CONFIG.PROXY_BASE_URL || '').replace(/\/$/, '');
     if (!base) {
       setProxyHealthy(null);
       setAvailableProviders(null);

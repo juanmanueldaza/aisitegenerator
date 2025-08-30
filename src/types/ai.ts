@@ -24,13 +24,54 @@ export interface ProviderOptions {
 export interface GenerateResult {
   text: string;
   finishReason?: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
 }
 
 export interface StreamChunk {
   text: string;
+  done?: boolean;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
 }
 
 export interface AIError extends Error {
   status?: number;
   code?: string;
+}
+
+/**
+ * Unified AI Provider Interface
+ * Single interface for all AI provider interactions
+ * Following Interface Segregation Principle
+ */
+export interface IAIProvider {
+  /**
+   * Provider name identifier
+   */
+  readonly name: string;
+
+  /**
+   * Check if this provider is available and properly configured
+   */
+  isAvailable(): boolean;
+
+  /**
+   * Generate a complete response for the given messages
+   */
+  generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult>;
+
+  /**
+   * Generate a streaming response for the given messages
+   */
+  generateStream(
+    messages: AIMessage[],
+    options?: ProviderOptions
+  ): AsyncGenerator<StreamChunk, void, unknown>;
 }

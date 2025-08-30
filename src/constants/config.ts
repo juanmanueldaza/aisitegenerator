@@ -1,5 +1,5 @@
 // Safe env reader that works in Vite (browser) and Node (server/tools)
-function readEnv(...keys: string[]): string | undefined {
+export function readEnv(...keys: string[]): string | undefined {
   // Prefer Vite's import.meta.env (only exposes VITE_* variables)
   let viteEnv: Record<string, string | undefined> | undefined;
   // Narrow import.meta type safely
@@ -45,15 +45,8 @@ export const API_CONFIG = {
 
 // Optional AI proxy configuration (server that calls Gemini securely)
 export const AI_CONFIG = {
-  // Prefer VITE_* in Vite projects; keep REACT_APP_* as a fallback for compatibility
-  PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '/api/ai', // dev default
-  AI_SDK_PROXY_BASE_URL:
-    readEnv('VITE_AI_SDK_PROXY_BASE_URL', 'REACT_APP_AI_SDK_PROXY_BASE_URL') || '/api/ai-sdk', // dev default
-  // Feature flag to force using the legacy proxy path when both are configured
-  USE_LEGACY_PROXY:
-    (readEnv('VITE_AI_USE_LEGACY_PROXY', 'REACT_APP_AI_USE_LEGACY_PROXY') || 'false')
-      .toString()
-      .toLowerCase() === 'true',
+  // Single proxy base URL - simplified from multiple proxy configurations
+  PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '/api/ai-sdk',
   // Client-side defaults for chat provider/model
   DEFAULT_PROVIDER: (
     readEnv('VITE_AI_DEFAULT_PROVIDER', 'REACT_APP_AI_DEFAULT_PROVIDER') || 'google'

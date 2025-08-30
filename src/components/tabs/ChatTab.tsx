@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import React, { useRef, useMemo, useCallback } from 'react';
 import { useSiteStore } from '@/store/siteStore';
 import { useAIProvider } from '@/services/ai';
 import type { AIMessage, ProviderOptions } from '@/types/ai';
-import { AI_CONFIG } from '@/constants/config';
 
 // Lazy-load Deep Chat to reduce initial bundle size
 const LazyDeepChat = React.lazy(() =>
@@ -12,49 +10,8 @@ const LazyDeepChat = React.lazy(() =>
 
 export function ChatTab() {
   const store = useSiteStore();
-  const [apiKey, setApiKey] = useLocalStorage('GEMINI_API_KEY', '');
   const ai = useAIProvider('gemini');
   const abortRef = useRef<AbortController | null>(null);
-  const [proxyHealthy, setProxyHealthy] = useState<boolean | null>(null);
-
-  // Determine if we're using a proxy
-  const isProxyMode = useMemo(
-    () =>
-      Boolean(
-        (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').trim() || (AI_CONFIG.PROXY_BASE_URL || '').trim()
-      ),
-    []
-  );
-
-  const aiReady = useMemo(() => {
-    if (isProxyMode) {
-      return proxyHealthy !== false;
-    }
-    return !!apiKey && ai.ready;
-  }, [isProxyMode, proxyHealthy, apiKey, ai.ready]);
-
-  // Check proxy health
-  useEffect(() => {
-    const base = (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').replace(/\/$/, '');
-    if (!base) {
-      setProxyHealthy(null);
-      return;
-    }
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch(`${base}/health`, { method: 'GET' });
-        if (!active) return;
-        setProxyHealthy(res.ok);
-      } catch {
-        if (!active) return;
-        setProxyHealthy(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   // Stable handler for Deep Chat
   const stableHandler = useCallback(
@@ -64,7 +21,7 @@ export function ChatTab() {
     ) => {
       console.log('🔗 Deep Chat handler called');
 
-      if (!aiReady) {
+      if (!ai.ready) {
         // Offline/Test mode: simulate an HTML site
         const simulated = `<!DOCTYPE html>
 <html lang="en">
@@ -177,7 +134,7 @@ export function ChatTab() {
         }
       })();
     },
-    [aiReady, store, ai]
+    [store, ai]
   );
 
   // Memoize config objects
@@ -221,10 +178,10 @@ I'm your AI assistant for creating beautiful websites! Ask me to create any type
       <div
         style={{
           padding: '16px',
-          backgroundColor: aiReady ? '#f0f9ff' : '#f8f9fa',
+          backgroundColor: ai.ready ? '#f0f9ff' : '#f8f9fa',
           borderRadius: '8px',
           marginBottom: '16px',
-          border: `2px solid ${aiReady ? '#3b82f6' : '#e9ecef'}`,
+          border: `2px solid ${ai.ready ? '#3b82f6' : '#e9ecef'}`,
         }}
       >
         <h4
@@ -237,7 +194,7 @@ I'm your AI assistant for creating beautiful websites! Ask me to create any type
             gap: 8,
           }}
         >
-          {aiReady ? '🟢' : '🔴'} AI Connection
+          {ai.ready ? '🟢' : '🔴'} AI Connection
           <span
             style={{
               fontSize: 12,
@@ -251,90 +208,12 @@ I'm your AI assistant for creating beautiful websites! Ask me to create any type
           </span>
         </h4>
 
-        {!isProxyMode && (
-          <input
-            type="password"
-            placeholder="Enter your Gemini API key..."
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '2px solid #e5e7eb',
-              borderRadius: '8px',
-              fontSize: '14px',
-              marginBottom: '8px',
-            }}
-          />
-        )}
-
-        {isProxyMode && !apiKey && (
-          <div
-            style={{
-              fontSize: 12,
-              color: '#ef4444',
-              marginBottom: 8,
-              padding: '8px',
-              backgroundColor: '#fef2f2',
-              borderRadius: '4px',
-              border: '1px solid #fecaca',
-            }}
-          >
-            ⚠️ <strong>API Key Required:</strong> Please enter your Gemini API key above to enable
-            AI chat functionality. Get your key from{' '}
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#dc2626', textDecoration: 'underline' }}
-            >
-              Google AI Studio
-            </a>
-            .
-          </div>
-        )}
-
-        {isProxyMode && apiKey && (
-          <div
-            style={{
-              fontSize: 12,
-              color: '#10b981',
-              marginBottom: 8,
-              padding: '8px',
-              backgroundColor: '#f0fdf4',
-              borderRadius: '4px',
-              border: '1px solid #bbf7d0',
-            }}
-          >
-            ✅ API key configured - AI chat should work now!
-          </div>
-        )}
-
-        <div style={{ fontSize: '13px', color: aiReady ? '#059669' : '#6b7280' }}>
-          {aiReady
-            ? '✅ Ready for AI responses'
-            : isProxyMode
-              ? 'Proxy mode configured'
-              : 'Enter API key to enable AI'}
-          {!aiReady && !isProxyMode && (
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ marginLeft: '8px', color: '#3b82f6' }}
-            >
-              Get API Key
-            </a>
-          )}
-          {proxyHealthy !== null && (
-            <span
-              style={{
-                marginLeft: 8,
-                color: proxyHealthy ? '#059669' : '#b91c1c',
-              }}
-            >
-              AI SDK Proxy: {proxyHealthy ? 'Online' : 'Offline'}
-            </span>
+        <div style={{ fontSize: '13px', color: ai.ready ? '#059669' : '#6b7280' }}>
+          {ai.ready ? '✅ AI provider ready' : '❌ AI provider not configured'}
+          {!ai.ready && (
+            <div style={{ marginTop: '8px', fontSize: '12px' }}>
+              Configure your AI provider in the Settings tab to enable chat functionality.
+            </div>
           )}
         </div>
       </div>

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { ChatTab } from '@/components/tabs/ChatTab';
+import { EditorTab } from '@/components/tabs/EditorTab';
+import { SettingsTab } from '@/components/tabs/SettingsTab';
+import { DeployTab } from '@/components/tabs/DeployTab';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'chat' | 'editor' | 'settings' | 'deploy'>('chat');
@@ -34,9 +37,9 @@ function App() {
         {/* Tab Content */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           {activeTab === 'chat' && <ChatTab />}
-          {activeTab === 'editor' && <div>Editor Tab - Coming Soon</div>}
-          {activeTab === 'settings' && <div>Settings Tab - Coming Soon</div>}
-          {activeTab === 'deploy' && <div>Deploy Tab - Coming Soon</div>}
+          {activeTab === 'editor' && <EditorTab />}
+          {activeTab === 'settings' && <SettingsTab />}
+          {activeTab === 'deploy' && <DeployTab />}
         </div>
       </div>
     </div>

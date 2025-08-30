@@ -98,7 +98,7 @@ module.exports = {
     },
   ],
   plugins: [
-    // require('daisyui'),
+    require('daisyui'),
     // Custom plugin for sci-fi utilities
     function ({ addUtilities, theme }) {
       const newUtilities = {
@@ -174,110 +174,15 @@ module.exports = {
       addUtilities(newUtilities);
     },
   ],
-  // DaisyUI configuration for Tailwind v4
-  // daisyui: {
-  //   themes: [
-  //     {
-  //       // Minimal Sci-Fi Theme - Cool tones with neon accents
-  //       'sci-fi': {
-  //         "primary": "#00d4ff",        // Electric cyan
-  //         "secondary": "#6366f1",      // Indigo
-  //         "accent": "#a855f7",         // Purple
-  //         "neutral": "#1e293b",        // Slate-800
-  //         "base-100": "#0f172a",       // Slate-900 - Dark background
-  //         "base-200": "#1e293b",       // Slate-800 - Card backgrounds
-  //         "base-300": "#334155",       // Slate-700 - Borders
-  //         "base-content": "#f1f5f9",    // Slate-100 - Text
-  //         "info": "#06b6d4",           // Cyan-500
-  //         "success": "#10b981",        // Emerald-500
-  //         "warning": "#f59e0b",        // Amber-500
-  //         "error": "#ef4444",          // Red-500
-  //       },
-  //     },
-  //     {
-  //       light: {
-  //         "primary": "#3b82f6",
-  //         "secondary": "#6b7280",
-  //         "accent": "#f59e0b",
-  //         "neutral": "#1f2937",
-  //         "base-100": "#f8fafc",
-  //         "base-200": "#e2e8f0",
-  //         "base-300": "#cbd5e1",
-  //         "base-content": "#1f2937",
-  //         "info": "#3b82f6",
-  //         "success": "#10b981",
-  //         "warning": "#f59e0b",
-  //         "error": "#ef4444",
-  //       },
-  //     },
-  //     {
-  //       dark: {
-  //         "primary": "#60a5fa",
-  //         "secondary": "#9ca3af",
-  //         "accent": "#fbbf24",
-  //         "neutral": "#374151",
-  //         "base-100": "#1f2937",
-  //         "base-200": "#374151",
-  //         "base-300": "#4b5563",
-  //         "base-content": "#f9fafb",
-  //         "info": "#60a5fa",
-  //         "success": "#34d399",
-  //         "warning": "#fbbf24",
-  //         "error": "#f87171",
-  //       },
-  //     },
-  //     {
-  //       // Custom theme based on existing brand colors
-  //       aisite: {
-  //         "primary": "#3b82f6",
-  //         "secondary": "#6b7280",
-  //         "accent": "#10b981",
-  //         "neutral": "#1f2937",
-  //         "base-100": "#ffffff",
-  //         "base-200": "#f8fafc",
-  //         "base-300": "#e2e8f0",
-  //         "base-content": "#1f2937",
-  //         "info": "#3b82f6",
-  //         "success": "#10b981",
-  //         "warning": "#f59e0b",
-  //         "error": "#ef4444",
-  //       },
-  //     },
-  //     // Include popular DaisyUI themes
-  //     "cupcake",
-  //     "bumblebee",
-  //     "emerald",
-  //     "corporate",
-  //     "synthwave",
-  //     "retro",
-  //     "cyberpunk",
-  //     "valentine",
-  //     "halloween",
-  //     "garden",
-  //     "forest",
-  //     "aqua",
-  //     "lofi",
-  //     "pastel",
-  //     "fantasy",
-  //     "wireframe",
-  //     "black",
-  //     "luxury",
-  //     "dracula",
-  //     "cmyk",
-  //     "autumn",
-  //     "business",
-  //     "acid",
-  //     "lemonade",
-  //     "night",
-  //     "coffee",
-  //     "winter",
-  //   ],
-  //   darkTheme: "sci-fi",
-  //   base: true,
-  //   styled: true,
-  //   utils: true,
-  //   prefix: "",
-  //   logs: true,
-  //   themeRoot: ":root",
-  // },
+  // DaisyUI configuration
+  daisyui: {
+    themes: ['light', 'dark'],
+    darkTheme: 'dark',
+    base: true,
+    styled: true,
+    utils: true,
+    prefix: '',
+    logs: true,
+    themeRoot: ':root',
+  },
 };

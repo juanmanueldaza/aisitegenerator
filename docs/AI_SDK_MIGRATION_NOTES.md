@@ -25,7 +25,7 @@ This document outlines the incremental migration approach to adopt Vercel AI SDK
 Configure in Vite env:
 
 ```
-VITE_AI_SDK_PROXY_BASE_URL=/api/ai-sdk
+VITE_AI_PROXY_BASE_URL=/api/ai-sdk
 # Optional fallback
 VITE_AI_PROXY_BASE_URL=/api/ai
 ```

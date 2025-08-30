@@ -339,7 +339,7 @@ Focus on creating robust, maintainable code that enhances AI Site Generator's ca
 ## 🔧 Environment & Server Endpoints (AI Routing)
 
 - Client env vars (Vite):
-  - `VITE_AI_SDK_PROXY_BASE_URL` — preferred AI SDK proxy base (e.g., `/api/ai-sdk`).
+  - `VITE_AI_PROXY_BASE_URL` — preferred AI SDK proxy base (e.g., `/api/ai-sdk`).
   - `VITE_AI_PROXY_BASE_URL` — legacy proxy base (e.g., `/api/ai`).
   - `VITE_AI_USE_LEGACY_PROXY` — when `true`, forces legacy proxy even if AI SDK proxy exists.
   - `VITE_AI_DEFAULT_PROVIDER` — default provider (`google` | `openai` | `anthropic` | `cohere`).
@@ -352,7 +352,7 @@ Focus on creating robust, maintainable code that enhances AI Site Generator's ca
   - `COHERE_API_KEY`
   - Optional defaults: `AI_DEFAULT_PROVIDER`
 
-- AI SDK Router endpoints (mounted at `VITE_AI_SDK_PROXY_BASE_URL`):
+- AI SDK Router endpoints (mounted at `VITE_AI_PROXY_BASE_URL`):
   - `GET /health` → `{ ok: true, sdk: true }`
   - `GET /providers` → `{ ok, providers: { google|openai|anthropic|cohere: boolean }, defaults }`
   - `POST /generate` → JSON `{ text, finishReason }`

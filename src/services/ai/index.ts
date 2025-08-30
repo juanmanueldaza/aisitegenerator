@@ -1,6 +1,6 @@
 import React from 'react';
 import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk } from '@/types/ai';
-import { unifiedProviderManager, initializeProviders } from './unified-manager';
+import { aiProviderStrategyManager } from './strategy-manager';
 import { alog } from '@/utils/debug';
 
 export type ProviderName =
@@ -11,37 +11,34 @@ export type ProviderName =
   | 'anthropic-sdk'
   | 'cohere-sdk';
 
-// Initialize providers when the module is loaded (only in browser)
+// Initialize strategy manager when the module is loaded (only in browser)
 if (typeof window !== 'undefined') {
-  initializeProviders();
+  aiProviderStrategyManager.initialize();
 }
 
 /**
- * Unified AI provider hook using the new IAIProvider interface
+ * Unified AI provider hook using the Strategy Pattern
  * Provides a clean, consistent interface for all AI provider interactions
  */
 export function useAIProvider(name: ProviderName = 'gemini') {
-  // Ensure providers are initialized (for tests and SSR)
+  // Ensure strategy manager is initialized (for tests and SSR)
   React.useEffect(() => {
-    if (unifiedProviderManager.getAvailableProviders().length === 0) {
-      initializeProviders();
-    }
+    aiProviderStrategyManager.initialize();
   }, []);
 
-  const provider = unifiedProviderManager.getProvider(name);
+  const availableProviders = aiProviderStrategyManager.getAvailableProviders();
+  const isAvailable = availableProviders.includes(name);
 
   alog('provider.init', {
     requestedProvider: name,
-    availableProviders: unifiedProviderManager.getAvailableProviders(),
+    availableProviders,
+    isAvailable,
   });
-
-  const isAvailable = provider?.isAvailable() ?? false;
 
   return {
     ready: isAvailable,
     generate: (messages: AIMessage[], options?: ProviderOptions) => {
       if (!isAvailable) {
-        const availableProviders = unifiedProviderManager.getAvailableProviders();
         throw new Error(
           `AI provider '${name}' is not available. ${
             availableProviders.length > 0
@@ -50,11 +47,11 @@ export function useAIProvider(name: ProviderName = 'gemini') {
           }`
         );
       }
-      return provider!.generate(messages, options);
+      return aiProviderStrategyManager.generate(messages, { ...options, provider: name });
     },
     generateStream: (messages: AIMessage[], options?: ProviderOptions) => {
       if (!isAvailable) {
-        const availableProviders = unifiedProviderManager.getAvailableProviders();
+        const availableProviders = aiProviderStrategyManager.getAvailableProviders();
         throw new Error(
           `AI provider '${name}' is not available. ${
             availableProviders.length > 0
@@ -63,32 +60,28 @@ export function useAIProvider(name: ProviderName = 'gemini') {
           }`
         );
       }
-      return provider!.generateStream(messages, options);
+      return aiProviderStrategyManager.generateStream(messages, { ...options, provider: name });
     },
   } as const;
 }
 
 /**
  * Simple provider getter for tests and non-React usage
- * No automatic fallback - fails fast if requested provider is not available
+ * Uses the Strategy Pattern for clean provider management
  */
 export function getAIProvider(name: ProviderName = 'gemini') {
-  // Ensure providers are initialized
-  if (unifiedProviderManager.getAvailableProviders().length === 0) {
-    initializeProviders();
-  }
+  // Ensure strategy manager is initialized
+  aiProviderStrategyManager.initialize();
 
-  const provider = unifiedProviderManager.getProvider(name);
+  const availableProviders = aiProviderStrategyManager.getAvailableProviders();
 
   alog('getAIProvider', {
     requested: name,
-    available: unifiedProviderManager.getAvailableProviders(),
-    providerFound: !!provider,
-    providerAvailable: provider?.isAvailable(),
+    available: availableProviders,
+    isAvailable: availableProviders.includes(name),
   });
 
-  if (!provider?.isAvailable()) {
-    const availableProviders = unifiedProviderManager.getAvailableProviders();
+  if (!availableProviders.includes(name)) {
     throw new Error(
       `AI provider '${name}' is not available. ${
         availableProviders.length > 0
@@ -101,29 +94,27 @@ export function getAIProvider(name: ProviderName = 'gemini') {
   return {
     ready: true,
     generate: (messages: AIMessage[], options?: ProviderOptions) => {
-      return provider.generate(messages, options);
+      return aiProviderStrategyManager.generate(messages, { ...options, provider: name });
     },
     generateStream: (messages: AIMessage[], options?: ProviderOptions) => {
-      return provider.generateStream(messages, options);
+      return aiProviderStrategyManager.generateStream(messages, { ...options, provider: name });
     },
   } as const;
 }
 
 /**
- * Hook for accessing the unified provider manager directly
+ * Hook for accessing the strategy manager directly
  */
 export function useUnifiedProviderManager() {
-  // Ensure providers are initialized
+  // Ensure strategy manager is initialized
   React.useEffect(() => {
-    if (unifiedProviderManager.getAvailableProviders().length === 0) {
-      initializeProviders();
-    }
+    aiProviderStrategyManager.initialize();
   }, []);
 
   return {
-    manager: unifiedProviderManager,
-    availableProviders: unifiedProviderManager.getAvailableProviders(),
-    defaultProvider: unifiedProviderManager.getDefaultProvider(),
+    manager: aiProviderStrategyManager,
+    availableProviders: aiProviderStrategyManager.getAvailableProviders(),
+    status: aiProviderStrategyManager.getStatus(),
   };
 }
 

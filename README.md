@@ -107,7 +107,7 @@ docs/
 
 Variables de entorno (Vite):
 
-- `VITE_AI_SDK_PROXY_BASE_URL`: p.ej. `/api/ai-sdk` (router con Vercel AI SDK)
+- `VITE_AI_PROXY_BASE_URL`: p.ej. `/api/ai-sdk` (router con Vercel AI SDK)
 - `VITE_AI_PROXY_BASE_URL`: p.ej. `/api/ai` (proxy legado, opcional)
 - `VITE_AI_USE_LEGACY_PROXY`: `'true'` para forzar el proxy legado si ambos existen (por defecto `false`)
 - `VITE_AI_DEFAULT_PROVIDER`: `google | openai | anthropic | cohere` (por defecto `google`)
@@ -115,7 +115,7 @@ Variables de entorno (Vite):
 
 Comportamiento:
 
-- Si `VITE_AI_SDK_PROXY_BASE_URL` está definido y `VITE_AI_USE_LEGACY_PROXY` no es `'true'`, la app usará el proxy AI SDK (claves gestionadas en el servidor, multproveedor).
+- Si `VITE_AI_PROXY_BASE_URL` está definido y `VITE_AI_USE_LEGACY_PROXY` no es `'true'`, la app usará el proxy AI SDK (claves gestionadas en el servidor, multproveedor).
 - Si `VITE_AI_USE_LEGACY_PROXY='true'` y `VITE_AI_PROXY_BASE_URL` está definido, la app usará el proxy legado.
 - Si no hay proxy configurado, el cliente usará el SDK de Gemini directamente y requerirá una clave local (campo en la UI).
 

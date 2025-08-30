@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Runtime flags for mocks
 let mockKey = '';
-let created = { gemini: 0, proxy: 0 };
+let created = { gemini: 0, proxy: 0, 'google-sdk': 0, 'openai-sdk': 0, 'anthropic-sdk': 0, 'cohere-sdk': 0 };
 let cfg = {
   PROXY_BASE_URL: '',
   DEFAULT_PROVIDER: 'google',
@@ -42,57 +42,64 @@ function setupModuleMocks() {
     },
   });
 
-  vi.doMock('./providers', () => ({
-    AIProviderFactory: {
-      createGemini: vi.fn((apiKey: string) => {
-        created.gemini += 1;
-        return {
-          isAvailable: () => Boolean(apiKey),
-          generate: vi.fn().mockResolvedValue({ text: 'mock gemini response' }),
-          generateStream: vi.fn().mockImplementation(async function* () {
-            yield { text: 'mock' };
-          }),
-        };
-      }),
-      createProxy: vi.fn((baseUrl: string) => {
-        created.proxy += 1;
-        return {
-          isAvailable: () => Boolean(baseUrl && baseUrl !== 'http://localhost:5173'),
-          generate: vi.fn().mockResolvedValue({ text: 'mock proxy response' }),
-          generateStream: vi.fn().mockImplementation(async function* () {
-            yield { text: 'mock' };
-          }),
-        };
-      }),
-      createGoogleSDK: vi.fn((apiKey: string) => ({
-        isAvailable: () => Boolean(apiKey),
+  vi.doMock('./concrete-strategies', () => ({
+    GeminiStrategy: vi.fn().mockImplementation(() => {
+      created.gemini += 1;
+      return {
+        name: 'gemini',
+        isAvailable: () => Boolean(mockKey),
+        generate: vi.fn().mockResolvedValue({ text: 'mock gemini response' }),
+        generateStream: vi.fn().mockImplementation(async function* () {
+          yield { text: 'mock' };
+        }),
+      };
+    }),
+    ProxyStrategy: vi.fn().mockImplementation(() => {
+      created.proxy += 1;
+      return {
+        name: 'proxy',
+        isAvailable: () => Boolean(cfg.PROXY_BASE_URL),
+        generate: vi.fn().mockResolvedValue({ text: 'mock proxy response' }),
+        generateStream: vi.fn().mockImplementation(async function* () {
+          yield { text: 'mock' };
+        }),
+      };
+    }),
+    GoogleAISDKStrategy: vi.fn().mockImplementation(() => {
+      created['google-sdk'] += 1;
+      return {
+        name: 'google-sdk',
+        isAvailable: () => Boolean(mockKey),
         generate: vi.fn().mockResolvedValue({ text: 'mock google sdk response' }),
         generateStream: vi.fn().mockImplementation(async function* () {
           yield { text: 'mock' };
         }),
-      })),
-      createOpenAISDK: vi.fn((apiKey: string) => ({
-        isAvailable: () => Boolean(apiKey),
-        generate: vi.fn().mockResolvedValue({ text: 'mock openai sdk response' }),
-        generateStream: vi.fn().mockImplementation(async function* () {
-          yield { text: 'mock' };
-        }),
-      })),
-      createAnthropicSDK: vi.fn((apiKey: string) => ({
-        isAvailable: () => Boolean(apiKey),
-        generate: vi.fn().mockResolvedValue({ text: 'mock anthropic sdk response' }),
-        generateStream: vi.fn().mockImplementation(async function* () {
-          yield { text: 'mock' };
-        }),
-      })),
-      createCohereSDK: vi.fn((apiKey: string) => ({
-        isAvailable: () => Boolean(apiKey),
-        generate: vi.fn().mockResolvedValue({ text: 'mock cohere sdk response' }),
-        generateStream: vi.fn().mockImplementation(async function* () {
-          yield { text: 'mock' };
-        }),
-      })),
-    },
+      };
+    }),
+    OpenAISDKStrategy: vi.fn().mockImplementation(() => ({
+      name: 'openai-sdk',
+      isAvailable: () => Boolean(mockKey),
+      generate: vi.fn().mockResolvedValue({ text: 'mock openai sdk response' }),
+      generateStream: vi.fn().mockImplementation(async function* () {
+        yield { text: 'mock' };
+      }),
+    })),
+    AnthropicAISDKStrategy: vi.fn().mockImplementation(() => ({
+      name: 'anthropic-sdk',
+      isAvailable: () => Boolean(mockKey),
+      generate: vi.fn().mockResolvedValue({ text: 'mock anthropic sdk response' }),
+      generateStream: vi.fn().mockImplementation(async function* () {
+        yield { text: 'mock' };
+      }),
+    })),
+    CohereAISDKStrategy: vi.fn().mockImplementation(() => ({
+      name: 'cohere-sdk',
+      isAvailable: () => Boolean(mockKey),
+      generate: vi.fn().mockResolvedValue({ text: 'mock cohere sdk response' }),
+      generateStream: vi.fn().mockImplementation(async function* () {
+        yield { text: 'mock' };
+      }),
+    })),
   }));
 
   // Mock AI_CONFIG and readEnv
@@ -136,7 +143,7 @@ describe('useAIProvider selection', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
-    created = { gemini: 0, proxy: 0 };
+    created = { gemini: 0, proxy: 0, 'google-sdk': 0, 'openai-sdk': 0, 'anthropic-sdk': 0, 'cohere-sdk': 0 };
     cfg = {
       PROXY_BASE_URL: '',
       DEFAULT_PROVIDER: 'google',
@@ -163,7 +170,8 @@ describe('useAIProvider selection', () => {
     const getAI = await loadUseAI();
     const ai = getAI('gemini');
     expect(ai.ready).toBe(true);
-    expect(created.gemini).toBe(1);
+    // With Strategy Pattern, providers are created during initialization
+    expect(created.gemini).toBeGreaterThanOrEqual(1);
     expect(created.proxy).toBe(0);
   });
 
@@ -181,7 +189,8 @@ describe('useAIProvider selection', () => {
     const getAI = await loadUseAI();
     const ai = getAI('proxy');
     expect(ai.ready).toBe(true);
-    expect(created.proxy).toBe(1);
+    // With Strategy Pattern, providers are created during initialization
+    expect(created.proxy).toBeGreaterThanOrEqual(1);
     expect(created.gemini).toBe(0);
   });
 });

@@ -7,9 +7,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAIProvider } from '@/services/ai';
 import { Toast } from '@/components/ui';
+import { PROXY_CONFIG, ProxyUtils } from '@/constants/config';
 import type { AIMessage, ProviderOptions } from '@/types/ai';
 import { useSiteStore } from '@/store/siteStore';
-import { AI_CONFIG } from '@/constants/config';
 
 interface DeepChatInterfaceProps {
   onSiteGenerated?: (siteData: { content?: string }) => void;
@@ -38,8 +38,8 @@ const DeepChatInterface: React.FC<DeepChatInterfaceProps> = ({
   );
   const [proxyHealthy, setProxyHealthy] = useState<boolean | null>(null);
 
-  // Determine if we're using a proxy (simplified to single proxy)
-  const isProxyMode = useMemo(() => Boolean((AI_CONFIG.PROXY_BASE_URL || '').trim()), []);
+  // Simplified proxy mode detection - clean boolean logic
+  const isProxyMode = useMemo(() => ProxyUtils.isEnabled(), []);
 
   // When not using a proxy, the only working local provider is Gemini
   const effectiveProvider = useMemo(
@@ -65,35 +65,48 @@ const DeepChatInterface: React.FC<DeepChatInterfaceProps> = ({
     }));
   }, [store.messages]);
 
-  // Non-blocking AI SDK proxy health/capability check
+  // Simplified proxy health check - clean and focused
   useEffect(() => {
-    const base = (AI_CONFIG.PROXY_BASE_URL || '').replace(/\/$/, '');
-    if (!base) {
+    if (!isProxyMode) {
       setProxyHealthy(null);
       setAvailableProviders(null);
       return;
     }
+
     let active = true;
     (async () => {
       try {
-        const res = await fetch(`${base}/health`, { method: 'GET' });
+        // Single health check - no complex fallbacks
+        const healthUrl = ProxyUtils.getEndpointUrl(PROXY_CONFIG.HEALTH_ENDPOINT);
+        const res = await fetch(healthUrl, { method: 'GET' });
         if (!active) return;
         setProxyHealthy(res.ok);
-        // Also query providers capability to gate the Provider select
-        const prov = await fetch(`${base}/providers`).then((r) => (r.ok ? r.json() : null));
-        if (!active) return;
-        if (prov && prov.providers)
-          setAvailableProviders(prov.providers as Record<string, boolean>);
+
+        // Optional provider capability check
+        if (res.ok) {
+          try {
+            const providersUrl = ProxyUtils.getEndpointUrl(PROXY_CONFIG.PROVIDERS_ENDPOINT);
+            const prov = await fetch(providersUrl).then((r) => (r.ok ? r.json() : null));
+            if (!active) return;
+            if (prov?.providers) {
+              setAvailableProviders(prov.providers as Record<string, boolean>);
+            }
+          } catch {
+            // Provider check is optional - don't fail if it doesn't work
+            setAvailableProviders(null);
+          }
+        }
       } catch {
         if (!active) return;
         setProxyHealthy(false);
         setAvailableProviders(null);
       }
     })();
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [isProxyMode]);
 
   // Handle Deep Chat message sending
   const handleDeepChatMessage = useCallback(

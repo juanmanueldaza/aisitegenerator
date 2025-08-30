@@ -9,14 +9,14 @@ test('proxy mode shows proxy health badge and enables provider select when onlin
   page,
 }) => {
   // Soft-skip when proxy env not configured for this run
-  const isProxyConfigured = !!process.env.VITE_AI_SDK_PROXY_BASE_URL;
-  test.skip(!isProxyConfigured, 'VITE_AI_SDK_PROXY_BASE_URL not set; skipping proxy UI test');
+  const isProxyConfigured = !!process.env.VITE_AI_PROXY_BASE_URL;
+  test.skip(!isProxyConfigured, 'VITE_AI_PROXY_BASE_URL not set; skipping proxy UI test');
 
   await page.goto('/');
 
   await page.getByRole('button', { name: '💬 AI Assistant' }).click();
 
-  // The proxy health badge appears when VITE_AI_SDK_PROXY_BASE_URL is configured
+  // The proxy health badge appears when VITE_AI_PROXY_BASE_URL is configured
   // We check presence of the label and accept either Online/Offline values
   const badge = page.getByText(/AI SDK Proxy:/);
   await expect(badge).toBeVisible();

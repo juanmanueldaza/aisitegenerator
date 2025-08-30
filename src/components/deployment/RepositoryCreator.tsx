@@ -6,6 +6,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Toast } from '@/components/ui';
 import { useGitHub } from '../../hooks/useGitHub';
+import { useToast } from '../../hooks';
 import './RepositoryCreator.css';
 import { normalizeGitHubError } from '@/utils/githubErrors';
 import { useSiteStore } from '@/store/siteStore';
@@ -29,16 +30,12 @@ const RepositoryCreator: React.FC<RepositoryCreatorProps> = ({
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<string | null>(null);
   const [deploymentUrl, setDeploymentUrl] = useState<string | null>(null);
-  const [toast, setToast] = useState<string>('');
   const [updateReadme, setUpdateReadme] = useState(false);
 
   // URL-safe repo name used in API calls and links
   const safeRepoName = useMemo(() => slugify(repoName), [repoName]);
 
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(''), 2000);
-  }, []);
+  const { toast, showToast } = useToast();
 
   const handleRepoBlur = useCallback(() => {
     const slug = safeRepoName;

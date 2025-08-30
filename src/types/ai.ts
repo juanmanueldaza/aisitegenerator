@@ -50,6 +50,7 @@ export interface AIError extends Error {
  * Unified AI Provider Interface
  * Single interface for all AI provider interactions
  * Following Interface Segregation Principle
+ * Consolidates IAIProvider and IAIProviderStrategy into one unified interface
  */
 export interface IAIProvider {
   /**

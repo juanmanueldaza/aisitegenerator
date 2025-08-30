@@ -3,8 +3,8 @@
  * Manages API keys and configuration for multiple AI providers
  */
 
-import { useState, useEffect } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useState } from 'react';
+import { useLocalStorageSync } from '@/hooks';
 import { Button } from '@/components/ui';
 import './AiProviderSettings.css';
 
@@ -59,48 +59,36 @@ interface AiProviderSettingsProps {
 
 export function AiProviderSettings({ onClose, className = '' }: AiProviderSettingsProps) {
   const [selectedProvider, setSelectedProvider] = useState<string>('google');
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [isTesting, setIsTesting] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
 
-  // Load API keys from localStorage
-  const [googleKey, setGoogleKey] = useLocalStorage('GOOGLE_API_KEY', '');
-  const [openaiKey, setOpenaiKey] = useLocalStorage('OPENAI_API_KEY', '');
-  const [anthropicKey, setAnthropicKey] = useLocalStorage('ANTHROPIC_API_KEY', '');
-  const [cohereKey, setCohereKey] = useLocalStorage('COHERE_API_KEY', '');
+  const [apiKeys, updateApiKey] = useLocalStorageSync(
+    ['GOOGLE_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'COHERE_API_KEY'],
+    { GOOGLE_API_KEY: '', OPENAI_API_KEY: '', ANTHROPIC_API_KEY: '', COHERE_API_KEY: '' }
+  );
 
-  // Update apiKeys when localStorage values change
-  useEffect(() => {
-    setApiKeys({
-      google: googleKey,
-      openai: openaiKey,
-      anthropic: anthropicKey,
-      cohere: cohereKey,
-    });
-  }, [googleKey, openaiKey, anthropicKey, cohereKey]);
+  // Map localStorage keys to provider names
+  const providerKeyMap = {
+    google: 'GOOGLE_API_KEY',
+    openai: 'OPENAI_API_KEY',
+    anthropic: 'ANTHROPIC_API_KEY',
+    cohere: 'COHERE_API_KEY',
+  } as const;
+
+  // Helper function to safely get API key for a provider
+  const getApiKey = (provider: string): string => {
+    const key = providerKeyMap[provider as keyof typeof providerKeyMap];
+    return apiKeys[key] || '';
+  };
 
   const handleApiKeyChange = (provider: string, value: string) => {
-    setApiKeys((prev) => ({ ...prev, [provider]: value }));
-
-    // Update the corresponding localStorage
-    switch (provider) {
-      case 'google':
-        setGoogleKey(value);
-        break;
-      case 'openai':
-        setOpenaiKey(value);
-        break;
-      case 'anthropic':
-        setAnthropicKey(value);
-        break;
-      case 'cohere':
-        setCohereKey(value);
-        break;
-    }
+    const key = providerKeyMap[provider as keyof typeof providerKeyMap];
+    updateApiKey(key, value);
   };
 
   const testProviderConnection = async (provider: string) => {
-    if (!apiKeys[provider]) return;
+    const apiKey = getApiKey(provider);
+    if (!apiKey) return;
 
     setIsTesting(provider);
     try {
@@ -108,7 +96,7 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': apiKeys[provider],
+          'X-API-Key': apiKey,
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: 'Hello, test message' }],
@@ -180,7 +168,7 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
           <input
             id={`api-key-${selectedProvider}`}
             type="password"
-            value={apiKeys[selectedProvider] || ''}
+            value={getApiKey(selectedProvider)}
             onChange={(e) => handleApiKeyChange(selectedProvider, e.target.value)}
             placeholder={`Enter your ${selectedConfig.displayName} API key`}
           />
@@ -192,7 +180,7 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
         <div className="test-connection">
           <Button
             onClick={() => testProviderConnection(selectedProvider)}
-            disabled={!apiKeys[selectedProvider] || isTesting === selectedProvider}
+            disabled={!getApiKey(selectedProvider) || isTesting === selectedProvider}
             variant="secondary"
           >
             {isTesting === selectedProvider ? 'Testing...' : 'Test Connection'}
@@ -213,9 +201,9 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
             <div key={config.name} className="status-item">
               <span className="provider-name">{config.displayName}</span>
               <span
-                className={`status-indicator ${apiKeys[config.name] ? 'configured' : 'missing'}`}
+                className={`status-indicator ${getApiKey(config.name) ? 'configured' : 'missing'}`}
               >
-                {apiKeys[config.name] ? '✅ Configured' : '⚠️ API Key Needed'}
+                {getApiKey(config.name) ? '✅ Configured' : '⚠️ API Key Needed'}
               </span>
             </div>
           ))}

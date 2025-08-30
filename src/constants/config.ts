@@ -43,14 +43,90 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3,
 } as const;
 
-// Optional AI proxy configuration (server that calls Gemini securely)
+// Simplified proxy configuration - single source of truth
+export const PROXY_CONFIG = {
+  // Single proxy endpoint - no complex fallbacks
+  BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '',
+
+  // Clean boolean to determine proxy mode
+  ENABLED: Boolean(readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL')?.trim()),
+
+  // Health check endpoint
+  HEALTH_ENDPOINT: '/health',
+
+  // Provider capability endpoint
+  PROVIDERS_ENDPOINT: '/providers',
+} as const;
+
+// Simplified AI configuration
 export const AI_CONFIG = {
   // Single proxy base URL - simplified from multiple proxy configurations
-  PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '/api/ai-sdk',
+  PROXY_BASE_URL: PROXY_CONFIG.BASE_URL,
+
   // Client-side defaults for chat provider/model
   DEFAULT_PROVIDER: (
     readEnv('VITE_AI_DEFAULT_PROVIDER', 'REACT_APP_AI_DEFAULT_PROVIDER') || 'google'
   ).toLowerCase(),
   DEFAULT_MODEL:
     readEnv('VITE_AI_DEFAULT_MODEL', 'REACT_APP_AI_DEFAULT_MODEL') || 'gemini-2.0-flash',
+} as const;
+
+// Proxy utility functions for clean mode detection
+export const ProxyUtils = {
+  /**
+   * Clean boolean check for proxy mode - no complex fallbacks
+   */
+  isEnabled: () => PROXY_CONFIG.ENABLED,
+
+  /**
+   * Get proxy base URL with validation
+   */
+  getBaseUrl: () => {
+    const url = PROXY_CONFIG.BASE_URL;
+    if (!url || !url.trim()) {
+      throw new Error('Proxy is not configured. Set VITE_AI_PROXY_BASE_URL or REACT_APP_AI_PROXY_BASE_URL');
+    }
+    return url.replace(/\/$/, ''); // Remove trailing slash
+  },
+
+  /**
+   * Get full proxy endpoint URL
+   */
+  getEndpointUrl: (endpoint: string) => {
+    const base = ProxyUtils.getBaseUrl();
+    return `${base}${endpoint}`;
+  },
+
+  /**
+   * Validate proxy configuration
+   */
+  validate: () => {
+    if (!PROXY_CONFIG.BASE_URL?.trim()) {
+      return { valid: false, error: 'Proxy base URL is not configured' };
+    }
+
+    try {
+      new URL(PROXY_CONFIG.BASE_URL);
+      return { valid: true };
+    } catch {
+      return { valid: false, error: 'Proxy base URL is not a valid URL' };
+    }
+  },
+
+  /**
+   * Check if proxy is healthy (async)
+   */
+  checkHealth: async (): Promise<boolean> => {
+    if (!ProxyUtils.isEnabled()) {
+      return false;
+    }
+
+    try {
+      const healthUrl = ProxyUtils.getEndpointUrl(PROXY_CONFIG.HEALTH_ENDPOINT);
+      const response = await fetch(healthUrl, { method: 'GET' });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  },
 } as const;

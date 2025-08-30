@@ -27,7 +27,7 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({ content, className }
 
   return (
     <div
-      className={className}
+      className={`prose prose-sm max-w-none ${className || ''}`}
       // Safe: renderMarkdown sanitizes HTML with DOMPurify
       dangerouslySetInnerHTML={{ __html: html }}
     />

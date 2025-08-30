@@ -38,32 +38,15 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ open, onClose, topic }) =>
   }, [open, topic]);
   if (!open) return null;
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="help-title"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 75,
-      }}
-    >
-      <div
-        style={{ background: 'white', borderRadius: 8, width: '96%', maxWidth: 760, padding: 16 }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 id="help-title" style={{ margin: 0 }}>
-            Help
-          </h3>
-          <button className="btn btn-secondary btn-small" onClick={onClose}>
+    <div className="modal modal-open">
+      <div className="modal-box max-w-4xl">
+        <div className="flex justify-between items-center mb-4">
+          <h3 id="help-title" className="text-lg font-bold">Help</h3>
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Close
           </button>
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div className="prose max-w-none">
           <MarkdownView content={md} />
         </div>
       </div>

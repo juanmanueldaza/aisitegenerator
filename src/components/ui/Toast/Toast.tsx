@@ -4,34 +4,34 @@ export interface ToastProps {
   message: string;
   visible?: boolean;
   role?: 'status' | 'alert';
-  style?: React.CSSProperties;
+  variant?: 'info' | 'success' | 'warning' | 'error';
 }
 
 export const Toast: React.FC<ToastProps> = ({
   message,
   visible = true,
   role = 'status',
-  style,
+  variant = 'info',
 }) => {
   if (!visible || !message) return null;
+
+  // Map variants to DaisyUI alert classes
+  const variantClasses = {
+    info: 'alert-info',
+    success: 'alert-success',
+    warning: 'alert-warning',
+    error: 'alert-error',
+  };
+
+  const alertClass = variantClasses[variant];
+
   return (
     <div
       role={role}
       aria-live={role === 'alert' ? 'assertive' : 'polite'}
-      style={{
-        position: 'absolute',
-        bottom: 80,
-        left: 16,
-        background: 'rgba(17,24,39,0.9)',
-        color: '#fff',
-        padding: '6px 10px',
-        borderRadius: 6,
-        fontSize: 12,
-        boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-        ...style,
-      }}
+      className={`alert ${alertClass} shadow-lg fixed bottom-20 left-4 z-50 max-w-sm`}
     >
-      {message}
+      <span>{message}</span>
     </div>
   );
 };

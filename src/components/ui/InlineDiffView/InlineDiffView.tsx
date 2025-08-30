@@ -43,7 +43,7 @@ export const InlineDiffView: React.FC<InlineDiffViewProps> = ({
     if (onActiveChange) onActiveChange(active);
   }, [active, onActiveChange]);
 
-  if (!hunks.length) return <div style={{ fontSize: 12, color: '#6b7280' }}>No differences</div>;
+  if (!hunks.length) return <div className="text-sm text-gray-500 italic">No differences</div>;
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'j') {

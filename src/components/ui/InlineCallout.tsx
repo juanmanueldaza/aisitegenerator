@@ -1,12 +1,6 @@
 import React from 'react';
 
-export type CalloutTone = 'info' | 'warn' | 'success';
-
-const toneStyles: Record<CalloutTone, { bg: string; border: string; color: string }> = {
-  info: { bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af' },
-  warn: { bg: '#fff7ed', border: '#fed7aa', color: '#9a3412' },
-  success: { bg: '#ecfdf5', border: '#a7f3d0', color: '#065f46' },
-};
+export type CalloutTone = 'info' | 'success' | 'warning' | 'error';
 
 export interface InlineCalloutProps {
   tone?: CalloutTone;
@@ -14,19 +8,19 @@ export interface InlineCalloutProps {
 }
 
 export const InlineCallout: React.FC<InlineCalloutProps> = ({ tone = 'info', children }) => {
-  const t = toneStyles[tone];
+  // Map tones to DaisyUI alert classes
+  const toneClasses = {
+    info: 'alert-info',
+    success: 'alert-success',
+    warning: 'alert-warning',
+    error: 'alert-error',
+  };
+
+  const alertClass = toneClasses[tone];
+
   return (
-    <div
-      style={{
-        background: t.bg,
-        border: `1px solid ${t.border}`,
-        color: t.color,
-        padding: '8px 10px',
-        borderRadius: 6,
-        fontSize: 14,
-      }}
-    >
-      {children}
+    <div className={`alert ${alertClass}`}>
+      <span>{children}</span>
     </div>
   );
 };

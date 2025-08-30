@@ -7,7 +7,7 @@ import { useGitHub } from './hooks/useGitHub';
 import { useSiteStore } from './store/siteStore';
 import { useAIProvider } from '@/services/ai';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Toast, InlineDiffView } from '@/components/ui';
+import { Toast, InlineDiffView, ThemeProvider, ThemeController } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
@@ -799,17 +799,19 @@ function App() {
   }, [store.messages]);
 
   return (
-    <div className="app">
-      <Toast message={toast} visible={!!toast} />
-      <header className="app-header">
-        <div className="header-content">
-          <div className="header-title">
-            <h1>AI Site Generator</h1>
-            <p>Create beautiful websites with AI assistance and deploy to GitHub Pages</p>
-          </div>
-          <div className="header-auth">
-            <GitHubAuth />
-            <div style={{ marginTop: 6, textAlign: 'right' }}>
+    <ThemeProvider defaultTheme="light">
+      <div className="app">
+        <Toast message={toast} visible={!!toast} />
+        <header className="app-header">
+          <div className="header-content">
+            <div className="header-title">
+              <h1>AI Site Generator</h1>
+              <p>Create beautiful websites with AI assistance and deploy to GitHub Pages</p>
+            </div>
+            <div className="header-auth">
+              <ThemeController />
+              <GitHubAuth />
+              <div style={{ marginTop: 6, textAlign: 'right' }}>
               <button
                 className="btn btn-secondary btn-small"
                 onClick={() => setShowWizard(true)}
@@ -1153,6 +1155,7 @@ function App() {
         </button>
       </footer>
     </div>
+    </ThemeProvider>
   );
 }
 

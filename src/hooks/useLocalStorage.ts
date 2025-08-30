@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 /**
  * Custom hook for managing localStorage values
  * Follows Single Responsibility Principle - only handles localStorage operations
- * 
+ *
  * @param key - The localStorage key
  * @param initialValue - Default value if key doesn't exist
  * @returns A tuple of [value, setValue] similar to useState
@@ -15,8 +15,9 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       if (typeof window === 'undefined') {
         return initialValue;
       }
-      
+
       const item = window.localStorage.getItem(key);
+      console.log(`[LocalStorage] Reading key "${key}":`, item ? `"${item}"` : 'null');
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
@@ -28,10 +29,17 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   const setValue = (value: T | ((val: T) => T)) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
+      console.log(`[LocalStorage] Setting key "${key}":`, valueToStore);
       setStoredValue(valueToStore);
-      
+
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        console.log(
+          `[LocalStorage] Saved to localStorage:`,
+          key,
+          '=',
+          JSON.stringify(valueToStore)
+        );
       }
     } catch (error) {
       console.error(`Error setting localStorage key "${key}":`, error);

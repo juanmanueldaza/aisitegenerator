@@ -32,6 +32,7 @@
     "@ai-sdk/google": "^2.0.7",
     "@ai-sdk/openai": "^2.0.17",
     "@google/generative-ai": "^0.21.0",
+    "@nanostores/react": "github:ai/react",
     "ai": "^5.0.19",
     "cors": "^2.8.5",
     "deep-chat-react": "^2.2.2",

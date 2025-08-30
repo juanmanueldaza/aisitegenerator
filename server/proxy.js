@@ -46,9 +46,20 @@ function getModel(client, options) {
 
 app.post(`${BASE_PATH}/generate`, async (req, res) => {
   try {
-    if (!API_KEY) return res.status(500).send('Proxy not configured');
+    // Try to get API key from headers first, then fall back to environment
+    const headerApiKey =
+      req.headers['x-google-api-key'] ||
+      req.headers['x-gemini-api-key'] ||
+      req.headers['x-api-key'];
+    const apiKey = headerApiKey || API_KEY;
+    console.log(
+      '[ai-proxy] generate: API key source -',
+      headerApiKey ? 'header' : 'environment',
+      headerApiKey ? `(${mask(headerApiKey)})` : '(env var)'
+    );
+    if (!apiKey) return res.status(500).send('API key not provided');
     const { messages = [], options = {} } = req.body || {};
-    const client = new GoogleGenerativeAI(API_KEY);
+    const client = new GoogleGenerativeAI(apiKey);
     const model = getModel(client, options);
     const chat = model.startChat({ history: toHistory(messages) });
     const result = await chat.sendMessage(
@@ -68,9 +79,15 @@ app.post(`${BASE_PATH}/generate`, async (req, res) => {
 
 app.post(`${BASE_PATH}/stream`, async (req, res) => {
   try {
-    if (!API_KEY) return res.status(500).send('Proxy not configured');
+    // Try to get API key from headers first, then fall back to environment
+    const headerApiKey =
+      req.headers['x-google-api-key'] ||
+      req.headers['x-gemini-api-key'] ||
+      req.headers['x-api-key'];
+    const apiKey = headerApiKey || API_KEY;
+    if (!apiKey) return res.status(500).send('API key not provided');
     const { messages = [], options = {} } = req.body || {};
-    const client = new GoogleGenerativeAI(API_KEY);
+    const client = new GoogleGenerativeAI(apiKey);
     const model = getModel(client, options);
     const chat = model.startChat({ history: toHistory(messages) });
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');

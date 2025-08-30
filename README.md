@@ -57,6 +57,24 @@ docs/
 3. Inicia con `npm run dev`
 4. Abre `http://localhost:5173`
 
+### Configuración de IA (Proxies y proveedores)
+
+Variables de entorno (Vite):
+
+- `VITE_AI_SDK_PROXY_BASE_URL`: p.ej. `/api/ai-sdk` (router con Vercel AI SDK)
+- `VITE_AI_PROXY_BASE_URL`: p.ej. `/api/ai` (proxy legado, opcional)
+- `VITE_AI_USE_LEGACY_PROXY`: `'true'` para forzar el proxy legado si ambos existen (por defecto `false`)
+- `VITE_AI_DEFAULT_PROVIDER`: `google | openai | anthropic | cohere` (por defecto `google`)
+- `VITE_AI_DEFAULT_MODEL`: nombre de modelo específico del proveedor (por defecto `gemini-2.0-flash`)
+
+Comportamiento:
+
+- Si `VITE_AI_SDK_PROXY_BASE_URL` está definido y `VITE_AI_USE_LEGACY_PROXY` no es `'true'`, la app usará el proxy AI SDK (claves gestionadas en el servidor, multproveedor).
+- Si `VITE_AI_USE_LEGACY_PROXY='true'` y `VITE_AI_PROXY_BASE_URL` está definido, la app usará el proxy legado.
+- Si no hay proxy configurado, el cliente usará el SDK de Gemini directamente y requerirá una clave local (campo en la UI).
+
+El endpoint `GET /api/ai-sdk/providers` indica qué proveedores están habilitados en el servidor (módulo instalado y clave presente) y la UI deshabilita las opciones sin clave.
+
 ## 📜 Scripts disponibles
 
 ### Desarrollo

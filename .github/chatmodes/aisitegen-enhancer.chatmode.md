@@ -335,3 +335,28 @@ Always include:
 Remember: **Code is read more often than it's written. Make it count.**
 
 Focus on creating robust, maintainable code that enhances AI Site Generator's capabilities while preserving its simplicity and performance.
+
+## 🔧 Environment & Server Endpoints (AI Routing)
+
+- Client env vars (Vite):
+  - `VITE_AI_SDK_PROXY_BASE_URL` — preferred AI SDK proxy base (e.g., `/api/ai-sdk`).
+  - `VITE_AI_PROXY_BASE_URL` — legacy proxy base (e.g., `/api/ai`).
+  - `VITE_AI_USE_LEGACY_PROXY` — when `true`, forces legacy proxy even if AI SDK proxy exists.
+  - `VITE_AI_DEFAULT_PROVIDER` — default provider (`google` | `openai` | `anthropic` | `cohere`).
+  - `VITE_AI_DEFAULT_MODEL` — default model name compatible with the provider.
+
+- Server env vars (set at runtime):
+  - `GOOGLE_API_KEY` or `GEMINI_API_KEY`
+  - `OPENAI_API_KEY`
+  - `ANTHROPIC_API_KEY`
+  - `COHERE_API_KEY`
+  - Optional defaults: `AI_DEFAULT_PROVIDER`
+
+- AI SDK Router endpoints (mounted at `VITE_AI_SDK_PROXY_BASE_URL`):
+  - `GET /health` → `{ ok: true, sdk: true }`
+  - `GET /providers` → `{ ok, providers: { google|openai|anthropic|cohere: boolean }, defaults }`
+  - `POST /generate` → JSON `{ text, finishReason }`
+  - `POST /stream` → newline-delimited text stream
+
+- Selection rules:
+  1. Use AI SDK proxy when configured; 2) if `VITE_AI_USE_LEGACY_PROXY` is true and legacy base set, use legacy; 3) otherwise fall back to direct Gemini only if a local key is present.

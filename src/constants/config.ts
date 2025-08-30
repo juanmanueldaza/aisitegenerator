@@ -46,9 +46,14 @@ export const API_CONFIG = {
 // Optional AI proxy configuration (server that calls Gemini securely)
 export const AI_CONFIG = {
   // Prefer VITE_* in Vite projects; keep REACT_APP_* as a fallback for compatibility
-  PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '', // e.g., '/api/ai'
+  PROXY_BASE_URL: readEnv('VITE_AI_PROXY_BASE_URL', 'REACT_APP_AI_PROXY_BASE_URL') || '/api/ai', // dev default
   AI_SDK_PROXY_BASE_URL:
-    readEnv('VITE_AI_SDK_PROXY_BASE_URL', 'REACT_APP_AI_SDK_PROXY_BASE_URL') || '', // e.g., '/api/ai-sdk'
+    readEnv('VITE_AI_SDK_PROXY_BASE_URL', 'REACT_APP_AI_SDK_PROXY_BASE_URL') || '/api/ai-sdk', // dev default
+  // Feature flag to force using the legacy proxy path when both are configured
+  USE_LEGACY_PROXY:
+    (readEnv('VITE_AI_USE_LEGACY_PROXY', 'REACT_APP_AI_USE_LEGACY_PROXY') || 'false')
+      .toString()
+      .toLowerCase() === 'true',
   // Client-side defaults for chat provider/model
   DEFAULT_PROVIDER: (
     readEnv('VITE_AI_DEFAULT_PROVIDER', 'REACT_APP_AI_DEFAULT_PROVIDER') || 'google'

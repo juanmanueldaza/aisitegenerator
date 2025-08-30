@@ -1,1 +1,1 @@
-export { default as ChatInterface } from './ChatInterface';
+export { default as DeepChatInterface } from './DeepChatInterface';

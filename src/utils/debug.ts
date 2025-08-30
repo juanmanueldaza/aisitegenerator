@@ -1,4 +1,4 @@
-// Centralized auth debug helpers
+// Centralized debug helpers (auth + ai)
 
 export function isAuthDebugEnabled(): boolean {
   try {
@@ -38,4 +38,47 @@ export function mask(
 export function dlog(...args: any[]) {
   if (!isAuthDebugEnabled()) return;
   console.log('[AUTH]', ...args);
+}
+
+// --- AI Debugging -----------------------------------------------------------
+
+export function isAIDebugEnabled(): boolean {
+  try {
+    const url = new URL(window.location.href);
+    const q = url.searchParams.get('ai_debug');
+    if (q === '1') return true;
+    if (q === '0') return false;
+  } catch {
+    // ignore URL parsing issues
+  }
+  try {
+    const flag = localStorage.getItem('ai_debug');
+    if (flag === '1') return true;
+    if (flag === '0') return false;
+  } catch {
+    // ignore localStorage access issues
+  }
+  // Default to dev
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const env: any = (import.meta as any).env || {};
+  return !!env.DEV;
+}
+
+// Lightweight structured logger for AI events
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function alog(event: string, data?: Record<string, any>) {
+  if (!isAIDebugEnabled()) return;
+  try {
+    const payload = data ? JSON.parse(JSON.stringify(data)) : undefined;
+    console.log('[AI]', event, payload || '');
+  } catch {
+    // Fallback in case of circulars
+    console.log('[AI]', event, data || '');
+  }
+}
+
+// Generate a short correlation id (client-side only)
+export function makeRequestId(prefix = 'ai'): string {
+  const rnd = Math.random().toString(36).slice(2, 8);
+  return `${prefix}_${Date.now().toString(36)}_${rnd}`;
 }

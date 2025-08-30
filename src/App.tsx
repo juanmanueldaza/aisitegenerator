@@ -11,6 +11,7 @@ import { Toast, InlineDiffView } from '@/components/ui';
 import { computeHunks, applyAll, type DiffHunk } from '@/utils/diff';
 import './App.css';
 import { OnboardingWizard } from '@/components';
+import AiProviderSettings from '@/components/features/AiProviderSettings';
 import type { AIMessage, GenerateResult, StreamChunk, ProviderOptions } from '@/types/ai';
 import { MessageAdapter } from '@/services/messageAdapter';
 import { AI_CONFIG } from '@/constants/config';
@@ -111,6 +112,26 @@ const MemoizedDeepChat = React.memo<{
     const [isStreaming, setIsStreaming] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
     const [proxyHealthy, setProxyHealthy] = useState<boolean | null>(null);
+    const [availableProviders, setAvailableProviders] = useState<Record<string, boolean> | null>(
+      null
+    );
+    // Determine if we're using a proxy (AI SDK or legacy). When in proxy mode, client-side API key isn't needed.
+    const isProxyMode = useMemo(
+      () =>
+        Boolean(
+          (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').trim() || (AI_CONFIG.PROXY_BASE_URL || '').trim()
+        ),
+      []
+    );
+    // When not using a proxy, the only working local provider is Gemini
+    const effectiveProvider = useMemo(
+      () => (isProxyMode ? provider : 'gemini'),
+      [isProxyMode, provider]
+    );
+    const providerLabel = useMemo(
+      () => effectiveProvider.charAt(0).toUpperCase() + effectiveProvider.slice(1),
+      [effectiveProvider]
+    );
 
     // Typed guard for AbortError without using 'any'
     const isAbortError = (e: unknown): e is { name: string } => {
@@ -123,15 +144,23 @@ const MemoizedDeepChat = React.memo<{
     };
 
     // Provider-specific model presets and validation (centralized)
-    const isModelValid = useMemo(() => isModelValidForProvider(provider, model), [model, provider]);
-    const presetListId = `model-presets-${provider}`;
+    // For validation/presets, map local "gemini" runtime to Google provider namespace
+    const validationProvider = useMemo(
+      () => (isProxyMode ? provider : 'google'),
+      [isProxyMode, provider]
+    );
+    const isModelValid = useMemo(
+      () => isModelValidForProvider(validationProvider, model),
+      [model, validationProvider]
+    );
+    const presetListId = `model-presets-${validationProvider}`;
     const placeholderDefaultModel = useMemo(
-      () => getDefaultModel(provider, AI_CONFIG.DEFAULT_MODEL),
-      [provider]
+      () => getDefaultModel(validationProvider, AI_CONFIG.DEFAULT_MODEL),
+      [validationProvider]
     );
     const providerPresets = useMemo(
-      () => (AI_MODEL_PRESETS as Record<string, string[]>)[provider] || [],
-      [provider]
+      () => (AI_MODEL_PRESETS as Record<string, string[]>)[validationProvider] || [],
+      [validationProvider]
     );
 
     // Minimal Deep Chat handler types
@@ -145,11 +174,12 @@ const MemoizedDeepChat = React.memo<{
       aiReadyRef.current = aiReady;
     }, [aiReady]);
 
-    // Non-blocking AI SDK proxy health check (only when configured)
+    // Non-blocking AI SDK proxy health/capability check (only when configured)
     useEffect(() => {
       const base = (AI_CONFIG.AI_SDK_PROXY_BASE_URL || '').replace(/\/$/, '');
       if (!base) {
         setProxyHealthy(null);
+        setAvailableProviders(null);
         return;
       }
       let active = true;
@@ -158,9 +188,15 @@ const MemoizedDeepChat = React.memo<{
           const res = await fetch(`${base}/health`, { method: 'GET' });
           if (!active) return;
           setProxyHealthy(res.ok);
+          // Also query providers capability to gate the Provider select
+          const prov = await fetch(`${base}/providers`).then((r) => (r.ok ? r.json() : null));
+          if (!active) return;
+          if (prov && prov.providers)
+            setAvailableProviders(prov.providers as Record<string, boolean>);
         } catch {
           if (!active) return;
           setProxyHealthy(false);
+          setAvailableProviders(null);
         }
       })();
       return () => {
@@ -224,7 +260,23 @@ const MemoizedDeepChat = React.memo<{
             const controller = new AbortController();
             abortRef.current = controller;
             setIsStreaming(true);
-            const opts: ProviderOptions = { provider, model, signal: controller.signal };
+            // Lock to Gemini locally; coerce model to SDK-supported defaults when not using proxy.
+            // The direct Google SDK may reject some 2.0 variants; prefer 2.5/1.5 known-stable.
+            let coercedModel = model;
+            if (!isProxyMode) {
+              const supportsLocal = (m?: string) => !!m && /^gemini-(1\.5|2\.5)-/i.test(m);
+              if (!supportsLocal(model)) {
+                coercedModel = 'gemini-2.5-flash';
+              }
+              if (coercedModel !== model) {
+                setToast?.('Using local Gemini: model changed to a compatible default');
+              }
+            }
+            const opts: ProviderOptions = {
+              provider: effectiveProvider,
+              model: coercedModel,
+              signal: controller.signal,
+            };
             let combined = '';
             for await (const chunk of generateStream(aiMessages, opts)) {
               if (chunk?.text) {
@@ -285,9 +337,10 @@ const MemoizedDeepChat = React.memo<{
         replaceLastAssistantMessage,
         onSiteGenerated,
         currentMessagesRef,
-        provider,
         model,
         setToast,
+        effectiveProvider,
+        isProxyMode,
       ]
     );
 
@@ -322,36 +375,135 @@ const MemoizedDeepChat = React.memo<{
             border: `2px solid ${aiReady ? '#3b82f6' : '#e9ecef'}`,
           }}
         >
-          <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#374151' }}>
-            {aiReady ? '🟢' : '🔴'} Gemini AI Connection
-          </h4>
-          <input
-            type="password"
-            placeholder="Enter your Gemini API key..."
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+          <h4
             style={{
-              width: '100%',
-              padding: '10px',
-              border: '2px solid #e5e7eb',
-              borderRadius: '8px',
-              fontSize: '14px',
-              marginBottom: '8px',
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              color: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
             }}
-          />
+          >
+            {aiReady ? '🟢' : '🔴'} AI Connection
+            <span
+              style={{
+                fontSize: 12,
+                color: '#111827',
+                background: '#E5E7EB',
+                padding: '2px 6px',
+                borderRadius: 6,
+              }}
+              title="Current AI provider"
+            >
+              Provider: {providerLabel}
+            </span>
+          </h4>
+          {!isProxyMode && (
+            <input
+              type="password"
+              placeholder="Enter your Gemini API key..."
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '14px',
+                marginBottom: '8px',
+              }}
+            />
+          )}
+          {isProxyMode && (
+            <input
+              type="password"
+              placeholder="Enter your Gemini API key for proxy..."
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '14px',
+                marginBottom: '8px',
+              }}
+            />
+          )}
+          {isProxyMode && !apiKey && (
+            <div
+              style={{
+                fontSize: 12,
+                color: '#ef4444',
+                marginBottom: 8,
+                padding: '8px',
+                backgroundColor: '#fef2f2',
+                borderRadius: '4px',
+                border: '1px solid #fecaca',
+              }}
+            >
+              ⚠️ <strong>API Key Required:</strong> Please enter your Gemini API key above to enable
+              AI chat functionality. Get your key from{' '}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#dc2626', textDecoration: 'underline' }}
+              >
+                Google AI Studio
+              </a>
+              .
+            </div>
+          )}
+          {isProxyMode && apiKey && (
+            <div
+              style={{
+                fontSize: 12,
+                color: '#10b981',
+                marginBottom: 8,
+                padding: '8px',
+                backgroundColor: '#f0fdf4',
+                borderRadius: '4px',
+                border: '1px solid #bbf7d0',
+              }}
+            >
+              ✅ API key configured - AI chat should work now!
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
               Provider
               <select
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
-                style={{ padding: 6, borderRadius: 6, border: '1px solid #d1d5db' }}
+                disabled={!isProxyMode}
+                title={
+                  isProxyMode
+                    ? 'Select AI provider (server-side proxy)'
+                    : 'Provider locked to Gemini locally'
+                }
+                style={{
+                  padding: 6,
+                  borderRadius: 6,
+                  border: '1px solid #d1d5db',
+                  opacity: !isProxyMode ? 0.6 : 1,
+                }}
               >
-                {AI_PROVIDERS.map((p) => (
-                  <option key={p} value={p}>
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                  </option>
-                ))}
+                {AI_PROVIDERS.map((p) => {
+                  const enabled = availableProviders ? !!availableProviders[p] : true;
+                  const label = `${p.charAt(0).toUpperCase() + p.slice(1)}${enabled ? '' : ' (no key)'}`;
+                  return (
+                    <option
+                      key={p}
+                      value={p}
+                      disabled={!enabled}
+                      title={enabled ? undefined : 'No server API key configured'}
+                    >
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
@@ -383,7 +535,7 @@ const MemoizedDeepChat = React.memo<{
               <button
                 className="btn btn-secondary btn-small"
                 onClick={() =>
-                  setModel(getDefaultModel(provider, AI_CONFIG.DEFAULT_MODEL) || model)
+                  setModel(getDefaultModel(validationProvider, AI_CONFIG.DEFAULT_MODEL) || model)
                 }
                 title="Use a recommended default model for the selected provider"
               >
@@ -397,9 +549,13 @@ const MemoizedDeepChat = React.memo<{
             ))}
           </datalist>
           <div style={{ fontSize: '13px', color: aiReady ? '#059669' : '#6b7280' }}>
-            {aiReady ? '✅ Ready for AI responses' : 'Enter API key to enable AI'}
+            {aiReady
+              ? '✅ Ready for AI responses'
+              : isProxyMode
+                ? 'Proxy mode configured'
+                : 'Enter API key to enable AI'}
             {isStreaming && <span style={{ marginLeft: 8 }}>• Generating…</span>}
-            {!aiReady && (
+            {!aiReady && !isProxyMode && (
               <a
                 href="https://aistudio.google.com/app/apikey"
                 target="_blank"
@@ -411,7 +567,7 @@ const MemoizedDeepChat = React.memo<{
             )}
             {!!model && !isModelValid && (
               <span style={{ marginLeft: 8, color: '#b91c1c' }}>
-                Model may not match {provider}. Try a preset.
+                Model may not match {effectiveProvider}. Try a preset.
               </span>
             )}
             {proxyHealthy !== null && (
@@ -423,6 +579,15 @@ const MemoizedDeepChat = React.memo<{
                 title={proxyHealthy ? 'AI SDK proxy is reachable' : 'AI SDK proxy not reachable'}
               >
                 AI SDK Proxy: {proxyHealthy ? 'Online' : 'Offline'}
+              </span>
+            )}
+            {availableProviders && (
+              <span style={{ marginLeft: 8, color: '#6b7280' }} title="Providers enabled on server">
+                Providers:{' '}
+                {Object.entries(availableProviders)
+                  .filter(([, v]) => v)
+                  .map(([k]) => k)
+                  .join(', ') || 'none'}
               </span>
             )}
           </div>
@@ -471,7 +636,7 @@ MemoizedDeepChat.displayName = 'MemoizedDeepChat';
 
 function App() {
   const store = useSiteStore();
-  const [activeTab, setActiveTab] = useState<'chat' | 'editor' | 'deploy'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'editor' | 'settings' | 'deploy'>('chat');
   const { isAuthenticated, user, error: ghError, clearError } = useGitHub();
 
   // AI provider initialization
@@ -674,6 +839,12 @@ function App() {
                 ✏️ Editor
               </button>
               <button
+                className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                ⚙️ Settings
+              </button>
+              <button
                 className={`tab-button ${activeTab === 'deploy' ? 'active' : ''}`}
                 onClick={() => setActiveTab('deploy')}
                 disabled={!isAuthenticated}
@@ -789,6 +960,8 @@ function App() {
                   />
                 </div>
               )}
+
+              {activeTab === 'settings' && <AiProviderSettings />}
 
               {activeTab === 'deploy' && (
                 <RepositoryCreator

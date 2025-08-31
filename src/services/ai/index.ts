@@ -22,6 +22,15 @@ export {
   CompositeAIService,
 } from './segregated-services';
 
+// Export health monitoring services
+export {
+  ProviderHealthMonitor,
+  ProviderHealthManager,
+  type ProviderHealthStatus,
+  type ProviderHealthState,
+  type ProviderHealthMetrics,
+} from './provider-health';
+
 export {
   SimpleAIProvider,
   SimpleAIProviderManager,

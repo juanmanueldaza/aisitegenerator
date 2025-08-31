@@ -139,6 +139,7 @@ export class GitHubAuthService {
       codeVerifier: pkce.codeVerifier,
       timestamp: Date.now(),
       scopes,
+      redirectUri: this.config.redirectUri,
     };
     this.storeAuthState(authState);
 

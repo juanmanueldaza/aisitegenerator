@@ -4,7 +4,7 @@ import { HelpPanel } from '@/components/ui';
 export interface ScopesDetailsPanelProps {
   open: boolean;
   onClose: () => void;
-  scopes: string[];
+  scopes: readonly string[];
   onReauth?: () => void;
 }
 

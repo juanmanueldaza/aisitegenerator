@@ -1,4 +1,10 @@
-import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk, IAIProvider } from '@/types/ai';
+import type {
+  AIMessage,
+  ProviderOptions,
+  GenerateResult,
+  StreamChunk,
+  IAIProvider,
+} from '@/types/ai';
 import type { AIProviderConfig } from './strategies';
 import { UnifiedProviderFactory } from './provider-adapters';
 import { generateText, streamText } from 'ai';
@@ -12,6 +18,8 @@ import { cohere } from '@ai-sdk/cohere';
  */
 export class GeminiStrategy implements IAIProvider {
   readonly name = 'gemini';
+  readonly displayName = 'Google Gemini';
+  readonly supportedModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'] as const;
   private config: AIProviderConfig;
 
   constructor(config: AIProviderConfig) {
@@ -22,17 +30,24 @@ export class GeminiStrategy implements IAIProvider {
     return Boolean(this.config.apiKey);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'gemini';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('Gemini API key not configured');
     }
 
     const provider = UnifiedProviderFactory.createGemini(this.config.apiKey!);
-    return provider.generate(messages, options);
+    return provider.generate([...messages], options);
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -40,7 +55,7 @@ export class GeminiStrategy implements IAIProvider {
     }
 
     const provider = UnifiedProviderFactory.createGemini(this.config.apiKey!);
-    yield* provider.generateStream(messages, options);
+    yield* provider.generateStream([...messages], options);
   }
 }
 
@@ -49,6 +64,8 @@ export class GeminiStrategy implements IAIProvider {
  */
 export class AISDKProxyStrategy implements IAIProvider {
   readonly name = 'ai-sdk-proxy';
+  readonly displayName = 'AI SDK Proxy';
+  readonly supportedModels = ['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'gemini-pro'] as const;
   private config: AIProviderConfig;
 
   constructor(config: AIProviderConfig) {
@@ -59,7 +76,14 @@ export class AISDKProxyStrategy implements IAIProvider {
     return Boolean(this.config.baseUrl);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'proxy';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('AI SDK proxy base URL not configured');
     }
@@ -68,11 +92,11 @@ export class AISDKProxyStrategy implements IAIProvider {
       baseUrl: this.config.baseUrl!,
       getHeaders: this.config.getHeaders,
     });
-    return provider.generate(messages, options);
+    return provider.generate([...messages], options);
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -83,7 +107,7 @@ export class AISDKProxyStrategy implements IAIProvider {
       baseUrl: this.config.baseUrl!,
       getHeaders: this.config.getHeaders,
     });
-    yield* provider.generateStream(messages, options);
+    yield* provider.generateStream([...messages], options);
   }
 }
 
@@ -92,6 +116,8 @@ export class AISDKProxyStrategy implements IAIProvider {
  */
 export class GoogleAISDKStrategy implements IAIProvider {
   readonly name = 'google-sdk';
+  readonly displayName = 'Google AI SDK';
+  readonly supportedModels = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'] as const;
   private config: AIProviderConfig;
   private model: string;
 
@@ -104,7 +130,14 @@ export class GoogleAISDKStrategy implements IAIProvider {
     return Boolean(this.config.apiKey);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'google';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('Google AI API key not configured');
     }
@@ -117,6 +150,7 @@ export class GoogleAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       return {
@@ -132,7 +166,7 @@ export class GoogleAISDKStrategy implements IAIProvider {
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -147,6 +181,7 @@ export class GoogleAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       for await (const delta of result.textStream) {
@@ -176,6 +211,14 @@ export class GoogleAISDKStrategy implements IAIProvider {
  */
 export class OpenAISDKStrategy implements IAIProvider {
   readonly name = 'openai-sdk';
+  readonly displayName = 'OpenAI SDK';
+  readonly supportedModels = [
+    'gpt-4o',
+    'gpt-4o-mini',
+    'gpt-4-turbo',
+    'gpt-4',
+    'gpt-3.5-turbo',
+  ] as const;
   private config: AIProviderConfig;
   private model: string;
 
@@ -188,7 +231,14 @@ export class OpenAISDKStrategy implements IAIProvider {
     return Boolean(this.config.apiKey);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'openai';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('OpenAI API key not configured');
     }
@@ -201,6 +251,7 @@ export class OpenAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       return {
@@ -216,7 +267,7 @@ export class OpenAISDKStrategy implements IAIProvider {
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -231,6 +282,7 @@ export class OpenAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       for await (const delta of result.textStream) {
@@ -260,6 +312,12 @@ export class OpenAISDKStrategy implements IAIProvider {
  */
 export class AnthropicAISDKStrategy implements IAIProvider {
   readonly name = 'anthropic-sdk';
+  readonly displayName = 'Anthropic SDK';
+  readonly supportedModels = [
+    'claude-3-5-sonnet-20241022',
+    'claude-3-haiku-20240307',
+    'claude-3-sonnet-20240229',
+  ] as const;
   private config: AIProviderConfig;
   private model: string;
 
@@ -272,7 +330,14 @@ export class AnthropicAISDKStrategy implements IAIProvider {
     return Boolean(this.config.apiKey);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'anthropic';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('Anthropic API key not configured');
     }
@@ -285,6 +350,7 @@ export class AnthropicAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       return {
@@ -300,7 +366,7 @@ export class AnthropicAISDKStrategy implements IAIProvider {
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -315,6 +381,7 @@ export class AnthropicAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       for await (const delta of result.textStream) {
@@ -344,6 +411,8 @@ export class AnthropicAISDKStrategy implements IAIProvider {
  */
 export class CohereAISDKStrategy implements IAIProvider {
   readonly name = 'cohere-sdk';
+  readonly displayName = 'Cohere SDK';
+  readonly supportedModels = ['command-r-plus', 'command-r', 'command'] as const;
   private config: AIProviderConfig;
   private model: string;
 
@@ -356,7 +425,14 @@ export class CohereAISDKStrategy implements IAIProvider {
     return Boolean(this.config.apiKey);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'cohere';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('Cohere API key not configured');
     }
@@ -369,6 +445,7 @@ export class CohereAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       return {
@@ -384,7 +461,7 @@ export class CohereAISDKStrategy implements IAIProvider {
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -399,6 +476,7 @@ export class CohereAISDKStrategy implements IAIProvider {
           content: msg.content,
         })),
         ...options,
+        stopSequences: options?.stopSequences ? [...options.stopSequences] : undefined,
       });
 
       for await (const delta of result.textStream) {
@@ -428,6 +506,8 @@ export class CohereAISDKStrategy implements IAIProvider {
  */
 export class ProxyStrategy implements IAIProvider {
   readonly name = 'proxy';
+  readonly displayName = 'AI Proxy';
+  readonly supportedModels = ['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'gemini-pro'] as const;
   private config: AIProviderConfig;
 
   constructor(config: AIProviderConfig) {
@@ -438,7 +518,14 @@ export class ProxyStrategy implements IAIProvider {
     return Boolean(this.config.baseUrl);
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+  getProviderType(): string {
+    return 'proxy';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
     if (!this.isAvailable()) {
       throw new Error('Proxy base URL not configured');
     }
@@ -447,11 +534,11 @@ export class ProxyStrategy implements IAIProvider {
       baseUrl: this.config.baseUrl!,
       getHeaders: this.config.getHeaders,
     });
-    return provider.generate(messages, options);
+    return provider.generate([...messages], options);
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this.isAvailable()) {
@@ -462,6 +549,6 @@ export class ProxyStrategy implements IAIProvider {
       baseUrl: this.config.baseUrl!,
       getHeaders: this.config.getHeaders,
     });
-    yield* provider.generateStream(messages, options);
+    yield* provider.generateStream([...messages], options);
   }
 }

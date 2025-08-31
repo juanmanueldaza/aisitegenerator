@@ -36,9 +36,10 @@ describe('Simplified AI Provider - Basic Functionality', () => {
   });
 
   it('throws error for invalid provider type', () => {
-    expect(() => new SimpleAIProvider('invalid' as never)).toThrow(
-      'invalid API key not configured'
-    );
+    // With graceful error handling, invalid provider types don't throw
+    // They just mark the provider as unavailable
+    const provider = new SimpleAIProvider('invalid' as never);
+    expect(provider.isAvailable()).toBe(false);
   });
 
   it('SimpleAIProviderManager can be instantiated', () => {

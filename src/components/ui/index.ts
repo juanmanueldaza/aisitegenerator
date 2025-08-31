@@ -10,3 +10,4 @@ export * from './HelpPanel';
 export * from './InlineDiffView/InlineDiffView';
 export * from './ThemeProvider';
 export * from './ThemeController';
+export * from './ProviderHealthIndicator';

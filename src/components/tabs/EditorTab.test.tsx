@@ -181,7 +181,7 @@ describe('EditorTab', () => {
   it('displays helpful tips in the footer', () => {
     render(<EditorTab />);
 
-    expect(screen.getByText('Tips:')).toBeInTheDocument();
+    expect(screen.getByText('💡 Tips:')).toBeInTheDocument();
     expect(screen.getByText(/save changes/)).toBeInTheDocument();
     expect(screen.getByText(/undo\/redo/)).toBeInTheDocument();
   });

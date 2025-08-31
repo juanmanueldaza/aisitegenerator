@@ -45,11 +45,13 @@ export class MessageSenderService implements IMessageSender {
       return {
         success: true,
         data: result.text,
+        timestamp: new Date(),
       };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
       };
     }
   }
@@ -88,11 +90,13 @@ export class ContentGeneratorService implements IContentGenerator {
       return {
         success: true,
         data: result.text,
+        timestamp: new Date(),
       };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
       };
     }
   }
@@ -118,11 +122,13 @@ export class ContentGeneratorService implements IContentGenerator {
       return {
         success: true,
         data: result.text,
+        timestamp: new Date(),
       };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
       };
     }
   }

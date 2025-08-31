@@ -1,6 +1,7 @@
 import React from 'react';
 
-export interface ButtonProps {
+export interface ButtonProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'size' | 'type'> {
   children: React.ReactNode;
   variant?:
     | 'primary'

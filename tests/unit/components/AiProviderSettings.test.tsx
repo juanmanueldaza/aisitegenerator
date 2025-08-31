@@ -106,7 +106,10 @@ describe('AiProviderSettings', () => {
     // Switch to OpenAI
     fireEvent.change(select, { target: { value: 'openai' } });
 
-    expect(screen.getByText('OpenAI GPT')).toBeInTheDocument();
+    // Check that OpenAI provider info is displayed (look for the h4 heading specifically)
+    const openaiHeading = screen.getByRole('heading', { level: 4, name: 'OpenAI GPT' });
+    expect(openaiHeading).toBeInTheDocument();
+
     expect(
       screen.getByText("OpenAI's GPT models with industry-leading reasoning and code generation.")
     ).toBeInTheDocument();

@@ -79,7 +79,32 @@ export interface AppError {
   message: string;
   details?: unknown;
 }
-// Export GitHub types
-export * from './github';
-// Export AI types
-export * from './ai';
+// Settings types
+export interface SettingsSection {
+  id: string;
+  title: string;
+  description: string;
+  component: React.ComponentType;
+}
+
+export interface ProviderConfig {
+  name: string;
+  displayName: string;
+  apiKeyEnv: string;
+  models: string[];
+  defaultModel: string;
+  description: string;
+}
+
+export interface ApiKeyStatus {
+  provider: string;
+  configured: boolean;
+  hasKey: boolean;
+}
+
+export interface SettingsState {
+  activeSection: string;
+  apiKeys: Record<string, string>;
+  selectedProvider: string;
+  testResults: Record<string, boolean>;
+}

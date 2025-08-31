@@ -84,8 +84,9 @@ describe('AiProviderSettings', () => {
   it('shows selected provider information and models', () => {
     render(<AiProviderSettings />);
 
-    // Default selected provider should be Google
-    expect(screen.getByText('Google Gemini')).toBeInTheDocument();
+    // Default selected provider should be Google - check the header in provider info section
+    const providerHeading = screen.getByRole('heading', { name: 'Google Gemini' });
+    expect(providerHeading).toBeInTheDocument();
     expect(
       screen.getByText(
         "Google's Gemini models with excellent performance and multimodal capabilities."

@@ -6,16 +6,8 @@
 import { useState } from 'react';
 import { useLocalStorageSync } from '@/hooks';
 import { Button } from '@/components/ui';
+import type { ProviderConfig } from '@/types';
 import './AiProviderSettings.css';
-
-interface ProviderConfig {
-  name: string;
-  displayName: string;
-  apiKeyEnv: string;
-  models: string[];
-  defaultModel: string;
-  description: string;
-}
 
 const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   google: {

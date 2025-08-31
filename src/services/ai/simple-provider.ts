@@ -11,14 +11,14 @@ import { cohere } from '@ai-sdk/cohere';
 import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk } from '@/types/ai';
 import { readEnv } from '@/constants/config';
 
-export type AIProviderType = 'google' | 'openai' | 'anthropic' | 'cohere';
+export type AIProviderType = 'google' | 'openai' | 'anthropic' | 'cohere' | 'gemini' | 'proxy';
 
 /**
  * Simple AI Provider class with direct implementation
  */
 export class SimpleAIProvider {
   private provider: AIProviderType;
-  private model:
+  private model!:
     | ReturnType<typeof google>
     | ReturnType<typeof openai>
     | ReturnType<typeof anthropic>
@@ -38,6 +38,7 @@ export class SimpleAIProvider {
 
     switch (this.provider) {
       case 'google':
+      case 'gemini':
         this.model = google(modelName || 'gemini-2.0-flash');
         break;
       case 'openai':
@@ -49,6 +50,10 @@ export class SimpleAIProvider {
       case 'cohere':
         this.model = cohere(modelName || 'command-r-plus');
         break;
+      case 'proxy':
+        // Proxy provider doesn't use AI SDK directly
+        this.model = google(modelName || 'gemini-2.0-flash'); // Fallback
+        break;
       default:
         throw new Error(`Unsupported provider: ${this.provider}`);
     }
@@ -57,6 +62,7 @@ export class SimpleAIProvider {
   private getApiKey(): string | undefined {
     switch (this.provider) {
       case 'google':
+      case 'gemini':
         return readEnv('GOOGLE_GENERATIVE_AI_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_API_KEY');
       case 'openai':
         return readEnv('OPENAI_API_KEY');
@@ -64,6 +70,9 @@ export class SimpleAIProvider {
         return readEnv('ANTHROPIC_API_KEY');
       case 'cohere':
         return readEnv('COHERE_API_KEY');
+      case 'proxy':
+        // Proxy might use different environment variables
+        return readEnv('PROXY_API_KEY', 'GOOGLE_API_KEY', 'GEMINI_API_KEY');
       default:
         return undefined;
     }
@@ -127,6 +136,13 @@ export class SimpleAIProvider {
       );
     }
   }
+
+  /**
+   * Check if this provider is available (has API key configured)
+   */
+  isAvailable(): boolean {
+    return Boolean(this.getApiKey());
+  }
 }
 
 /**
@@ -160,7 +176,14 @@ export class SimpleAIProviderManager {
   getAvailableProviders(): AIProviderType[] {
     const available: AIProviderType[] = [];
 
-    for (const provider of ['google', 'openai', 'anthropic', 'cohere'] as AIProviderType[]) {
+    for (const provider of [
+      'google',
+      'openai',
+      'anthropic',
+      'cohere',
+      'gemini',
+      'proxy',
+    ] as AIProviderType[]) {
       try {
         new SimpleAIProvider(provider);
         available.push(provider);
@@ -203,6 +226,7 @@ export function useSimpleAIProvider(provider?: AIProviderType) {
       providerInstance.generate(messages, options),
     generateStream: (messages: AIMessage[], options?: ProviderOptions) =>
       providerInstance.generateStream(messages, options),
+    ready: providerInstance.isAvailable(),
   };
 }
 
@@ -210,5 +234,13 @@ export function useSimpleAIProvider(provider?: AIProviderType) {
  * Simple function for non-React usage
  */
 export function getSimpleAIProvider(provider?: AIProviderType) {
-  return simpleAIProviderManager.getProvider(provider);
+  const providerInstance = simpleAIProviderManager.getProvider(provider);
+
+  return {
+    generate: (messages: AIMessage[], options?: ProviderOptions) =>
+      providerInstance.generate(messages, options),
+    generateStream: (messages: AIMessage[], options?: ProviderOptions) =>
+      providerInstance.generateStream(messages, options),
+    ready: providerInstance.isAvailable(),
+  };
 }

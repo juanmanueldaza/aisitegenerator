@@ -261,3 +261,10 @@ export const useLocalStorageSync = <T extends Record<string, unknown>>(
 
 // Export GitHub integration hook
 // export { useGitHub } from './useGitHub';
+
+// Export new editor-related hooks
+export { useEditorContent } from './useEditorContent';
+export { useSyntaxHighlighting } from './useSyntaxHighlighting';
+export { useKeyboardShortcuts } from './useKeyboardShortcuts';
+export { useViewMode } from './useViewMode';
+export { useEditorState } from './useEditorState';

@@ -1,6 +1,0 @@
-# Code ownership
-# Format: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-* @juanmanueldaza
-
-/src/services/ @juanmanueldaza
-/.github/workflows/ @juanmanueldaza

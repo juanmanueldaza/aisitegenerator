@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useCallback } from 'react';
 import { useSiteStore } from '@/store/siteStore';
-import { useAIProvider } from '@/services/ai';
+import { useAIProvider, simpleAIProviderManager } from '@/services/ai';
 import type { AIMessage, ProviderOptions } from '@/types/ai';
 
 // Lazy-load Deep Chat to reduce initial bundle size
@@ -10,7 +10,13 @@ const LazyDeepChat = React.lazy(() =>
 
 export function ChatTab() {
   const store = useSiteStore();
-  const ai = useAIProvider('gemini');
+
+  // Get available providers and use the first one available
+  const availableProviders = simpleAIProviderManager.getAvailableProviders();
+  const selectedProvider = availableProviders.length > 0 ? availableProviders[0] : 'google'; // fallback to google
+
+  // Always call the hook, but handle unavailable providers gracefully
+  const ai = useAIProvider(selectedProvider);
   const abortRef = useRef<AbortController | null>(null);
 
   // Stable handler for Deep Chat
@@ -21,7 +27,7 @@ export function ChatTab() {
     ) => {
       console.log('🔗 Deep Chat handler called');
 
-      if (!ai.ready) {
+      if (!ai.ready || availableProviders.length === 0) {
         // Offline/Test mode: simulate an HTML site
         const simulated = `<!DOCTYPE html>
 <html lang="en">
@@ -134,7 +140,7 @@ export function ChatTab() {
         }
       })();
     },
-    [store, ai]
+    [store, ai, availableProviders.length]
   );
 
   // Memoize config objects
@@ -175,81 +181,138 @@ I'm your AI assistant for creating beautiful websites! Ask me to create any type
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div
-        style={{
-          padding: '16px',
-          backgroundColor: ai.ready ? '#f0f9ff' : '#f8f9fa',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          border: `2px solid ${ai.ready ? '#3b82f6' : '#e9ecef'}`,
-        }}
-      >
-        <h4
+      {availableProviders.length === 0 ? (
+        <div
           style={{
-            margin: '0 0 12px 0',
-            fontSize: '16px',
-            color: '#374151',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
+            padding: '16px',
+            backgroundColor: '#fef2f2',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '2px solid #fecaca',
           }}
         >
-          {ai.ready ? '🟢' : '🔴'} AI Connection
-          <span
+          <h4
             style={{
-              fontSize: 12,
-              color: '#111827',
-              background: '#E5E7EB',
-              padding: '2px 6px',
-              borderRadius: 6,
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              color: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
             }}
           >
-            Provider: Gemini
-          </span>
-        </h4>
-
-        <div style={{ fontSize: '13px', color: ai.ready ? '#059669' : '#6b7280' }}>
-          {ai.ready ? '✅ AI provider ready' : '❌ AI provider not configured'}
-          {!ai.ready && (
+            🔴 No AI Providers Available
+          </h4>
+          <div style={{ fontSize: '13px', color: '#dc2626' }}>
+            ❌ No AI providers are configured
             <div style={{ marginTop: '8px', fontSize: '12px' }}>
-              Configure your AI provider in the Settings tab to enable chat functionality.
+              Please configure at least one AI provider in the Settings tab to enable chat
+              functionality.
             </div>
-          )}
+          </div>
         </div>
-      </div>
-
-      <div style={{ flex: 1, minHeight: '400px' }}>
-        <React.Suspense
-          fallback={
-            <div
+      ) : (
+        <div
+          style={{
+            padding: '16px',
+            backgroundColor: ai.ready ? '#f0f9ff' : '#f8f9fa',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: `2px solid ${ai.ready ? '#3b82f6' : '#e9ecef'}`,
+          }}
+        >
+          <h4
+            style={{
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              color: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            {ai.ready ? '🟢' : '🔴'} AI Connection
+            <span
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                color: '#6b7280',
+                fontSize: 12,
+                color: '#111827',
+                background: '#E5E7EB',
+                padding: '2px 6px',
+                borderRadius: 6,
               }}
             >
-              Loading chat…
-            </div>
-          }
-        >
-          <LazyDeepChat
+              Provider: {selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)}
+            </span>
+          </h4>
+
+          <div style={{ fontSize: '13px', color: ai.ready ? '#059669' : '#6b7280' }}>
+            {ai.ready ? '✅ AI provider ready' : '❌ AI provider not configured'}
+            {!ai.ready && (
+              <div style={{ marginTop: '8px', fontSize: '12px' }}>
+                Configure your AI provider in the Settings tab to enable chat functionality.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{ flex: 1, minHeight: '400px' }}>
+        {availableProviders.length === 0 ? (
+          <div
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               height: '100%',
-              width: '100%',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
+              color: '#6b7280',
+              backgroundColor: '#f9fafb',
             }}
-            introMessage={introMessage}
-            textInput={textInput}
-            requestBodyLimits={requestBodyLimits}
-            history={history}
-            connect={connect}
-          />
-        </React.Suspense>
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>💬</div>
+              <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '4px' }}>
+                Chat Unavailable
+              </div>
+              <div style={{ fontSize: '14px' }}>
+                Configure an AI provider in Settings to enable chat
+              </div>
+            </div>
+          </div>
+        ) : (
+          <React.Suspense
+            fallback={
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  color: '#6b7280',
+                }}
+              >
+                Loading chat…
+              </div>
+            }
+          >
+            <LazyDeepChat
+              style={{
+                height: '100%',
+                width: '100%',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+              introMessage={introMessage}
+              textInput={textInput}
+              requestBodyLimits={requestBodyLimits}
+              history={history}
+              connect={connect}
+            />
+          </React.Suspense>
+        )}
       </div>
     </div>
   );

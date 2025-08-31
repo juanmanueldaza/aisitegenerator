@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSiteStore } from '@/store/siteStore';
 import { Textarea } from '@/components/ui/Input/Input';
+import type { ViewMode } from '@/types';
 import DOMPurify from 'dompurify';
 
 // Lazy load PrismJS for syntax highlighting
@@ -28,9 +29,6 @@ async function loadPrism() {
     return null;
   }
 }
-
-// Device view modes
-type ViewMode = 'browser' | 'mobile' | 'tablet' | 'desktop';
 
 // Detect language from content
 function detectLanguage(content: string): string {

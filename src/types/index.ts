@@ -108,3 +108,24 @@ export interface SettingsState {
   selectedProvider: string;
   testResults: Record<string, boolean>;
 }
+
+// Editor types
+export type ViewMode = 'browser' | 'mobile' | 'tablet' | 'desktop';
+
+export type LanguageType = 'markup' | 'css' | 'javascript' | 'typescript';
+
+export interface EditorState {
+  content: string;
+  isDirty: boolean;
+  detectedLanguage: LanguageType;
+  viewMode: ViewMode;
+  syntaxHighlighting: boolean;
+}
+
+export interface EditorActions {
+  handleContentChange: (content: string) => void;
+  handleSave: () => void;
+  handleUndo: () => void;
+  handleRedo: () => void;
+  setViewMode: (mode: ViewMode) => void;
+}

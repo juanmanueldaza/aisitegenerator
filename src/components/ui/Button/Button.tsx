@@ -17,6 +17,7 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   icon,
   glow = false,
+  ...rest
 }) => {
   // Enhanced variant mapping with sci-fi effects
   const variantClasses = {
@@ -78,6 +79,7 @@ export const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={disabled || loading}
       aria-disabled={disabled || loading}
+      {...rest}
     >
       {/* Icon support */}
       {icon && !loading && (

@@ -6,6 +6,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { User, SiteConfiguration } from '../types';
 
+// Export new container/presentational hooks
+export { useChat } from './useChat';
+export { useDeployment } from './useDeployment';
+export { useSettings } from './useSettings';
+
 /**
  * Hook for managing authentication state
  * Single Responsibility: Handle only authentication logic

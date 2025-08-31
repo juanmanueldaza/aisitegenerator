@@ -18,7 +18,7 @@
     "test": "vitest run --reporter=dot",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:unit": "vitest run --reporter=verbose src/**/*.test.{ts,tsx}",
+    "test:unit": "vitest run --reporter=verbose src/**/*.test.{ts,tsx} tests/unit/**/*.test.{ts,tsx}",
     "test:integration": "vitest run --reporter=verbose src/**/*.integration.test.{ts,tsx}",
     "test:ui": "vitest --ui",
     "e2e": "playwright test",
@@ -79,6 +79,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
+      "eslint --fix",
       "prettier --write"
     ],
     "*.{js,jsx,json,css,md}": [

@@ -12,7 +12,7 @@ import {
   getRuntimeRedirectUri,
   setRuntimeRedirectUri,
   clearRuntimeRedirectUri,
-} from '../../utils/githubConfig';
+} from '../../utils/github-config';
 import { isAuthDebugEnabled, mask } from '../../utils/debug';
 import './GitHubAuth.css';
 import { ScopesBadge } from './ScopesBadge';

@@ -18,9 +18,7 @@ export function isAuthDebugEnabled(): boolean {
   }
   // Enable by default in dev to help diagnose
   // Vite exposes import.meta.env.DEV at runtime
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const env: any = (import.meta as any).env || {};
-  return !!env.DEV;
+  return !!import.meta.env.DEV;
 }
 
 export function mask(
@@ -34,8 +32,7 @@ export function mask(
   return `${value.slice(0, head)}…${value.slice(-tail)}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function dlog(...args: any[]) {
+export function dlog(...args: unknown[]) {
   if (!isAuthDebugEnabled()) return;
   console.log('[AUTH]', ...args);
 }
@@ -59,14 +56,11 @@ export function isAIDebugEnabled(): boolean {
     // ignore localStorage access issues
   }
   // Default to dev
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const env: any = (import.meta as any).env || {};
-  return !!env.DEV;
+  return !!import.meta.env.DEV;
 }
 
 // Lightweight structured logger for AI events
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function alog(event: string, data?: Record<string, any>) {
+export function alog(event: string, data?: Record<string, unknown>) {
   if (!isAIDebugEnabled()) return;
   try {
     const payload = data ? JSON.parse(JSON.stringify(data)) : undefined;

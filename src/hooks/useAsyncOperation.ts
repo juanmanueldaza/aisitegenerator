@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { handleError, type ErrorInfo } from '@/utils/errorHandler';
+import { handleError, type ErrorInfo } from '@/utils/error-handler';
 
 export interface UseAsyncOperationOptions<T> {
   onSuccess?: (result: T) => void;

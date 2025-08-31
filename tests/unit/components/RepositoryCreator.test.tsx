@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import RepositoryCreator from '../../../src/components/deployment/RepositoryCreator';
 import { useGitHub } from '../../../src/hooks/useGitHub';
-import { normalizeGitHubError } from '../../../src/utils/githubErrors';
+import { normalizeGitHubError } from '../../../src/utils/github-errors';
 
 // Mock the hooks
 const mockUseGitHub = {
@@ -62,7 +62,7 @@ vi.mock('../../../src/store/siteStore', () => ({
   useSiteStore: vi.fn(() => mockStore),
 }));
 
-vi.mock('../../../src/utils/githubErrors', () => ({
+vi.mock('../../../src/utils/github-errors', () => ({
   normalizeGitHubError: vi.fn((error: unknown) => ({
     code: 'unknown',
     message: (error as Error)?.message || 'Unknown error',

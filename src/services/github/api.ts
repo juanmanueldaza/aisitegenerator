@@ -10,7 +10,7 @@ import type {
   GitHubFileContent,
   GitHubPagesConfig,
 } from '../../types/github';
-import { normalizeGitHubError, sleep } from '@/utils/githubErrors';
+import { normalizeGitHubError, sleep } from '@/utils/github-errors';
 
 export class GitHubAPIService {
   private baseURL = 'https://api.github.com';

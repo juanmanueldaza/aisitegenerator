@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildInlineBlocks, type InlineDiffLine } from './inlineDiff';
+import { buildInlineBlocks, type InlineDiffLine } from './inline-diff';
 import { computeHunks } from './diff';
 
 describe('inline diff', () => {

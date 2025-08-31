@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import GitHubService, { getGitHubServiceSingleton } from '../services/github';
-import { getRuntimeClientId, getRuntimeRedirectUri } from '../utils/githubConfig';
+import { getRuntimeClientId, getRuntimeRedirectUri } from '../utils/github-config';
 import { dlog, mask } from '../utils/debug';
 import type {
   AuthStatus,

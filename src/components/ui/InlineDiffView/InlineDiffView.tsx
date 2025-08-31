@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { DiffHunk } from '@/utils/diff';
-import { buildInlineBlocks } from '@/utils/inlineDiff';
+import { buildInlineBlocks } from '@/utils/inline-diff';
 
 export interface InlineDiffViewProps {
   original: string;

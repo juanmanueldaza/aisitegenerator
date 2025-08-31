@@ -8,7 +8,7 @@ import { Toast } from '@/components/ui';
 import { useGitHub } from '../../hooks/useGitHub';
 import { useToast } from '../../hooks';
 import './RepositoryCreator.css';
-import { normalizeGitHubError } from '@/utils/githubErrors';
+import { normalizeGitHubError } from '@/utils/github-errors';
 import { useSiteStore } from '@/store/siteStore';
 import { slugify } from '@/utils/string';
 

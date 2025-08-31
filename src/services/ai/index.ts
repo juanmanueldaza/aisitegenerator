@@ -12,6 +12,16 @@ import {
   type AIProviderType,
 } from './simple-provider';
 
+// Export segregated services following Interface Segregation Principle
+export {
+  MessageSenderService,
+  ContentGeneratorService,
+  StreamingGeneratorService,
+  ProviderStatusService,
+  TextGeneratorService,
+  CompositeAIService,
+} from './segregated-services';
+
 export {
   SimpleAIProvider,
   SimpleAIProviderManager,

@@ -9,14 +9,16 @@ import { openai } from '@ai-sdk/openai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { cohere } from '@ai-sdk/cohere';
 import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk } from '@/types/ai';
+import type { IStreamingGenerator, IProviderStatus, ITextGenerator } from '@/services/interfaces';
 import { readEnv } from '@/constants/config';
 
 export type AIProviderType = 'google' | 'openai' | 'anthropic' | 'cohere' | 'gemini' | 'proxy';
 
 /**
  * Simple AI Provider class with direct implementation
+ * Implements segregated interfaces following Interface Segregation Principle
  */
-export class SimpleAIProvider {
+export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, ITextGenerator {
   private provider: AIProviderType;
   private model!:
     | ReturnType<typeof google>
@@ -142,6 +144,13 @@ export class SimpleAIProvider {
    */
   isAvailable(): boolean {
     return Boolean(this.getApiKey());
+  }
+
+  /**
+   * Get the provider type
+   */
+  getProviderType(): string {
+    return this.provider;
   }
 }
 

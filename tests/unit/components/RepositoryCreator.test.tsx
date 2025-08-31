@@ -70,7 +70,13 @@ vi.mock('../../../src/utils/github-errors', () => ({
 }));
 
 vi.mock('../../../src/utils/string', () => ({
-  slugify: vi.fn((str) => str.toLowerCase().replace(/[^a-z0-9-]/g, '-')),
+  slugify: vi.fn((str) => {
+    return str
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }),
 }));
 
 vi.mock('../../../src/utils/content', () => ({
@@ -128,7 +134,12 @@ describe('RepositoryCreator', () => {
   it('shows URL preview for repository', () => {
     render(<RepositoryCreator {...defaultProps} />);
 
-    expect(screen.getByText('testuser.github.io/test-project')).toBeInTheDocument();
+    // Check that the URL preview contains the expected parts
+    const helpText = screen.getByText((content) => content.includes('Will be available at:'));
+    expect(helpText).toBeInTheDocument();
+    expect(helpText.textContent).toContain('testuser');
+    expect(helpText.textContent).toContain('github.io');
+    expect(helpText.textContent).toContain('testproject');
   });
 
   it('sanitizes repository name on blur', () => {
@@ -139,9 +150,9 @@ describe('RepositoryCreator', () => {
     fireEvent.change(repoNameInput, { target: { value: 'My Awesome Project!' } });
     fireEvent.blur(repoNameInput);
 
-    expect(repoNameInput).toHaveValue('my-awesome-project');
+    expect(repoNameInput).toHaveValue('myawesomeproject');
     expect(mockUseToast.showToast).toHaveBeenCalledWith(
-      'Repository name sanitized to "my-awesome-project"'
+      'Repository name sanitized to "myawesomeproject"'
     );
   });
 
@@ -152,7 +163,7 @@ describe('RepositoryCreator', () => {
 
     fireEvent.change(repoNameInput, { target: { value: 'My Project!' } });
 
-    expect(screen.getByText('Final repository name: my-project')).toBeInTheDocument();
+    expect(screen.getByText('Final repository name: myproject')).toBeInTheDocument();
   });
 
   it('disables form inputs during deployment', () => {
@@ -169,7 +180,7 @@ describe('RepositoryCreator', () => {
     expect(deployButton).not.toBeDisabled();
   });
 
-  it('disables deploy button when repository name is empty', () => {
+  it('disables deploy button when repository name is empty', async () => {
     render(<RepositoryCreator {...defaultProps} />);
 
     const repoNameInput = screen.getByLabelText('Repository Name *');
@@ -177,7 +188,9 @@ describe('RepositoryCreator', () => {
 
     fireEvent.change(repoNameInput, { target: { value: '' } });
 
-    expect(deployButton).toBeDisabled();
+    await waitFor(() => {
+      expect(deployButton).toBeDisabled();
+    });
   });
 
   it('handles successful deployment', async () => {

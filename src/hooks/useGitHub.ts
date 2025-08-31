@@ -23,7 +23,7 @@ interface UseGitHubReturn {
   user: GitHubUser | null;
   isLoading: boolean;
   error: string | null;
-  scopes: string[];
+  scopes: readonly string[];
 
   // Authentication methods
   login: () => Promise<void>;

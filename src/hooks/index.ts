@@ -268,3 +268,10 @@ export { useSyntaxHighlighting } from './useSyntaxHighlighting';
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 export { useViewMode } from './useViewMode';
 export { useEditorState } from './useEditorState';
+
+// Export provider health monitoring hooks
+export {
+  useProviderHealth,
+  useProviderHealthManager,
+  useProviderFailover,
+} from './useProviderHealth';

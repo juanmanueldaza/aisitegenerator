@@ -264,8 +264,7 @@ describe('EditorTab', () => {
   it('shows keyboard shortcut tips', () => {
     render(<EditorTab />);
 
-    expect(screen.getByText('💡')).toBeInTheDocument();
-    expect(screen.getByText('Tips:')).toBeInTheDocument();
+    expect(screen.getByText('💡 Tips:')).toBeInTheDocument();
     expect(screen.getByText('Ctrl+S')).toBeInTheDocument();
     expect(screen.getByText('Ctrl+Z')).toBeInTheDocument();
     expect(screen.getByText('Ctrl+Y')).toBeInTheDocument();

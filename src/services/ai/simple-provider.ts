@@ -11,6 +11,7 @@ import { cohere } from '@ai-sdk/cohere';
 import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk } from '@/types/ai';
 import type { IStreamingGenerator, IProviderStatus, ITextGenerator } from '@/services/interfaces';
 import { readEnv } from '@/constants/config';
+import { ProviderHealthManager } from './provider-health';
 
 export type AIProviderType = 'google' | 'openai' | 'anthropic' | 'cohere' | 'gemini' | 'proxy';
 
@@ -25,6 +26,7 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
     | ReturnType<typeof openai>
     | ReturnType<typeof anthropic>
     | ReturnType<typeof cohere>;
+  private _isAvailable: boolean = false;
 
   constructor(provider: AIProviderType = 'google', modelName?: string) {
     this.provider = provider;
@@ -35,29 +37,38 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
     const apiKey = this.getApiKey();
 
     if (!apiKey) {
-      throw new Error(`${this.provider} API key not configured`);
+      // Don't throw error, just mark as unavailable
+      this._isAvailable = false;
+      return;
     }
 
-    switch (this.provider) {
-      case 'google':
-      case 'gemini':
-        this.model = google(modelName || 'gemini-2.0-flash');
-        break;
-      case 'openai':
-        this.model = openai(modelName || 'gpt-4o');
-        break;
-      case 'anthropic':
-        this.model = anthropic(modelName || 'claude-3-5-sonnet-20241022');
-        break;
-      case 'cohere':
-        this.model = cohere(modelName || 'command-r-plus');
-        break;
-      case 'proxy':
-        // Proxy provider doesn't use AI SDK directly
-        this.model = google(modelName || 'gemini-2.0-flash'); // Fallback
-        break;
-      default:
-        throw new Error(`Unsupported provider: ${this.provider}`);
+    try {
+      switch (this.provider) {
+        case 'google':
+        case 'gemini':
+          this.model = google(modelName || 'gemini-2.0-flash');
+          break;
+        case 'openai':
+          this.model = openai(modelName || 'gpt-4o');
+          break;
+        case 'anthropic':
+          this.model = anthropic(modelName || 'claude-3-5-sonnet-20241022');
+          break;
+        case 'cohere':
+          this.model = cohere(modelName || 'command-r-plus');
+          break;
+        case 'proxy':
+          // Proxy provider doesn't use AI SDK directly
+          this.model = google(modelName || 'gemini-2.0-flash'); // Fallback
+          break;
+        default:
+          this._isAvailable = false;
+          return;
+      }
+      this._isAvailable = true;
+    } catch {
+      // If model initialization fails, mark as unavailable
+      this._isAvailable = false;
     }
   }
 
@@ -81,6 +92,10 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
   }
 
   async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
+    if (!this._isAvailable) {
+      throw new Error(`Provider ${this.provider} is not available: API key not configured`);
+    }
+
     try {
       const result = await generateText({
         model: this.model,
@@ -95,7 +110,7 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
       return {
         text: result.text,
         usage: result.usage,
-        finishReason: result.finishReason,
+        finishReason: result.finishReason === 'error' ? 'stop' : result.finishReason,
       };
     } catch (error) {
       throw new Error(
@@ -108,6 +123,10 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
     messages: AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
+    if (!this._isAvailable) {
+      throw new Error(`Provider ${this.provider} is not available: API key not configured`);
+    }
+
     try {
       const result = await streamText({
         model: this.model,
@@ -143,7 +162,7 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
    * Check if this provider is available (has API key configured)
    */
   isAvailable(): boolean {
-    return Boolean(this.getApiKey());
+    return this._isAvailable;
   }
 
   /**
@@ -161,9 +180,11 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
 export class SimpleAIProviderManager {
   private providers = new Map<AIProviderType, SimpleAIProvider>();
   private defaultProvider: AIProviderType = 'google';
+  private healthManager: ProviderHealthManager;
 
   constructor(defaultProvider: AIProviderType = 'google') {
     this.defaultProvider = defaultProvider;
+    this.healthManager = new ProviderHealthManager(true);
   }
 
   getProvider(provider?: AIProviderType): SimpleAIProvider {
@@ -171,7 +192,10 @@ export class SimpleAIProviderManager {
 
     if (!this.providers.has(providerType)) {
       try {
-        this.providers.set(providerType, new SimpleAIProvider(providerType));
+        const newProvider = new SimpleAIProvider(providerType);
+        this.providers.set(providerType, newProvider);
+        // Add to health monitoring
+        this.healthManager.addProvider(newProvider);
       } catch (error) {
         throw new Error(
           `Failed to initialize ${providerType} provider: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -219,6 +243,58 @@ export class SimpleAIProviderManager {
     const provider = this.getProvider(options?.provider);
     yield* provider.generateStream(messages, options);
   }
+
+  /**
+   * Get health status for all providers
+   */
+  getProviderHealthStatuses() {
+    return this.healthManager.getAllProviderHealth();
+  }
+
+  /**
+   * Get the healthiest available provider
+   */
+  getHealthiestProvider(): AIProviderType | null {
+    return this.healthManager.getHealthiestProvider();
+  }
+
+  /**
+   * Generate with automatic failover to healthiest provider
+   */
+  async generateWithFailover(
+    messages: AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
+    const healthiestProvider = this.getHealthiestProvider();
+
+    if (healthiestProvider) {
+      const provider = this.getProvider(healthiestProvider);
+      return provider.generate(messages, options);
+    }
+
+    // Fallback to default provider
+    const provider = this.getProvider();
+    return provider.generate(messages, options);
+  }
+
+  /**
+   * Generate stream with automatic failover to healthiest provider
+   */
+  async *generateStreamWithFailover(
+    messages: AIMessage[],
+    options?: ProviderOptions
+  ): AsyncGenerator<StreamChunk, void, unknown> {
+    const healthiestProvider = this.getHealthiestProvider();
+
+    if (healthiestProvider) {
+      const provider = this.getProvider(healthiestProvider);
+      yield* provider.generateStream(messages, options);
+    } else {
+      // Fallback to default provider
+      const provider = this.getProvider();
+      yield* provider.generateStream(messages, options);
+    }
+  }
 }
 
 // Global instance
@@ -235,7 +311,13 @@ export function useSimpleAIProvider(provider?: AIProviderType) {
       providerInstance.generate(messages, options),
     generateStream: (messages: AIMessage[], options?: ProviderOptions) =>
       providerInstance.generateStream(messages, options),
+    generateWithFailover: (messages: AIMessage[], options?: ProviderOptions) =>
+      simpleAIProviderManager.generateWithFailover(messages, options),
+    generateStreamWithFailover: (messages: AIMessage[], options?: ProviderOptions) =>
+      simpleAIProviderManager.generateStreamWithFailover(messages, options),
     ready: providerInstance.isAvailable(),
+    getHealthStatuses: () => simpleAIProviderManager.getProviderHealthStatuses(),
+    getHealthiestProvider: () => simpleAIProviderManager.getHealthiestProvider(),
   };
 }
 

@@ -1,131 +1,170 @@
-// Common type definitions for the AI Site Generator application
+/**
+ * Main application types following SOLID principles
+ * Comprehensive type definitions for the AI Site Generator
+ */
 
 // User authentication types
 export interface User {
-  id: string;
-  username: string;
-  email: string;
-  avatarUrl?: string;
+  readonly id: string;
+  readonly username: string;
+  readonly email: string | null;
+  readonly avatarUrl?: string;
+  readonly name?: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }
 
 // GitHub integration types
 export interface GitHubRepository {
-  id: number;
-  name: string;
-  fullName: string;
-  private: boolean;
-  htmlUrl: string;
-  cloneUrl: string;
+  readonly id: number;
+  readonly name: string;
+  readonly fullName: string;
+  readonly private: boolean;
+  readonly htmlUrl: string;
+  readonly cloneUrl: string;
+  readonly description?: string;
+  readonly language?: string;
+  readonly stargazersCount: number;
+  readonly forksCount: number;
+  readonly openIssuesCount: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 }
 
-// Site generation types
+// Site generation types following Interface Segregation
 export interface SiteConfiguration {
-  id: string;
-  name: string;
-  description?: string;
-  template: string;
-  theme: string;
-  pages: SitePage[];
-  metadata: SiteMetadata;
+  readonly id: string;
+  readonly name: string;
+  readonly description?: string;
+  readonly template: string;
+  readonly theme: string;
+  readonly pages: readonly SitePage[];
+  readonly metadata: SiteMetadata;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }
 
 export interface SitePage {
-  id: string;
-  title: string;
-  path: string;
-  content: string;
-  metadata: PageMetadata;
+  readonly id: string;
+  readonly title: string;
+  readonly path: string;
+  readonly content: string;
+  readonly metadata: PageMetadata;
+  readonly order?: number;
 }
 
 export interface SiteMetadata {
-  title: string;
-  description: string;
-  keywords: string[];
-  author: string;
-  language: string;
+  readonly title: string;
+  readonly description: string;
+  readonly keywords: readonly string[];
+  readonly author: string;
+  readonly language: string;
+  readonly ogImage?: string;
+  readonly twitterCard?: string;
 }
 
 export interface PageMetadata {
-  title: string;
-  description?: string;
-  keywords?: string[];
+  readonly title: string;
+  readonly description?: string;
+  readonly keywords?: readonly string[];
+  readonly ogImage?: string;
+  readonly canonicalUrl?: string;
 }
 
-// AI Chat types
+// AI Chat types following Single Responsibility
 export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
+  readonly id: string;
+  readonly role: 'user' | 'assistant' | 'system';
+  readonly content: string;
+  readonly timestamp: Date;
+  readonly metadata?: Record<string, unknown>;
 }
 
 export interface ChatSession {
-  id: string;
-  messages: ChatMessage[];
-  siteId?: string;
+  readonly id: string;
+  readonly messages: readonly ChatMessage[];
+  readonly siteId?: string;
+  readonly title?: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }
 
-// API Response types
+// API Response types with enhanced error handling
 export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
+  readonly success: boolean;
+  readonly data?: T;
+  readonly error?: string;
+  readonly message?: string;
+  readonly timestamp: Date;
+  readonly requestId?: string;
 }
 
-// Error types
-export interface AppError {
-  code: string;
-  message: string;
-  details?: unknown;
+// Error types following Interface Segregation
+export interface AppError extends Error {
+  readonly code: string;
+  readonly status?: number;
+  readonly details?: Record<string, unknown>;
+  readonly timestamp: Date;
 }
-// Settings types
+
+// Settings types with better organization
 export interface SettingsSection {
-  id: string;
-  title: string;
-  description: string;
-  component: React.ComponentType;
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly icon?: string;
+  readonly component: React.ComponentType;
+  readonly order?: number;
 }
 
 export interface ProviderConfig {
-  name: string;
-  displayName: string;
-  apiKeyEnv: string;
-  models: string[];
-  defaultModel: string;
-  description: string;
+  readonly name: string;
+  readonly displayName: string;
+  readonly apiKeyEnv: string;
+  readonly models: readonly string[];
+  readonly defaultModel: string;
+  readonly description: string;
+  readonly website?: string;
+  readonly maxTokens?: number;
 }
 
 export interface ApiKeyStatus {
-  provider: string;
-  configured: boolean;
-  hasKey: boolean;
+  readonly provider: string;
+  readonly configured: boolean;
+  readonly hasKey: boolean;
+  readonly lastValidated?: Date;
 }
 
 export interface SettingsState {
-  activeSection: string;
-  apiKeys: Record<string, string>;
-  selectedProvider: string;
-  testResults: Record<string, boolean>;
+  readonly activeSection: string;
+  readonly apiKeys: Readonly<Record<string, string>>;
+  readonly selectedProvider: string;
+  readonly testResults: Readonly<Record<string, boolean>>;
+  readonly isLoading: boolean;
+  readonly error?: string;
 }
 
-// Editor types
+// Editor types following Single Responsibility
 export type ViewMode = 'browser' | 'mobile' | 'tablet' | 'desktop';
 
-export type LanguageType = 'markup' | 'css' | 'javascript' | 'typescript';
+export type LanguageType = 'markup' | 'css' | 'javascript' | 'typescript' | 'json' | 'markdown';
 
 export interface EditorState {
-  content: string;
-  isDirty: boolean;
-  detectedLanguage: LanguageType;
-  viewMode: ViewMode;
-  syntaxHighlighting: boolean;
+  readonly content: string;
+  readonly isDirty: boolean;
+  readonly detectedLanguage: LanguageType;
+  readonly viewMode: ViewMode;
+  readonly syntaxHighlighting: boolean;
+  readonly wordCount: number;
+  readonly lineCount: number;
 }
 
 export interface EditorActions {
-  handleContentChange: (content: string) => void;
-  handleSave: () => void;
-  handleUndo: () => void;
-  handleRedo: () => void;
-  setViewMode: (mode: ViewMode) => void;
+  readonly handleContentChange: (content: string) => void;
+  readonly handleSave: () => Promise<void>;
+  readonly handleUndo: () => void;
+  readonly handleRedo: () => void;
+  readonly setViewMode: (mode: ViewMode) => void;
+  readonly toggleSyntaxHighlighting: () => void;
+  readonly formatContent: () => void;
 }

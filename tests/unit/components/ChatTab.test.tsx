@@ -31,6 +31,9 @@ const mockAIProvider = {
 
 vi.mock('../../../src/services/ai', () => ({
   useAIProvider: vi.fn(),
+  simpleAIProviderManager: {
+    getAvailableProviders: vi.fn(() => ['google']),
+  },
 }));
 
 // Mock deep-chat-react with a simple implementation
@@ -94,7 +97,7 @@ describe('ChatTab', () => {
     });
     expect(aiConnectionHeader).toBeInTheDocument();
     expect(aiConnectionHeader.textContent).toContain('🟢');
-    expect(screen.getByText('Provider: Gemini')).toBeInTheDocument();
+    expect(screen.getByText('Provider: Google')).toBeInTheDocument();
     expect(screen.getByText('✅ AI provider ready')).toBeInTheDocument();
   });
 
@@ -146,7 +149,7 @@ describe('ChatTab', () => {
 
     // The streaming logic is complex and would require more detailed mocking
     // This test ensures the component renders and the stream function is available
-    expect(mockedUseAIProvider).toHaveBeenCalledWith('gemini');
+    expect(mockedUseAIProvider).toHaveBeenCalledWith('google');
   });
 
   it('handles AI provider with non-streaming response', () => {

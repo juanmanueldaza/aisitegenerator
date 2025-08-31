@@ -1,4 +1,10 @@
-import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk, IAIProvider } from '@/types/ai';
+import type {
+  AIMessage,
+  ProviderOptions,
+  GenerateResult,
+  StreamChunk,
+  IAIProvider,
+} from '@/types/ai';
 import GeminiProvider from './gemini';
 import ProxyAIProviderV2, { type ProxyV2Options } from './proxyV2';
 
@@ -7,6 +13,8 @@ import ProxyAIProviderV2, { type ProxyV2Options } from './proxyV2';
  */
 export class GeminiProviderAdapter implements IAIProvider {
   readonly name = 'gemini';
+  readonly displayName = 'Google Gemini';
+  readonly supportedModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'] as const;
   private provider: GeminiProvider;
 
   constructor(apiKey: string) {
@@ -18,15 +26,22 @@ export class GeminiProviderAdapter implements IAIProvider {
     return true; // If construction succeeded, it's available
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
-    return this.provider.generate(messages, options);
+  getProviderType(): string {
+    return 'gemini';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
+    return this.provider.generate([...messages], options);
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
-    yield* this.provider.generateStream(messages, options);
+    yield* this.provider.generateStream([...messages], options);
   }
 }
 
@@ -35,6 +50,8 @@ export class GeminiProviderAdapter implements IAIProvider {
  */
 export class ProxyProviderAdapter implements IAIProvider {
   readonly name = 'proxy';
+  readonly displayName = 'AI Proxy';
+  readonly supportedModels = ['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'gemini-pro'] as const;
   private provider: ProxyAIProviderV2;
 
   constructor(options: ProxyV2Options) {
@@ -46,15 +63,22 @@ export class ProxyProviderAdapter implements IAIProvider {
     return true; // If construction succeeded, it's available
   }
 
-  async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
-    return this.provider.generate(messages, options);
+  getProviderType(): string {
+    return 'proxy';
+  }
+
+  async generate(
+    messages: readonly AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
+    return this.provider.generate([...messages], options);
   }
 
   async *generateStream(
-    messages: AIMessage[],
+    messages: readonly AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
-    yield* this.provider.generateStream(messages, options);
+    yield* this.provider.generateStream([...messages], options);
   }
 }
 

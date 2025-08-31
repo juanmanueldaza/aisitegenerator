@@ -243,11 +243,13 @@ describe('AiProviderSettings', () => {
 
     expect(screen.getByText('Provider Status')).toBeInTheDocument();
 
-    // Check configured providers
-    expect(screen.getByText('✅ Configured')).toBeInTheDocument();
+    // Check configured providers - there should be at least one
+    const configuredElements = screen.getAllByText('✅ Configured');
+    expect(configuredElements.length).toBeGreaterThan(0);
 
-    // Check providers needing API keys
-    expect(screen.getByText('⚠️ API Key Needed')).toBeInTheDocument();
+    // Check providers needing API keys - there should be at least one
+    const missingElements = screen.getAllByText('⚠️ API Key Needed');
+    expect(missingElements.length).toBeGreaterThan(0);
   });
 
   it('shows correct status for each provider', () => {

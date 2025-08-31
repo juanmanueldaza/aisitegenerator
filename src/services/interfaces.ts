@@ -76,6 +76,62 @@ export interface IProviderStatus {
 }
 
 /**
+ * Abstract provider health monitoring interface - Interface Segregation Principle
+ * Focused on provider health checks and monitoring
+ */
+export interface IProviderHealth {
+  /**
+   * Perform a health check on the provider
+   */
+  checkHealth(): Promise<ProviderHealthStatus>;
+
+  /**
+   * Get the current health status
+   */
+  getHealthStatus(): ProviderHealthStatus;
+
+  /**
+   * Get health metrics and history
+   */
+  getHealthMetrics(): ProviderHealthMetrics;
+
+  /**
+   * Reset health status (useful for recovery)
+   */
+  resetHealth(): void;
+}
+
+/**
+ * Provider health status enumeration
+ */
+export type ProviderHealthState = 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+
+/**
+ * Provider health status information
+ */
+export interface ProviderHealthStatus {
+  state: ProviderHealthState;
+  lastChecked: Date;
+  responseTime?: number;
+  errorMessage?: string;
+  consecutiveFailures: number;
+  isAvailable: boolean;
+}
+
+/**
+ * Provider health metrics for monitoring
+ */
+export interface ProviderHealthMetrics {
+  totalChecks: number;
+  successfulChecks: number;
+  failedChecks: number;
+  averageResponseTime: number;
+  uptimePercentage: number;
+  lastFailureTime?: Date;
+  healthHistory: ProviderHealthStatus[];
+}
+
+/**
  * Abstract AI text generation interface - Interface Segregation Principle
  * Focused on basic text generation without streaming
  */

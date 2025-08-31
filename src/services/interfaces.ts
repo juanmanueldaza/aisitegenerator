@@ -139,6 +139,64 @@ export interface ITextGenerator {
   generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult>;
 }
 
+/**
+ * Abstract site store service interface - Interface Segregation Principle
+ * Focused on site state management and persistence
+ */
+export interface ISiteStore {
+  // State getters
+  getContent(): string;
+  getMessages(): ChatMessage[];
+  getWizardStep(): 1 | 2 | 3 | 4;
+  getProjectName(): string;
+  getOnboardingCompleted(): boolean;
+
+  // State setters
+  setContent(content: string): void;
+  setMessages(messages: ChatMessage[]): void;
+  clearMessages(): void;
+  appendMessage(message: ChatMessage): void;
+  replaceLastAssistantMessage(content: string): void;
+  upsertStreamingAssistant(content: string): void;
+
+  // Undo/redo operations
+  commit(): void;
+  undo(): void;
+  redo(): void;
+  clear(): void;
+
+  // Onboarding operations
+  setWizardStep(step: 1 | 2 | 3 | 4): void;
+  setProjectName(name: string): void;
+  setOnboardingCompleted(completed: boolean): void;
+}
+
+/**
+ * Chat message interface for the site store
+ */
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+/**
+ * Abstract AI provider manager interface - Interface Segregation Principle
+ * Focused on managing multiple AI providers and their availability
+ */
+export interface IAIProviderManager {
+  getAvailableProviders(): AIProviderType[];
+  getProvider(provider?: AIProviderType): IStreamingGenerator & IProviderStatus & ITextGenerator;
+  getHealthiestProvider(): AIProviderType | null;
+  getProviderHealthStatuses(): Map<AIProviderType, ProviderHealthStatus>;
+}
+
+/**
+ * AI provider type enumeration
+ */
+export type AIProviderType = 'google' | 'openai' | 'anthropic' | 'cohere' | 'gemini' | 'proxy';
+
 // Legacy interface for backward compatibility - DEPRECATED
 // Use the segregated interfaces above instead
 /**

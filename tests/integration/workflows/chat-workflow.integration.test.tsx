@@ -11,6 +11,14 @@ import '@testing-library/jest-dom/vitest';
 import { ChatTab } from '../../../src/components/tabs/ChatTab';
 import { useSiteStore } from '../../../src/store/siteStore';
 import { createMockFetchFunction } from '../utils/test-helpers';
+import { ServiceProvider } from '../../../src/di/ServiceContext';
+import { createConfiguredContainer } from '../../../src/di/service-registry';
+import { SERVICE_TOKENS } from '../../../src/di/container';
+import type {
+  ISiteStore,
+  IAIProviderManager,
+  AIProviderType,
+} from '../../../src/services/interfaces';
 
 // Mock the AI service
 vi.mock('../../../src/services/ai', () => ({
@@ -308,6 +316,9 @@ vi.mock('../../../src/components/tabs/ChatTabView', () => ({
 describe('Chat Workflow Integration', () => {
   let user: ReturnType<typeof userEvent.setup>;
   let mockFetch: ReturnType<typeof createMockFetchFunction>;
+  let mockStore: ISiteStore;
+  let mockProviderManager: IAIProviderManager;
+  let container: ReturnType<typeof createConfiguredContainer>;
 
   beforeEach(() => {
     user = userEvent.setup();
@@ -319,9 +330,57 @@ describe('Chat Workflow Integration', () => {
       },
     ]);
 
+    // Setup mock services for DI
+    mockStore = {
+      getContent: vi.fn(() => ''),
+      getMessages: vi.fn(() => []),
+      getWizardStep: vi.fn(() => 1 as 1 | 2 | 3 | 4),
+      getProjectName: vi.fn(() => ''),
+      getOnboardingCompleted: vi.fn(() => false),
+      setContent: vi.fn(),
+      setMessages: vi.fn(),
+      clearMessages: vi.fn(),
+      appendMessage: vi.fn(),
+      replaceLastAssistantMessage: vi.fn(),
+      upsertStreamingAssistant: vi.fn(),
+      commit: vi.fn(),
+      undo: vi.fn(),
+      redo: vi.fn(),
+      clear: vi.fn(),
+      setWizardStep: vi.fn(),
+      setProjectName: vi.fn(),
+      setOnboardingCompleted: vi.fn(),
+    };
+
+    mockProviderManager = {
+      getAvailableProviders: vi.fn(() => ['google' as AIProviderType]),
+      getProvider: vi.fn(() => ({
+        generate: vi.fn().mockResolvedValue({
+          text: '<h1>Hello World</h1><p>This is a test response.</p>',
+          finishReason: 'stop',
+        }),
+        generateStream: vi.fn(),
+        isAvailable: vi.fn(() => true),
+        getProviderType: vi.fn(() => 'google' as AIProviderType),
+      })),
+      getHealthiestProvider: vi.fn(() => 'google' as AIProviderType),
+      getProviderHealthStatuses: vi.fn(() => new Map()),
+    };
+
+    // Create configured container with mock services
+    container = createConfiguredContainer();
+    container.registerSingleton(SERVICE_TOKENS.SITE_SERVICE, mockStore);
+    container.registerSingleton(SERVICE_TOKENS.PROVIDER_MANAGER, mockProviderManager);
+
     // Clear store before each test
     useSiteStore.getState().clear();
   });
+
+  const renderChatTab = () => {
+    return render(
+      React.createElement(ServiceProvider, { container, children: React.createElement(ChatTab) })
+    );
+  };
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -334,7 +393,7 @@ describe('Chat Workflow Integration', () => {
   describe('Basic Chat Flow', () => {
     it('should handle a complete chat conversation', async () => {
       // Render the chat component
-      render(<ChatTab />);
+      renderChatTab();
 
       // Verify initial state
       expect(screen.getByTestId('chat-input')).toBeInTheDocument();
@@ -372,7 +431,7 @@ describe('Chat Workflow Integration', () => {
         clone: () => ({}) as Response,
       });
 
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Hello');
@@ -397,7 +456,7 @@ describe('Chat Workflow Integration', () => {
         { id: '2', role: 'assistant', content: 'First response', timestamp: Date.now() },
       ]);
 
-      render(<ChatTab />);
+      renderChatTab();
 
       // Verify existing messages are displayed
       expect(screen.getByText('First message')).toBeInTheDocument();
@@ -424,7 +483,7 @@ describe('Chat Workflow Integration', () => {
       // Mock API error
       mockFetch.mockRejectedValueOnce(new Error('API Error'));
 
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Test error message');
@@ -464,7 +523,7 @@ describe('Chat Workflow Integration', () => {
           )
       );
 
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Test message');
@@ -487,7 +546,7 @@ describe('Chat Workflow Integration', () => {
         clone: () => ({}) as Response,
       });
 
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Test malformed message');
@@ -507,7 +566,7 @@ describe('Chat Workflow Integration', () => {
 
   describe('UI Interactions', () => {
     it('should clear input after sending message', async () => {
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Test message');
@@ -543,7 +602,7 @@ describe('Chat Workflow Integration', () => {
           )
       );
 
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Test message');
@@ -565,7 +624,7 @@ describe('Chat Workflow Integration', () => {
     });
 
     it('should handle keyboard shortcuts', async () => {
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Test message');
@@ -583,7 +642,7 @@ describe('Chat Workflow Integration', () => {
 
   describe('Content Generation', () => {
     it('should generate HTML content from chat', async () => {
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Create a simple HTML page with heading and paragraph');
@@ -600,7 +659,7 @@ describe('Chat Workflow Integration', () => {
     });
 
     it('should handle different content types', async () => {
-      render(<ChatTab />);
+      renderChatTab();
 
       // Test markdown generation
       const input = screen.getByTestId('chat-input');
@@ -616,7 +675,7 @@ describe('Chat Workflow Integration', () => {
     });
 
     it('should sync chat content with editor', async () => {
-      render(<ChatTab />);
+      renderChatTab();
 
       const input = screen.getByTestId('chat-input');
       await user.type(input, 'Generate content');
@@ -663,7 +722,7 @@ describe('Chat Workflow Integration', () => {
           clone: () => ({}) as Response,
         });
 
-        const { unmount } = render(<ChatTab />);
+        const { unmount } = renderChatTab();
 
         const input = screen.getByTestId('chat-input');
         await user.type(input, `Test with ${provider}`);
@@ -683,7 +742,7 @@ describe('Chat Workflow Integration', () => {
     });
 
     it('should handle provider switching', async () => {
-      render(<ChatTab />);
+      renderChatTab();
 
       // First message with default provider
       const input = screen.getByTestId('chat-input');

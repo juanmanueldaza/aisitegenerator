@@ -1,13 +1,24 @@
 import { useRef, useMemo, useCallback } from 'react';
-import { useSiteStore } from '@/store/siteStore';
-import { useAIProvider, simpleAIProviderManager } from '@/services/ai';
+import { useService } from '@/di/hooks';
+import { SERVICE_TOKENS } from '@/di/container';
 import type { AIMessage, ProviderOptions } from '@/types/ai';
+import type { ISiteStore, IAIProviderManager } from '@/services/interfaces';
 
 export interface UseChatReturn {
   // State
   availableProviders: string[];
   selectedProvider: string;
-  ai: ReturnType<typeof useAIProvider>;
+  ai: {
+    generate: (
+      messages: AIMessage[],
+      options?: ProviderOptions
+    ) => Promise<import('@/types/ai').GenerateResult>;
+    generateStream: (
+      messages: AIMessage[],
+      options?: ProviderOptions
+    ) => AsyncGenerator<import('@/types/ai').StreamChunk, void, unknown>;
+    ready: boolean;
+  };
   isReady: boolean;
 
   // Handlers
@@ -24,15 +35,29 @@ export interface UseChatReturn {
 }
 
 export function useChat(): UseChatReturn {
-  const store = useSiteStore();
+  // Inject services using dependency injection
+  const store = useService<ISiteStore>(SERVICE_TOKENS.SITE_SERVICE);
+  const providerManager = useService<IAIProviderManager>(SERVICE_TOKENS.PROVIDER_MANAGER);
 
   // Get available providers and use the first one available
-  const availableProviders = simpleAIProviderManager.getAvailableProviders();
+  const availableProviders = providerManager.getAvailableProviders();
   const selectedProvider = availableProviders.length > 0 ? availableProviders[0] : 'google';
 
-  // Always call the hook, but handle unavailable providers gracefully
-  const ai = useAIProvider(selectedProvider);
+  // Get the AI provider instance
+  const aiProvider = providerManager.getProvider(selectedProvider);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Create a compatible AI interface for backward compatibility
+  const ai = useMemo(
+    () => ({
+      generate: (messages: AIMessage[], options?: ProviderOptions) =>
+        aiProvider.generate(messages, options),
+      generateStream: (messages: AIMessage[], options?: ProviderOptions) =>
+        aiProvider.generateStream(messages, options),
+      ready: aiProvider.isAvailable(),
+    }),
+    [aiProvider]
+  );
 
   // Stable handler for Deep Chat
   const handleMessage = useCallback(
@@ -84,7 +109,8 @@ export function useChat(): UseChatReturn {
       const userText: string = userMessage.text;
 
       // Build history from store
-      const historyAi: AIMessage[] = store.messages
+      const historyAi: AIMessage[] = store
+        .getMessages()
         .filter(
           (m) =>
             (m.role === 'user' || m.role === 'assistant') && !!m.content && m.content.trim() !== ''
@@ -185,13 +211,14 @@ I'm your AI assistant for creating beautiful websites! Ask me to create any type
 
   // Convert store messages to Deep Chat format
   const history = useMemo(() => {
-    return store.messages
+    return store
+      .getMessages()
       .filter((m) => (m.role === 'user' || m.role === 'assistant') && !!m.content)
       .map((m) => ({
         role: (m.role === 'assistant' ? 'ai' : 'user') as 'user' | 'ai',
         text: m.content,
       }));
-  }, [store.messages]);
+  }, [store]);
 
   return {
     availableProviders,

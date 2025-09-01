@@ -44,6 +44,7 @@ async function loadProvider(provider, apiKeys) {
         );
         throw new Error('Missing GOOGLE_API_KEY/GEMINI_API_KEY');
       }
+
       console.log(
         '[AI-SERVER] google: using API key from source:',
         apiKeys.__DEV_GOOGLE_API_KEY__
@@ -128,25 +129,94 @@ function toCoreMessages(messages = []) {
 export function createAiSdkRouter(basePath = '/api/ai-sdk') {
   const router = express.Router();
 
-  // Try to obtain a Google API key from common dev header variants
-  function extractDevGoogleKey(req) {
+  // Try to obtain API keys from headers for all providers
+  function extractApiKeysFromHeaders(req) {
     const h = req.headers || {};
-    // Normalize to string accessor (node lower-cases header names)
-    const candidates = [
-      h['x-google-api-key'],
-      h['x-goog-api-key'],
-      h['x-gemini-api-key'],
-      h['x-api-key'],
-    ].filter(Boolean);
-    // Support Authorization: Bearer <key>
+    const apiKeys = { ...process.env };
+    const { options = {}, apiKey } = req.body || {};
+    const providerName = (options.provider || 'google').toLowerCase();
+
+    // Extract API keys from headers for all supported providers
+    const headerMappings = {
+      'x-google-api-key': 'GOOGLE_API_KEY',
+      'x-goog-api-key': 'GOOGLE_API_KEY',
+      'x-gemini-api-key': 'GEMINI_API_KEY',
+      'x-openai-api-key': 'OPENAI_API_KEY',
+      'x-anthropic-api-key': 'ANTHROPIC_API_KEY',
+      'x-cohere-api-key': 'COHERE_API_KEY',
+      'x-api-key': null, // Generic key - map based on provider
+    };
+
+    // Check Authorization header for Bearer tokens
     const auth = typeof h.authorization === 'string' ? h.authorization.trim() : '';
     if (auth) {
       const m = auth.match(/^(?:Bearer|Api-Key|Key)\s+(.+)$/i);
-      if (m && m[1]) candidates.unshift(m[1]);
+      if (m && m[1]) {
+        // For Bearer tokens, map to the current provider
+        const providerKeyMap = {
+          google: 'GOOGLE_API_KEY',
+          openai: 'OPENAI_API_KEY',
+          anthropic: 'ANTHROPIC_API_KEY',
+          cohere: 'COHERE_API_KEY',
+        };
+        const envVar = providerKeyMap[providerName];
+        if (envVar) {
+          apiKeys[envVar] = m[1];
+          if (envVar === 'GOOGLE_API_KEY') {
+            apiKeys.GEMINI_API_KEY = m[1];
+          }
+        }
+      }
     }
-    // First non-empty string wins
-    const key = candidates.find((v) => typeof v === 'string' && v.length > 0);
-    return typeof key === 'string' ? String(key) : undefined;
+
+    // Extract from specific headers
+    Object.entries(headerMappings).forEach(([header, envVar]) => {
+      const value = h[header.toLowerCase()];
+      if (value && typeof value === 'string' && value.length > 0) {
+        if (envVar) {
+          // Specific header mapping
+          apiKeys[envVar] = value;
+          if (envVar === 'GOOGLE_API_KEY') {
+            apiKeys.GEMINI_API_KEY = value;
+          }
+        } else if (header === 'x-api-key') {
+          // Generic x-api-key header - map based on provider
+          const providerKeyMap = {
+            google: 'GOOGLE_API_KEY',
+            openai: 'OPENAI_API_KEY',
+            anthropic: 'ANTHROPIC_API_KEY',
+            cohere: 'COHERE_API_KEY',
+          };
+          const targetEnvVar = providerKeyMap[providerName];
+          if (targetEnvVar) {
+            apiKeys[targetEnvVar] = value;
+            if (targetEnvVar === 'GOOGLE_API_KEY') {
+              apiKeys.GEMINI_API_KEY = value;
+            }
+          }
+        }
+      }
+    });
+
+    // Check request body for apiKey (fallback for large headers)
+    if (apiKey && typeof apiKey === 'string' && apiKey.length > 0) {
+      const providerKeyMap = {
+        google: 'GOOGLE_API_KEY',
+        openai: 'OPENAI_API_KEY',
+        anthropic: 'ANTHROPIC_API_KEY',
+        cohere: 'COHERE_API_KEY',
+      };
+      const targetEnvVar = providerKeyMap[providerName];
+      if (targetEnvVar && !apiKeys[targetEnvVar]) {
+        // Only use if not already set from headers
+        apiKeys[targetEnvVar] = apiKey;
+        if (targetEnvVar === 'GOOGLE_API_KEY') {
+          apiKeys.GEMINI_API_KEY = apiKey;
+        }
+      }
+    }
+
+    return apiKeys;
   }
 
   // Small helper to get default model for a provider without requiring API keys
@@ -172,16 +242,14 @@ export function createAiSdkRouter(basePath = '/api/ai-sdk') {
       const started = Date.now();
       const { messages = [], options = {} } = req.body || {};
       const providerName = options.provider || process.env.AI_DEFAULT_PROVIDER || 'google';
-      const devKeys = { ...process.env };
-      // Allow dev override via header for local testing (support multiple header variants)
-      const devHeaderKey = extractDevGoogleKey(req);
-      if (devHeaderKey) devKeys.__DEV_GOOGLE_API_KEY__ = String(devHeaderKey);
+      const devKeys = extractApiKeysFromHeaders(req);
       slog('generate:request', {
         reqId,
         provider: providerName,
         model: options.model || '(server-default)',
-        hasDevHeader: Boolean(devHeaderKey),
-        headerPreview: devHeaderKey ? mask(devHeaderKey) : undefined,
+        hasDevHeaders: Object.keys(devKeys).some(
+          (key) => key.includes('API') && devKeys[key] !== process.env[key]
+        ),
         msgCount: Array.isArray(messages) ? messages.length : 0,
         lastMsgLen:
           (Array.isArray(messages) && messages[messages.length - 1]?.content?.length) || 0,
@@ -233,15 +301,14 @@ export function createAiSdkRouter(basePath = '/api/ai-sdk') {
       const started = Date.now();
       const { messages = [], options = {} } = req.body || {};
       const providerName = options.provider || process.env.AI_DEFAULT_PROVIDER || 'google';
-      const devKeys = { ...process.env };
-      const devHeaderKey = extractDevGoogleKey(req);
-      if (devHeaderKey) devKeys.__DEV_GOOGLE_API_KEY__ = String(devHeaderKey);
+      const devKeys = extractApiKeysFromHeaders(req);
       slog('stream:request', {
         reqId,
         provider: providerName,
         model: options.model || '(server-default)',
-        hasDevHeader: Boolean(devHeaderKey),
-        headerPreview: devHeaderKey ? mask(devHeaderKey) : undefined,
+        hasDevHeaders: Object.keys(devKeys).some(
+          (key) => key.includes('API') && devKeys[key] !== process.env[key]
+        ),
         msgCount: Array.isArray(messages) ? messages.length : 0,
         lastMsgLen:
           (Array.isArray(messages) && messages[messages.length - 1]?.content?.length) || 0,
@@ -338,26 +405,147 @@ export function createAiSdkRouter(basePath = '/api/ai-sdk') {
     }
   });
 
-  // POST /chat -> Conversational chat endpoint using AI SDK
-  router.post(`${basePath}/chat`, async (req, res) => {
+  // POST /stream -> Streaming chat endpoint using AI SDK
+  router.post(`${basePath}/stream`, async (req, res) => {
     try {
       const reqId = makeReqId();
       const started = Date.now();
-      const { messages = [], provider, model, systemInstruction, temperature } = req.body || {};
+      const {
+        messages = [],
+        provider,
+        model,
+        systemInstruction,
+        temperature,
+        apiKey,
+      } = req.body || {};
       const providerName = provider || process.env.AI_DEFAULT_PROVIDER || 'google';
-      const devKeys = { ...process.env };
-      const devHeaderKey = extractDevGoogleKey(req);
-      if (devHeaderKey) devKeys.__DEV_GOOGLE_API_KEY__ = String(devHeaderKey);
-      slog('chat:request', {
+
+      // Extract API keys from request body if provided
+      const devKeys = extractApiKeysFromHeaders(req);
+      if (apiKey) {
+        // Override with API key from request body
+        switch (providerName.toLowerCase()) {
+          case 'google':
+          case 'gemini':
+            devKeys.GOOGLE_API_KEY = apiKey;
+            devKeys.GEMINI_API_KEY = apiKey;
+            break;
+          case 'openai':
+            devKeys.OPENAI_API_KEY = apiKey;
+            break;
+          case 'anthropic':
+            devKeys.ANTHROPIC_API_KEY = apiKey;
+            break;
+          case 'cohere':
+            devKeys.COHERE_API_KEY = apiKey;
+            break;
+        }
+      }
+
+      slog('stream:request', {
         reqId,
         provider: providerName,
         model: model || '(server-default)',
-        hasDevHeader: Boolean(devHeaderKey),
-        headerPreview: devHeaderKey ? mask(devHeaderKey) : undefined,
         msgCount: Array.isArray(messages) ? messages.length : 0,
-        lastMsgLen:
-          (Array.isArray(messages) && messages[messages.length - 1]?.content?.length) || 0,
       });
+
+      const { modelFactory, defaultModel } = await loadProvider(providerName, devKeys);
+
+      const core = await import('ai').catch(() => null);
+      if (!core) throw new Error("Package 'ai' not installed");
+      const { streamText } = core;
+
+      const modelName = model || defaultModel;
+      const system = systemInstruction || undefined;
+      const temp = typeof temperature === 'number' ? temperature : undefined;
+
+      // Convert messages format
+      const formattedMessages = messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+
+      const result = await streamText({
+        model: modelFactory(modelName),
+        system,
+        temperature: temp,
+        messages: formattedMessages,
+      });
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      for await (const chunk of result.textStream) {
+        res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: chunk } }] })}\n\n`);
+      }
+
+      res.write('data: [DONE]\n\n');
+      res.end();
+
+      slog('stream:response_ok', {
+        reqId,
+        provider: providerName,
+        model: modelName,
+        ms: Date.now() - started,
+      });
+    } catch (err) {
+      const status = err?.status || 500;
+      const msg = err?.message || 'AI SDK stream error';
+      slog('stream:response_error', { status, error: msg });
+      return res.status(status).send(String(msg));
+    }
+  });
+
+  // POST /generate -> Non-streaming generation endpoint
+  router.post(`${basePath}/generate`, async (req, res) => {
+    try {
+      const reqId = makeReqId();
+      const started = Date.now();
+      const {
+        messages = [],
+        provider,
+        model,
+        systemInstruction,
+        temperature,
+        apiKey,
+      } = req.body || {};
+      const providerName = provider || process.env.AI_DEFAULT_PROVIDER || 'google';
+
+      // Extract API keys from request body if provided
+      const devKeys = extractApiKeysFromHeaders(req);
+      if (apiKey) {
+        // Debug: Log API key info (masked)
+        console.log(
+          `[AI-SERVER] Received API key for ${providerName}: length=${apiKey.length}, starts with=${apiKey.substring(0, 4)}..., ends with=...${apiKey.substring(apiKey.length - 4)}`
+        );
+
+        // Override with API key from request body
+        switch (providerName.toLowerCase()) {
+          case 'google':
+          case 'gemini':
+            devKeys.GOOGLE_API_KEY = apiKey;
+            devKeys.GEMINI_API_KEY = apiKey;
+            break;
+          case 'openai':
+            devKeys.OPENAI_API_KEY = apiKey;
+            break;
+          case 'anthropic':
+            devKeys.ANTHROPIC_API_KEY = apiKey;
+            break;
+          case 'cohere':
+            devKeys.COHERE_API_KEY = apiKey;
+            break;
+        }
+      }
+
+      slog('generate:request', {
+        reqId,
+        provider: providerName,
+        model: model || '(server-default)',
+        msgCount: Array.isArray(messages) ? messages.length : 0,
+      });
+
       const { modelFactory, defaultModel } = await loadProvider(providerName, devKeys);
 
       const core = await import('ai').catch(() => null);
@@ -368,35 +556,38 @@ export function createAiSdkRouter(basePath = '/api/ai-sdk') {
       const system = systemInstruction || undefined;
       const temp = typeof temperature === 'number' ? temperature : undefined;
 
-      // Use the last message as the prompt for conversational context
-      const last = messages[messages.length - 1];
-      const prompt = last?.content || '';
+      // Convert messages format and use the last message as prompt for simple generation
+      const formattedMessages = messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
 
       const result = await generateText({
         model: modelFactory(modelName),
         system,
         temperature: temp,
-        prompt,
+        messages: formattedMessages,
       });
 
       const payload = {
         id: reqId,
-        role: 'assistant',
-        content: result.text,
+        text: result.text,
         finishReason: result.finishReason || 'FINISHED',
+        usage: result.usage,
       };
-      slog('chat:response_ok', {
+
+      slog('generate:response_ok', {
         reqId,
         provider: providerName,
         model: modelName,
         ms: Date.now() - started,
-        contentLen: payload.content ? payload.content.length : 0,
+        contentLen: payload.text ? payload.text.length : 0,
       });
       return res.json(payload);
     } catch (err) {
       const status = err?.status || 500;
-      const msg = err?.message || 'AI SDK chat error';
-      slog('chat:response_error', { status, error: msg });
+      const msg = err?.message || 'AI SDK generate error';
+      slog('generate:response_error', { status, error: msg });
       return res.status(status).send(String(msg));
     }
   });

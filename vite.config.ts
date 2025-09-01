@@ -55,11 +55,35 @@ export default defineConfig({
       '/api/ai': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        configure: (proxy, _options) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+            // Increase header size limit
+            proxyReq.setHeader('Accept-Encoding', 'gzip, deflate');
+          });
+        },
       },
       // Vercel AI SDK router pass-through
       '/api/ai-sdk': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        configure: (proxy, _options) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+            // Increase header size limit and handle large API keys
+            proxyReq.setHeader('Accept-Encoding', 'gzip, deflate');
+          });
+        },
       },
     },
   },

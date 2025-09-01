@@ -78,43 +78,40 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
     updateApiKey(key, value);
   };
 
-  const testProviderConnection = async (provider: string) => {
-    const apiKey = getApiKey(provider);
-    if (!apiKey) return;
-
+  const testProviderConnection = async (provider: string, apiKey: string) => {
     setIsTesting(provider);
     try {
       const response = await fetch('/api/ai-sdk/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
         },
         body: JSON.stringify({
-          messages: [{ role: 'user', content: 'Hello, test message' }],
-          options: {
-            provider,
-            model: PROVIDER_CONFIGS[provider].defaultModel,
-          },
+          messages: [{ role: 'user', content: 'ping' }],
+          options: { provider },
+          apiKey, // Send API key in body instead of header to avoid 431 error
         }),
       });
 
-      const success = response.ok;
-      setTestResults((prev) => ({ ...prev, [provider]: success }));
-
-      if (success) {
-        console.log(`✅ ${provider} connection test successful`);
-      } else {
-        console.error(`❌ ${provider} connection test failed:`, response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
+
+      // Just check if response is ok, no need to parse JSON for ping
+      setTestResults((prev) => ({ ...prev, [provider]: true }));
+      return { success: true, message: 'Connection successful!' };
     } catch (error) {
-      console.error(`❌ ${provider} connection test error:`, error);
+      console.error('Provider connection test failed:', error);
       setTestResults((prev) => ({ ...prev, [provider]: false }));
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Connection failed',
+      };
     } finally {
       setIsTesting(null);
     }
   };
-
   const selectedConfig = PROVIDER_CONFIGS[selectedProvider];
 
   return (
@@ -125,18 +122,23 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
       </div>
 
       <div className="provider-selector">
-        <label htmlFor="provider-select">Select Provider:</label>
-        <select
-          id="provider-select"
-          value={selectedProvider}
-          onChange={(e) => setSelectedProvider(e.target.value)}
-        >
-          {Object.values(PROVIDER_CONFIGS).map((config) => (
-            <option key={config.name} value={config.name}>
-              {config.displayName}
-            </option>
-          ))}
-        </select>
+        <div className="form-control w-full max-w-xs">
+          <label className="label">
+            <span className="label-text">Select Provider:</span>
+          </label>
+          <select
+            id="provider-select"
+            value={selectedProvider}
+            onChange={(e) => setSelectedProvider(e.target.value)}
+            className="select select-bordered w-full max-w-xs"
+          >
+            {Object.values(PROVIDER_CONFIGS).map((config) => (
+              <option key={config.name} value={config.name}>
+                {config.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="provider-config">
@@ -154,24 +156,29 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
         </div>
 
         <div className="api-key-input">
-          <label htmlFor={`api-key-${selectedProvider}`}>
-            API Key for {selectedConfig.displayName}:
-          </label>
-          <input
-            id={`api-key-${selectedProvider}`}
-            type="password"
-            value={getApiKey(selectedProvider)}
-            onChange={(e) => handleApiKeyChange(selectedProvider, e.target.value)}
-            placeholder={`Enter your ${selectedConfig.displayName} API key`}
-          />
-          <small>
-            Your API key is stored locally in your browser and never sent to our servers.
-          </small>
+          <div className="form-control w-full">
+            <label className="label" htmlFor={`api-key-${selectedProvider}`}>
+              <span className="label-text">API Key for {selectedConfig.displayName}:</span>
+            </label>
+            <input
+              id={`api-key-${selectedProvider}`}
+              type="password"
+              value={getApiKey(selectedProvider)}
+              onChange={(e) => handleApiKeyChange(selectedProvider, e.target.value)}
+              placeholder={`Enter your ${selectedConfig.displayName} API key`}
+              className="input input-bordered w-full"
+            />
+            <label className="label">
+              <span className="label-text-alt text-gray-500">
+                Your API key is stored locally in your browser and never sent to our servers.
+              </span>
+            </label>
+          </div>
         </div>
 
         <div className="test-connection">
           <Button
-            onClick={() => testProviderConnection(selectedProvider)}
+            onClick={() => testProviderConnection(selectedProvider, getApiKey(selectedProvider))}
             disabled={!getApiKey(selectedProvider) || isTesting === selectedProvider}
             variant="secondary"
           >
@@ -179,24 +186,30 @@ export function AiProviderSettings({ onClose, className = '' }: AiProviderSettin
           </Button>
 
           {testResults[selectedProvider] !== undefined && (
-            <span className={`test-result ${testResults[selectedProvider] ? 'success' : 'error'}`}>
-              {testResults[selectedProvider] ? '✅ Connected' : '❌ Failed'}
-            </span>
+            <div
+              className={`alert ${testResults[selectedProvider] ? 'alert-success' : 'alert-error'} mt-4`}
+            >
+              <span>{testResults[selectedProvider] ? '✅ Connected' : '❌ Failed'}</span>
+            </div>
           )}
         </div>
       </div>
 
       <div className="provider-status">
         <h4>Provider Status</h4>
-        <div className="status-grid">
+        <div className="status-grid grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.values(PROVIDER_CONFIGS).map((config) => (
-            <div key={config.name} className="status-item">
-              <span className="provider-name">{config.displayName}</span>
-              <span
-                className={`status-indicator ${getApiKey(config.name) ? 'configured' : 'missing'}`}
-              >
-                {getApiKey(config.name) ? '✅ Configured' : '⚠️ API Key Needed'}
-              </span>
+            <div key={config.name} className="card bg-base-100 shadow-md">
+              <div className="card-body p-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{config.displayName}</span>
+                  <div
+                    className={`badge ${getApiKey(config.name) ? 'badge-success' : 'badge-warning'} gap-2`}
+                  >
+                    {getApiKey(config.name) ? '✅ Configured' : '⚠️ API Key Needed'}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>

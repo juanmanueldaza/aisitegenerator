@@ -3,9 +3,9 @@ import { ChatTab } from '@/components/tabs/ChatTab';
 import { EditorTab } from '@/components/tabs/EditorTab';
 import { SettingsTab } from '@/components/tabs/SettingsTab';
 import { DeployTab } from '@/components/tabs/DeployTab';
-import { Layout } from '@/components/layout/Layout';
 import { ServiceProvider } from '@/di/ServiceContext';
 import { createConfiguredContainer } from '@/di/service-registry';
+import { ThemeSelector } from '@/components/ui/ThemeSelector';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'chat' | 'editor' | 'settings' | 'deploy'>('chat');
@@ -13,51 +13,53 @@ function App() {
   // Initialize DI container with all services
   const container = createConfiguredContainer();
 
+  const tabs = [
+    { id: 'chat' as const, label: '💬 Chat', content: <ChatTab /> },
+    { id: 'editor' as const, label: '📝 Editor', content: <EditorTab /> },
+    { id: 'settings' as const, label: '⚙️ Settings', content: <SettingsTab /> },
+    { id: 'deploy' as const, label: '🚀 Deploy', content: <DeployTab /> },
+  ];
+
   return (
     <ServiceProvider container={container}>
-      <Layout>
-        <div className="space-y-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              AI Site Generator
-            </h1>
-            <p className="text-gray-600">Create beautiful websites with AI assistance</p>
+      <div className="min-h-screen bg-base-200">
+        {/* Header with Theme Selector */}
+        <div className="navbar bg-base-100 shadow-lg">
+          <div className="navbar-start">
+            <div className="text-xl font-bold text-primary">AI Site Generator</div>
           </div>
+          <div className="navbar-end">
+            <ThemeSelector />
+          </div>
+        </div>
 
-          {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200 mb-6 bg-white rounded-lg p-1 shadow-sm">
-            {[
-              { id: 'chat', label: '💬 Chat', description: 'AI Conversation' },
-              { id: 'editor', label: '📝 Editor', description: 'Content Editor' },
-              { id: 'settings', label: '⚙️ Settings', description: 'Configuration' },
-              { id: 'deploy', label: '🚀 Deploy', description: 'Deployment' },
-            ].map((tab) => (
+        {/* Tab Navigation */}
+        <div className="mb-8 px-4">
+          <div className="tabs tabs-lift tabs-lg justify-center">
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'chat' | 'editor' | 'settings' | 'deploy')}
-                className={`flex-1 px-4 py-3 font-medium text-sm rounded-md transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                className={`tab tab-lg transition-all duration-300 hover:scale-105 ${
+                  activeTab === tab.id ? 'tab-active' : ''
                 }`}
-                title={tab.description}
+                onClick={() => setActiveTab(tab.id)}
+                aria-current={activeTab === tab.id ? 'page' : undefined}
               >
-                {tab.label}
+                <span className="font-medium">{tab.label}</span>
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Tab Content */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="p-6">
-              {activeTab === 'chat' && <ChatTab />}
-              {activeTab === 'editor' && <EditorTab />}
-              {activeTab === 'settings' && <SettingsTab />}
-              {activeTab === 'deploy' && <DeployTab />}
+        {/* Tab Content */}
+        <div className="container mx-auto px-4">
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body min-h-[600px]">
+              {tabs.find((tab) => tab.id === activeTab)?.content}
             </div>
           </div>
         </div>
-      </Layout>
+      </div>
     </ServiceProvider>
   );
 }

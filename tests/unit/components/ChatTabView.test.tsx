@@ -39,9 +39,9 @@ describe('ChatTabView Component', () => {
   it('should render successfully with providers available', () => {
     render(<ChatTabView {...defaultProps} />);
 
-    expect(screen.getByText('🟢 AI Connection')).toBeInTheDocument();
-    expect(screen.getByText('Provider: Google')).toBeInTheDocument();
-    expect(screen.getByText('✅ AI provider ready')).toBeInTheDocument();
+    expect(screen.getByText('AI Connection')).toBeTruthy();
+    expect(screen.getByText('Google')).toBeTruthy();
+    expect(screen.getByText((content) => content.includes('✅ AI provider ready'))).toBeTruthy();
   });
 
   it('should render with no providers available', () => {
@@ -52,10 +52,14 @@ describe('ChatTabView Component', () => {
 
     render(<ChatTabView {...props} />);
 
-    expect(screen.getByText('🔴 No AI Providers Available')).toBeInTheDocument();
-    expect(screen.getByText('❌ No AI providers are configured')).toBeInTheDocument();
-    expect(screen.getByText('💬')).toBeInTheDocument();
-    expect(screen.getByText('Chat Unavailable')).toBeInTheDocument();
+    expect(screen.getByText('No AI Providers Available')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Please configure at least one AI provider in the Settings tab to enable chat functionality.'
+      )
+    ).toBeTruthy();
+    expect(screen.getByText('💬')).toBeTruthy();
+    expect(screen.getByText('Chat Unavailable')).toBeTruthy();
   });
 
   it('should render with AI not ready', () => {
@@ -66,8 +70,15 @@ describe('ChatTabView Component', () => {
 
     render(<ChatTabView {...props} />);
 
-    expect(screen.getByText('🔴 AI Connection')).toBeInTheDocument();
-    expect(screen.getByText('❌ AI provider not configured')).toBeInTheDocument();
+    // Check for the specific error message that appears when AI is not ready
+    expect(
+      screen.getByText((content) => content.includes('❌ AI provider not configured'))
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Configure your AI provider in the Settings tab to enable chat functionality.'
+      )
+    ).toBeTruthy();
   });
 
   it('should display correct provider name', () => {
@@ -78,7 +89,7 @@ describe('ChatTabView Component', () => {
 
     render(<ChatTabView {...props} />);
 
-    expect(screen.getByText('Provider: Openai')).toBeInTheDocument();
+    expect(screen.getByText('Openai')).toBeTruthy();
   });
 
   it('should render chat interface when providers are available', () => {
@@ -86,7 +97,7 @@ describe('ChatTabView Component', () => {
 
     // The component should render without crashing
     // DeepChat component is mocked, so we just verify the container exists
-    const connectionElements = screen.getAllByText('🟢 AI Connection');
+    const connectionElements = screen.getAllByText('AI Connection');
     expect(connectionElements.length).toBeGreaterThan(0);
   });
 
@@ -94,7 +105,7 @@ describe('ChatTabView Component', () => {
     render(<ChatTabView {...defaultProps} />);
 
     // Since Suspense is mocked, we should see the main content
-    const connectionElements = screen.getAllByText('🟢 AI Connection');
+    const connectionElements = screen.getAllByText('AI Connection');
     expect(connectionElements.length).toBeGreaterThan(0);
   });
 });

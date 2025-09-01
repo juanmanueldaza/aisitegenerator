@@ -237,6 +237,20 @@ export const useLocalStorageSync = <T extends Record<string, unknown>>(
       try {
         const item = window.localStorage.getItem(key as string);
         if (item !== null) {
+          // Check if this is a JSON string that represents a string (starts and ends with quotes)
+          if (item.startsWith('"') && item.endsWith('"')) {
+            try {
+              const parsed = JSON.parse(item);
+              // If parsing gives us a string, use it directly
+              if (typeof parsed === 'string') {
+                (initialValues as Record<string, unknown>)[key as string] = parsed;
+                return;
+              }
+            } catch {
+              // If parsing fails, fall back to original behavior
+            }
+          }
+          // Default behavior for objects and other values
           initialValues[key] = JSON.parse(item);
         }
       } catch (error) {

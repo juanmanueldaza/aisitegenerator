@@ -32,131 +32,62 @@ export function ChatTabView({
   connect,
 }: ChatTabViewProps) {
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="flex flex-col h-full">
       {availableProviders.length === 0 ? (
-        <div
-          style={{
-            padding: '16px',
-            backgroundColor: '#fef2f2',
-            borderRadius: '8px',
-            marginBottom: '16px',
-            border: '2px solid #fecaca',
-          }}
-        >
-          <h4
-            style={{
-              margin: '0 0 12px 0',
-              fontSize: '16px',
-              color: '#374151',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            🔴 No AI Providers Available
-          </h4>
-          <div style={{ fontSize: '13px', color: '#dc2626' }}>
-            ❌ No AI providers are configured
-            <div style={{ marginTop: '8px', fontSize: '12px' }}>
+        <div className="alert alert-error mb-4">
+          <span className="text-xl">🔴</span>
+          <div>
+            <h3 className="font-bold">No AI Providers Available</h3>
+            <div className="text-sm">
               Please configure at least one AI provider in the Settings tab to enable chat
               functionality.
             </div>
           </div>
         </div>
       ) : (
-        <div
-          style={{
-            padding: '16px',
-            backgroundColor: isReady ? '#f0f9ff' : '#f8f9fa',
-            borderRadius: '8px',
-            marginBottom: '16px',
-            border: `2px solid ${isReady ? '#3b82f6' : '#e9ecef'}`,
-          }}
-        >
-          <h4
-            style={{
-              margin: '0 0 12px 0',
-              fontSize: '16px',
-              color: '#374151',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            {isReady ? '🟢' : '🔴'} AI Connection
-            <span
-              style={{
-                fontSize: 12,
-                color: '#111827',
-                background: '#E5E7EB',
-                padding: '2px 6px',
-                borderRadius: 6,
-              }}
-            >
-              Provider: {selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)}
-            </span>
-          </h4>
-
-          <div style={{ fontSize: '13px', color: isReady ? '#059669' : '#6b7280' }}>
-            {isReady ? '✅ AI provider ready' : '❌ AI provider not configured'}
-            {!isReady && (
-              <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                Configure your AI provider in the Settings tab to enable chat functionality.
-              </div>
-            )}
+        <div className={`alert mb-4 ${isReady ? 'alert-success' : 'alert-warning'}`}>
+          <span className="text-xl">{isReady ? '🟢' : '🔴'}</span>
+          <div>
+            <h3 className="font-bold">AI Connection</h3>
+            <div className="text-sm">
+              Provider:{' '}
+              <span className="badge badge-outline">
+                {selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)}
+              </span>
+              <br />
+              {isReady ? '✅ AI provider ready' : '❌ AI provider not configured'}
+              {!isReady && (
+                <div className="mt-2">
+                  Configure your AI provider in the Settings tab to enable chat functionality.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      <div style={{ flex: 1, minHeight: '400px' }}>
+      <div className="flex-1 min-h-[400px]">
         {availableProviders.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              color: '#6b7280',
-              backgroundColor: '#f9fafb',
-            }}
-          >
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', marginBottom: '8px' }}>💬</div>
-              <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '4px' }}>
-                Chat Unavailable
-              </div>
-              <div style={{ fontSize: '14px' }}>
-                Configure an AI provider in Settings to enable chat
+          <div className="hero min-h-[400px] bg-base-200 rounded-lg">
+            <div className="hero-content text-center">
+              <div className="max-w-md">
+                <div className="text-6xl mb-4">💬</div>
+                <h1 className="text-2xl font-bold">Chat Unavailable</h1>
+                <p className="py-6">Configure an AI provider in Settings to enable chat</p>
               </div>
             </div>
           </div>
         ) : (
           <React.Suspense
             fallback={
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  color: '#6b7280',
-                }}
-              >
-                Loading chat…
+              <div className="flex items-center justify-center h-full">
+                <div className="loading loading-spinner loading-lg"></div>
+                <div className="ml-4">Loading chat...</div>
               </div>
             }
           >
             <LazyDeepChat
-              style={{
-                height: '100%',
-                width: '100%',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-              }}
+              className="h-full w-full border border-base-300 rounded-lg"
               introMessage={introMessage}
               textInput={textInput}
               requestBodyLimits={requestBodyLimits}

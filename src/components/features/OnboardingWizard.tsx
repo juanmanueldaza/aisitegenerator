@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import GitHubAuth from '@/components/auth/GitHubAuth';
-import { InlineCallout, HelpPanel } from '@/components/ui';
+import { HelpPanel } from '@/components/ui';
 import { useSiteStore } from '@/store/siteStore';
 
 export interface OnboardingWizardProps {
@@ -48,59 +48,41 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
   if (!open) return null;
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="onboarding-title"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 70,
-      }}
-    >
-      <div
-        style={{ background: 'white', borderRadius: 8, width: '96%', maxWidth: 760, padding: 16 }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 id="onboarding-title" style={{ margin: 0 }}>
-            Get started
-          </h3>
-          <button className="btn btn-secondary btn-small" onClick={onClose}>
-            Close
+    <div className="modal modal-open">
+      <div className="modal-box max-w-2xl">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold">Get started</h3>
+          <button className="btn btn-sm btn-circle btn-ghost" onClick={onClose}>
+            ✕
           </button>
         </div>
-        <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8 }}>
+        <p className="text-sm text-base-content/70 mb-4">
           This quick setup connects your GitHub account and creates a starter site you can preview
           and deploy.
         </p>
-        <div style={{ marginTop: 12 }}>
-          <ol style={{ paddingLeft: 16 }}>
-            <li style={{ fontWeight: step === 1 ? 700 : 400 }}>Connect GitHub</li>
-            <li style={{ fontWeight: step === 2 ? 700 : 400 }}>Name your project</li>
-            <li style={{ fontWeight: step === 3 ? 700 : 400 }}>Generate & preview</li>
-            <li style={{ fontWeight: step === 4 ? 700 : 400 }}>Deploy to Pages (optional)</li>
-          </ol>
+        <div className="mb-6">
+          <div className="steps steps-vertical lg:steps-horizontal w-full">
+            <div className={`step ${step >= 1 ? 'step-primary' : ''}`}>Connect GitHub</div>
+            <div className={`step ${step >= 2 ? 'step-primary' : ''}`}>Name your project</div>
+            <div className={`step ${step >= 3 ? 'step-primary' : ''}`}>Generate & preview</div>
+            <div className={`step ${step >= 4 ? 'step-primary' : ''}`}>Deploy to Pages</div>
+          </div>
         </div>
         {step === 1 && (
-          <div style={{ marginTop: 12 }}>
-            <InlineCallout tone="info">
-              Use your GitHub account. We only request minimal permissions.{' '}
-              <button
-                className="btn btn-secondary btn-small"
-                onClick={() => setHelpOpen('auth')}
-                style={{ marginLeft: 6 }}
-              >
-                Why?
-              </button>
-            </InlineCallout>
-            <div style={{ marginTop: 8 }}>
+          <div className="space-y-4">
+            <div className="alert alert-info">
+              <span>ℹ️</span>
+              <div>
+                Use your GitHub account. We only request minimal permissions.{' '}
+                <button className="btn btn-sm btn-ghost" onClick={() => setHelpOpen('auth')}>
+                  Why?
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-center">
               <GitHubAuth />
             </div>
-            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+            <div className="modal-action">
               <button className="btn btn-primary" onClick={() => setStep(2)}>
                 Continue
               </button>
@@ -108,23 +90,22 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
         )}
         {step === 2 && (
-          <div style={{ marginTop: 12 }}>
-            <label htmlFor="proj" style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-              Project name
-            </label>
-            <input
-              id="proj"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                border: '1px solid #e5e7eb',
-                borderRadius: 6,
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => setStep(1)}>
+          <div className="space-y-4">
+            <div className="form-control w-full">
+              <label className="label">
+                <span className="label-text font-semibold">Project name</span>
+              </label>
+              <input
+                id="proj"
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="Enter your project name"
+                className="input input-bordered w-full"
+              />
+            </div>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setStep(1)}>
                 Back
               </button>
               <button
@@ -141,12 +122,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
         )}
         {step === 3 && (
-          <div style={{ marginTop: 12 }}>
-            <InlineCallout tone="info">
-              Preview will be generated from your content in the main editor.
-            </InlineCallout>
-            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => setStep(2)}>
+          <div className="space-y-4">
+            <div className="alert alert-info">
+              <span>ℹ️</span>
+              <div>Preview will be generated from your content in the main editor.</div>
+            </div>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setStep(2)}>
                 Back
               </button>
               <button className="btn btn-primary" onClick={() => setStep(4)}>
@@ -156,19 +138,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
         )}
         {step === 4 && (
-          <div style={{ marginTop: 12 }}>
-            <InlineCallout tone="success">
-              You can deploy from the Deploy tab when ready.{' '}
-              <button
-                className="btn btn-secondary btn-small"
-                onClick={() => setHelpOpen('pages')}
-                style={{ marginLeft: 6 }}
-              >
-                Learn how
-              </button>
-            </InlineCallout>
-            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => setStep(3)}>
+          <div className="space-y-4">
+            <div className="alert alert-success">
+              <span>✅</span>
+              <div>
+                You can deploy from the Deploy tab when ready.{' '}
+                <button className="btn btn-sm btn-ghost" onClick={() => setHelpOpen('pages')}>
+                  Learn how
+                </button>
+              </div>
+            </div>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setStep(3)}>
                 Back
               </button>
               <button

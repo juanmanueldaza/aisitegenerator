@@ -108,11 +108,12 @@ describe('ChatTab', () => {
     renderChatTab();
 
     const aiConnectionHeader = screen.getByText((content, element) => {
-      return element?.tagName === 'H4' && content.includes('AI Connection');
+      return element?.tagName === 'H3' && content.includes('AI Connection');
     });
     expect(aiConnectionHeader).toBeTruthy();
-    expect(aiConnectionHeader.textContent).toContain('🟢');
-    expect(screen.getByText('Provider: Google')).toBeTruthy();
+    expect(screen.getByText('🟢')).toBeTruthy();
+    expect(screen.getByText('Provider:')).toBeTruthy();
+    expect(screen.getByText('Google')).toBeTruthy();
     expect(screen.getByText('✅ AI provider ready')).toBeTruthy();
   });
 
@@ -121,7 +122,7 @@ describe('ChatTab', () => {
     renderChatTab();
 
     const aiConnectionHeader = screen.getByText((content, element) => {
-      return element?.tagName === 'H4' && content.includes('AI Connection');
+      return element?.tagName === 'H3' && content.includes('AI Connection');
     });
     expect(aiConnectionHeader).toBeTruthy();
   });
@@ -158,7 +159,7 @@ describe('ChatTab', () => {
     // Error handling is tested implicitly through the component's error boundaries
     expect(
       screen.getByText((content, element) => {
-        return element?.tagName === 'H4' && content.includes('AI Connection');
+        return element?.tagName === 'H3' && content.includes('AI Connection');
       })
     ).toBeTruthy();
   });
@@ -169,7 +170,7 @@ describe('ChatTab', () => {
     // Initially shows loading or the chat interface
     expect(
       screen.getByText((content, element) => {
-        return element?.tagName === 'H4' && content.includes('AI Connection');
+        return element?.tagName === 'H3' && content.includes('AI Connection');
       })
     ).toBeTruthy();
   });
@@ -180,7 +181,7 @@ describe('ChatTab', () => {
 
     expect(
       screen.getByText((content, element) => {
-        return element?.tagName === 'H4' && content.includes('AI Connection');
+        return element?.tagName === 'H3' && content.includes('AI Connection');
       })
     ).toBeTruthy();
 
@@ -191,7 +192,7 @@ describe('ChatTab', () => {
 
     expect(
       screen.getByText((content, element) => {
-        return element?.tagName === 'H4' && content.includes('AI Connection');
+        return element?.tagName === 'H3' && content.includes('AI Connection');
       })
     ).toBeTruthy();
   });

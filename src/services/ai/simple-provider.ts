@@ -42,7 +42,24 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
       return;
     }
 
+    // For browser environment, we'll use the proxy server instead of direct AI SDK
+    if (typeof window !== 'undefined') {
+      console.log(`[AI-Provider] ${this.provider}: Using proxy server for browser environment`);
+      this._isAvailable = true;
+      return;
+    }
+
     try {
+      // Set the API key as an environment variable for the AI SDK (server-side only)
+      if (apiKey) {
+        process.env.GOOGLE_GENERATIVE_AI_API_KEY = apiKey;
+        process.env.GOOGLE_API_KEY = apiKey;
+        process.env.GEMINI_API_KEY = apiKey;
+        process.env.OPENAI_API_KEY = apiKey;
+        process.env.ANTHROPIC_API_KEY = apiKey;
+        process.env.COHERE_API_KEY = apiKey;
+      }
+
       switch (this.provider) {
         case 'google':
         case 'gemini':
@@ -66,13 +83,23 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
           return;
       }
       this._isAvailable = true;
-    } catch {
+    } catch (error) {
+      console.error(`[AI-Provider] ${this.provider}: Failed to initialize model:`, error);
       // If model initialization fails, mark as unavailable
       this._isAvailable = false;
     }
   }
 
   private getApiKey(): string | undefined {
+    // First try environment variables
+    const envKey = this.getApiKeyFromEnv();
+    if (envKey) return envKey;
+
+    // Then try localStorage (for browser-based configuration)
+    return this.getApiKeyFromLocalStorage();
+  }
+
+  private getApiKeyFromEnv(): string | undefined {
     switch (this.provider) {
       case 'google':
       case 'gemini':
@@ -91,9 +118,82 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
     }
   }
 
+  private getApiKeyFromLocalStorage(): string | undefined {
+    // Only check localStorage if we're in a browser environment
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return undefined;
+    }
+
+    try {
+      switch (this.provider) {
+        case 'google':
+        case 'gemini': {
+          const googleKey = localStorage.getItem('GOOGLE_API_KEY');
+          // Fix: Remove quotes if the API key is stored as a JSON string
+          if (googleKey && googleKey.startsWith('"') && googleKey.endsWith('"')) {
+            try {
+              const parsed = JSON.parse(googleKey);
+              return parsed;
+            } catch {
+              console.warn('[AI-Provider] Failed to parse API key from localStorage');
+            }
+          }
+          return googleKey || undefined;
+        }
+        case 'openai': {
+          const openaiKey = localStorage.getItem('OPENAI_API_KEY');
+          if (openaiKey && openaiKey.startsWith('"') && openaiKey.endsWith('"')) {
+            try {
+              return JSON.parse(openaiKey);
+            } catch {
+              // Ignore parse errors
+            }
+          }
+          return openaiKey || undefined;
+        }
+        case 'anthropic': {
+          const anthropicKey = localStorage.getItem('ANTHROPIC_API_KEY');
+          if (anthropicKey && anthropicKey.startsWith('"') && anthropicKey.endsWith('"')) {
+            try {
+              return JSON.parse(anthropicKey);
+            } catch {
+              // Ignore parse errors
+            }
+          }
+          return anthropicKey || undefined;
+        }
+        case 'cohere': {
+          const cohereKey = localStorage.getItem('COHERE_API_KEY');
+          if (cohereKey && cohereKey.startsWith('"') && cohereKey.endsWith('"')) {
+            try {
+              return JSON.parse(cohereKey);
+            } catch {
+              // Ignore parse errors
+            }
+          }
+          return cohereKey || undefined;
+        }
+        case 'proxy':
+          // Proxy might use Google as fallback
+          return localStorage.getItem('GOOGLE_API_KEY') || undefined;
+        default:
+          return undefined;
+      }
+    } catch (error) {
+      // localStorage might not be available or accessible
+      console.warn('Failed to read API key from localStorage:', error);
+      return undefined;
+    }
+  }
+
   async generate(messages: AIMessage[], options?: ProviderOptions): Promise<GenerateResult> {
     if (!this._isAvailable) {
       throw new Error(`Provider ${this.provider} is not available: API key not configured`);
+    }
+
+    // Use proxy server for browser environment
+    if (typeof window !== 'undefined') {
+      return this.generateViaProxy(messages, options);
     }
 
     try {
@@ -119,12 +219,65 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
     }
   }
 
+  private async generateViaProxy(
+    messages: AIMessage[],
+    options?: ProviderOptions
+  ): Promise<GenerateResult> {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
+      throw new Error(`Provider ${this.provider} is not available: API key not configured`);
+    }
+
+    try {
+      const response = await fetch('/api/ai-sdk/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          options: {
+            provider: this.provider,
+            temperature: options?.temperature ?? 0.7,
+            systemInstruction: options?.systemInstruction,
+          },
+          apiKey: apiKey, // Send API key in request body
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+      return {
+        text: result.text || result.content || '',
+        usage: result.usage,
+        finishReason: result.finishReason || 'stop',
+      };
+    } catch (error) {
+      throw new Error(
+        `AI generation via proxy failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
   async *generateStream(
     messages: AIMessage[],
     options?: ProviderOptions
   ): AsyncGenerator<StreamChunk, void, unknown> {
     if (!this._isAvailable) {
       throw new Error(`Provider ${this.provider} is not available: API key not configured`);
+    }
+
+    // Use proxy server for browser environment
+    if (typeof window !== 'undefined') {
+      yield* this.generateStreamViaProxy(messages, options);
+      return;
     }
 
     try {
@@ -154,6 +307,91 @@ export class SimpleAIProvider implements IStreamingGenerator, IProviderStatus, I
     } catch (error) {
       throw new Error(
         `AI streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  private async *generateStreamViaProxy(
+    messages: AIMessage[],
+    options?: ProviderOptions
+  ): AsyncGenerator<StreamChunk, void, unknown> {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
+      throw new Error(`Provider ${this.provider} is not available: API key not configured`);
+    }
+
+    try {
+      const response = await fetch('/api/ai-sdk/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          options: {
+            provider: this.provider,
+            temperature: options?.temperature ?? 0.7,
+            systemInstruction: options?.systemInstruction,
+          },
+          apiKey: apiKey, // Send API key in request body
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body reader available');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') {
+                yield { text: '', done: true };
+                return;
+              }
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.choices && parsed.choices[0]?.delta?.content) {
+                  yield {
+                    text: parsed.choices[0].delta.content,
+                    done: false,
+                  };
+                }
+              } catch {
+                // Ignore parsing errors for now
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      yield { text: '', done: true };
+    } catch (error) {
+      throw new Error(
+        `AI streaming via proxy failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -218,8 +456,10 @@ export class SimpleAIProviderManager {
       'proxy',
     ] as AIProviderType[]) {
       try {
-        new SimpleAIProvider(provider);
-        available.push(provider);
+        const providerInstance = new SimpleAIProvider(provider);
+        if (providerInstance.isAvailable()) {
+          available.push(provider);
+        }
       } catch {
         // Provider not available, skip
       }

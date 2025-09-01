@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * Enhanced Input component with sci-fi aesthetic
- * Features floating labels, validation states, and smooth animations
+ * Enhanced Input component using DaisyUI classes
+ * Features validation states and multiple variants
  */
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
@@ -28,21 +28,21 @@ export const Input: React.FC<InputProps> = ({
 }) => {
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
-  // Size classes
+  // Size classes with DaisyUI
   const sizeClasses = {
-    sm: 'input-sm text-sm',
+    sm: 'input-sm',
     md: 'input-md',
-    lg: 'input-lg text-lg',
+    lg: 'input-lg',
   };
 
-  // Base classes with sci-fi styling
-  const baseClasses = 'input w-full transition-all duration-300 focus:ring-2 focus:ring-primary/50';
+  // Base classes with DaisyUI input classes
+  const baseClasses = 'input w-full';
 
   // Glow effect
-  const glowClasses = glow ? 'shadow-lg shadow-primary/10 focus:shadow-primary/20' : '';
+  const glowClasses = glow ? 'shadow-lg' : '';
 
-  // Error state
-  const errorClasses = error ? 'input-error border-error focus:ring-error/50' : '';
+  // Error state with DaisyUI
+  const errorClasses = error ? 'input-error' : '';
 
   // Combine classes
   const inputClasses = [
@@ -51,7 +51,7 @@ export const Input: React.FC<InputProps> = ({
     glowClasses,
     errorClasses,
     variant === 'minimal'
-      ? 'bg-transparent border-b-2 border-gray-300 focus:border-blue-600 rounded-none px-0'
+      ? 'bg-transparent border-b-2 border-base-300 focus:border-primary rounded-none px-0'
       : '',
     className,
   ]
@@ -63,7 +63,7 @@ export const Input: React.FC<InputProps> = ({
       {/* Label */}
       {label && variant !== 'floating' && (
         <label htmlFor={inputId} className="label">
-          <span className="label-text font-medium text-gray-900">
+          <span className="label-text font-medium">
             {label}
             {props.required && <span className="text-red-500 ml-1">*</span>}
           </span>
@@ -74,7 +74,7 @@ export const Input: React.FC<InputProps> = ({
       <div className="relative">
         {/* Icon */}
         {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/70">
             {icon}
           </div>
         )}
@@ -86,7 +86,7 @@ export const Input: React.FC<InputProps> = ({
         {variant === 'floating' && label && (
           <label
             htmlFor={inputId}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 transition-all duration-300 pointer-events-none peer-focus:text-blue-600 peer-focus:top-0 peer-focus:text-sm peer-focus:bg-white peer-focus:px-1 peer-focus:-ml-1 peer-valid:top-0 peer-valid:text-sm peer-valid:bg-white peer-valid:px-1 peer-valid:-ml-1"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/70 transition-all duration-300 pointer-events-none peer-focus:text-primary peer-focus:top-0 peer-focus:text-sm peer-focus:bg-base-100 peer-focus:px-1 peer-focus:-ml-1 peer-valid:top-0 peer-valid:text-sm peer-valid:bg-base-100 peer-valid:px-1 peer-valid:-ml-1"
           >
             {label}
             {props.required && <span className="text-red-500 ml-1">*</span>}
@@ -97,7 +97,7 @@ export const Input: React.FC<InputProps> = ({
       {/* Helper text and error */}
       {(helperText || error) && (
         <label className="label">
-          <span className={`label-text-alt ${error ? 'text-red-500' : 'text-gray-500'}`}>
+          <span className={`label-text-alt ${error ? 'text-error' : 'text-base-content/70'}`}>
             {error || helperText}
           </span>
         </label>
@@ -107,7 +107,7 @@ export const Input: React.FC<InputProps> = ({
 };
 
 /**
- * Textarea component with similar styling
+ * Textarea component with DaisyUI classes
  */
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -131,22 +131,21 @@ export const Textarea: React.FC<TextareaProps> = ({
 }) => {
   const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
 
-  // Size classes
+  // Size classes with DaisyUI
   const sizeClasses = {
-    sm: 'textarea-sm text-sm',
+    sm: 'textarea-sm',
     md: 'textarea-md',
-    lg: 'textarea-lg text-lg',
+    lg: 'textarea-lg',
   };
 
-  // Base classes
-  const baseClasses =
-    'textarea w-full transition-all duration-300 focus:ring-2 focus:ring-primary/50 resize-none';
+  // Base classes with DaisyUI
+  const baseClasses = 'textarea w-full resize-none';
 
   // Glow effect
-  const glowClasses = glow ? 'shadow-lg shadow-primary/10 focus:shadow-primary/20' : '';
+  const glowClasses = glow ? 'shadow-lg' : '';
 
-  // Error state
-  const errorClasses = error ? 'textarea-error border-error focus:ring-error/50' : '';
+  // Error state with DaisyUI
+  const errorClasses = error ? 'textarea-error' : '';
 
   // Combine classes
   const textareaClasses = [
@@ -155,7 +154,7 @@ export const Textarea: React.FC<TextareaProps> = ({
     glowClasses,
     errorClasses,
     variant === 'minimal'
-      ? 'bg-transparent border-b-2 border-gray-300 focus:border-blue-600 rounded-none px-0'
+      ? 'bg-transparent border-b-2 border-base-300 focus:border-primary rounded-none px-0'
       : '',
     className,
   ]
@@ -167,7 +166,7 @@ export const Textarea: React.FC<TextareaProps> = ({
       {/* Label */}
       {label && (
         <label htmlFor={textareaId} className="label">
-          <span className="label-text font-medium text-gray-900">
+          <span className="label-text font-medium">
             {label}
             {props.required && <span className="text-red-500 ml-1">*</span>}
           </span>
@@ -180,7 +179,7 @@ export const Textarea: React.FC<TextareaProps> = ({
       {/* Helper text and error */}
       {(helperText || error) && (
         <label className="label">
-          <span className={`label-text-alt ${error ? 'text-red-500' : 'text-gray-500'}`}>
+          <span className={`label-text-alt ${error ? 'text-error' : 'text-base-content/70'}`}>
             {error || helperText}
           </span>
         </label>

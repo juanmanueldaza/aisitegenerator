@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * Enhanced Card component with sci-fi aesthetic
- * Features glassmorphism, hover effects, and responsive design
+ * Enhanced Card component using DaisyUI classes
+ * Features multiple variants and responsive design
  */
 export interface CardProps {
   children: React.ReactNode;
@@ -11,7 +11,6 @@ export interface CardProps {
   subtitle?: string;
   actions?: React.ReactNode;
   variant?: 'default' | 'elevated' | 'bordered' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
   glow?: boolean;
 }
 
@@ -22,20 +21,16 @@ export const Card: React.FC<CardProps> = ({
   subtitle,
   actions,
   variant = 'default',
-  size = 'md',
   glow = false,
 }) => {
-  // Combine classes using pure Tailwind utilities
+  // Combine classes using DaisyUI card classes
   const cardClasses = [
-    'relative rounded-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden',
-    variant === 'default' ? 'glass-card-sci-fi' : '',
-    variant === 'elevated' ? 'glass-card-sci-fi shadow-xl' : '',
-    variant === 'bordered' ? 'bg-gray-50 border-2 border-blue-500/20' : '',
-    variant === 'ghost' ? 'bg-transparent border border-gray-300/20' : '',
-    size === 'sm' ? 'p-4' : '',
-    size === 'md' ? 'p-6' : '',
-    size === 'lg' ? 'p-8' : '',
-    glow ? 'shadow-glow-primary hover:shadow-glow-accent' : '',
+    'card transition-all duration-300',
+    variant === 'default' ? 'bg-base-100' : '',
+    variant === 'elevated' ? 'bg-base-100 shadow-xl' : '',
+    variant === 'bordered' ? 'bg-base-100 border border-base-300' : '',
+    variant === 'ghost' ? 'bg-transparent border border-base-300' : '',
+    glow ? 'shadow-lg' : '',
     className,
   ]
     .filter(Boolean)
@@ -45,26 +40,19 @@ export const Card: React.FC<CardProps> = ({
     <div className={cardClasses}>
       {/* Card header */}
       {(title || subtitle || actions) && (
-        <div className="mb-4">
+        <div className="card-body">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              {title && (
-                <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {title}
-                </h3>
-              )}
-              {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+              {title && <h3 className="card-title">{title}</h3>}
+              {subtitle && <p className="text-sm opacity-70 mt-1">{subtitle}</p>}
             </div>
-            {actions && <div className="flex gap-2">{actions}</div>}
+            {actions && <div className="card-actions flex gap-2">{actions}</div>}
           </div>
         </div>
       )}
 
       {/* Card body */}
-      <div className="p-0">{children}</div>
-
-      {/* Subtle shine effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out rounded-xl pointer-events-none"></div>
+      <div className="card-body">{children}</div>
     </div>
   );
 };
@@ -84,7 +72,7 @@ export const CardFooter: React.FC<{ children: React.ReactNode; className?: strin
   children,
   className = '',
 }) => (
-  <div className={`mt-6 pt-4 border-t border-gray-300/30 flex justify-end gap-2 ${className}`}>
+  <div className={`card-actions justify-end gap-2 mt-6 pt-4 border-t border-base-300 ${className}`}>
     {children}
   </div>
 );

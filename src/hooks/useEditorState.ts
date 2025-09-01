@@ -36,13 +36,26 @@ export function useEditorState(): UseEditorStateReturn {
   // Basic keyboard handling
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // Basic Ctrl+S handling for save
-      if (e.ctrlKey && e.key === 's') {
+      // Basic Ctrl+S or Cmd+S handling for save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         contentState.handleSave();
       }
+      // Basic Ctrl+Z or Cmd+Z handling for undo
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        store.undo();
+      }
+      // Basic Ctrl+Y or Cmd+Y, or Ctrl+Shift+Z for redo
+      else if (
+        ((e.ctrlKey || e.metaKey) && e.key === 'y') ||
+        ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey)
+      ) {
+        e.preventDefault();
+        store.redo();
+      }
     },
-    [contentState]
+    [contentState, store]
   );
 
   // Basic view mode (simplified to desktop only)

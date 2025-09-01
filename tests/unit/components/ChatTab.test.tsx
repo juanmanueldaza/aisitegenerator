@@ -112,9 +112,26 @@ describe('ChatTab', () => {
     });
     expect(aiConnectionHeader).toBeTruthy();
     expect(screen.getByText('🟢')).toBeTruthy();
-    expect(screen.getByText('Provider:')).toBeTruthy();
+    // Check that Provider: text exists in the document
+    const providerText = screen.getByText((content, element) => {
+      return (
+        content.includes('Provider:') &&
+        element?.tagName === 'DIV' &&
+        element?.className?.includes('text-sm')
+      );
+    });
+    expect(providerText).toBeInTheDocument();
     expect(screen.getByText('Google')).toBeTruthy();
-    expect(screen.getByText('✅ AI provider ready')).toBeTruthy();
+
+    // Check for AI provider ready text with flexible matching
+    const readyText = screen.getByText((content, element) => {
+      return (
+        content.includes('AI provider ready') &&
+        element?.tagName === 'DIV' &&
+        element?.className?.includes('text-sm')
+      );
+    });
+    expect(readyText).toBeInTheDocument();
   });
 
   it('shows offline status when AI provider is not ready', () => {

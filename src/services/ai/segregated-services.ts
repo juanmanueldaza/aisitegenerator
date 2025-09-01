@@ -3,7 +3,7 @@
  * Following Interface Segregation Principle with focused, single-responsibility classes
  */
 
-import type { ApiResponse } from '@types';
+import type { ApiResponse, ApiError } from '@/types/common';
 import type { AIMessage, ProviderOptions, GenerateResult, StreamChunk } from '@/types/ai';
 import type {
   IMessageSender,
@@ -28,7 +28,7 @@ export class MessageSenderService implements IMessageSender {
   async sendMessage(
     message: string,
     context?: Record<string, unknown>
-  ): Promise<ApiResponse<string>> {
+  ): Promise<ApiResponse<string, ApiError>> {
     try {
       const messages: AIMessage[] = [
         {
@@ -50,7 +50,10 @@ export class MessageSenderService implements IMessageSender {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: {
+          code: 'AI_GENERATION_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
         timestamp: new Date(),
       };
     }
@@ -95,13 +98,19 @@ export class ContentGeneratorService implements IContentGenerator {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: {
+          code: 'CONTENT_GENERATION_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
         timestamp: new Date(),
       };
     }
   }
 
-  async generatePageContent(prompt: string, pageType: string): Promise<ApiResponse<string>> {
+  async generatePageContent(
+    prompt: string,
+    pageType: string
+  ): Promise<ApiResponse<string, ApiError>> {
     try {
       const messages: AIMessage[] = [
         {
@@ -127,7 +136,10 @@ export class ContentGeneratorService implements IContentGenerator {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: {
+          code: 'PAGE_CONTENT_GENERATION_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
         timestamp: new Date(),
       };
     }
@@ -214,16 +226,19 @@ export class CompositeAIService
   async sendMessage(
     message: string,
     context?: Record<string, unknown>
-  ): Promise<ApiResponse<string>> {
+  ): Promise<ApiResponse<string, ApiError>> {
     return this.messageSender.sendMessage(message, context);
   }
 
   // IContentGenerator implementation
-  async generateSiteContent(prompt: string): Promise<ApiResponse<string>> {
+  async generateSiteContent(prompt: string): Promise<ApiResponse<string, ApiError>> {
     return this.contentGenerator.generateSiteContent(prompt);
   }
 
-  async generatePageContent(prompt: string, pageType: string): Promise<ApiResponse<string>> {
+  async generatePageContent(
+    prompt: string,
+    pageType: string
+  ): Promise<ApiResponse<string, ApiError>> {
     return this.contentGenerator.generatePageContent(prompt, pageType);
   }
 

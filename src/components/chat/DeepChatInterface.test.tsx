@@ -9,7 +9,17 @@ import userEvent from '@testing-library/user-event';
 import DeepChatInterface from './DeepChatInterface';
 
 // Mock all dependencies
-vi.mock('@/hooks/useLocalStorage');
+vi.mock('@/hooks', () => ({
+  useLocalStorageSync: vi.fn(() => [
+    {
+      GEMINI_API_KEY: '',
+      CHAT_AUTO_APPLY: true,
+      CHAT_PREFER_MD: false,
+      CHAT_LAST_APPLIED: '',
+    },
+    vi.fn(),
+  ]),
+}));
 vi.mock('@/services/ai');
 vi.mock('@/store/siteStore');
 vi.mock('@/constants/config');
@@ -17,19 +27,19 @@ vi.mock('@/components/ui');
 vi.mock('deep-chat-react');
 
 // Import mocked modules
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useLocalStorageSync } from '@/hooks';
 import { useAIProvider } from '@/services/ai';
 import { useSiteStore } from '@/store/siteStore';
 import { Toast } from '@/components/ui';
 
 // Mock implementations
-const mockUseLocalStorage = vi.fn();
+const mockUseLocalStorageSync = vi.fn();
 const mockUseAIProvider = vi.fn();
 const mockUseSiteStore = vi.fn();
 const mockToast = vi.fn();
 
 // Setup mocks
-vi.mocked(useLocalStorage).mockImplementation(mockUseLocalStorage);
+vi.mocked(useLocalStorageSync).mockImplementation(mockUseLocalStorageSync);
 vi.mocked(useAIProvider).mockImplementation(mockUseAIProvider);
 vi.mocked(useSiteStore).mockImplementation(mockUseSiteStore);
 vi.mocked(Toast).mockImplementation(mockToast);
@@ -42,7 +52,15 @@ describe('DeepChatInterface', () => {
     vi.clearAllMocks();
 
     // Setup default mock returns
-    mockUseLocalStorage.mockReturnValue([null, vi.fn()]);
+    mockUseLocalStorageSync.mockReturnValue([
+      {
+        GEMINI_API_KEY: null,
+        CHAT_AUTO_APPLY: true,
+        CHAT_PREFER_MD: false,
+        CHAT_LAST_APPLIED: '',
+      },
+      vi.fn(),
+    ]);
     mockUseAIProvider.mockReturnValue({
       provider: 'openai-sdk',
       model: 'gpt-4',
@@ -100,7 +118,15 @@ describe('DeepChatInterface', () => {
   });
 
   it('displays auto-apply toggle', () => {
-    mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
+    mockUseLocalStorageSync.mockReturnValue([
+      {
+        GEMINI_API_KEY: '',
+        CHAT_AUTO_APPLY: false,
+        CHAT_PREFER_MD: false,
+        CHAT_LAST_APPLIED: '',
+      },
+      vi.fn(),
+    ]);
 
     render(<DeepChatInterface />);
 
@@ -137,14 +163,22 @@ describe('DeepChatInterface', () => {
 
   it('handles auto-apply toggle', async () => {
     const mockSetAutoApply = vi.fn();
-    mockUseLocalStorage.mockReturnValue([false, mockSetAutoApply]);
+    mockUseLocalStorageSync.mockReturnValue([
+      {
+        GEMINI_API_KEY: '',
+        CHAT_AUTO_APPLY: false,
+        CHAT_PREFER_MD: false,
+        CHAT_LAST_APPLIED: '',
+      },
+      mockSetAutoApply,
+    ]);
 
     render(<DeepChatInterface />);
 
     const checkbox = screen.getByRole('checkbox', { name: /auto-apply/i });
     await user.click(checkbox);
 
-    expect(mockSetAutoApply).toHaveBeenCalledWith(true);
+    expect(mockSetAutoApply).toHaveBeenCalledWith('CHAT_AUTO_APPLY', true);
   });
 
   it('shows error when provider is unavailable', () => {
@@ -171,7 +205,15 @@ describe('DeepChatInterface', () => {
     const mockOnSiteGenerated = vi.fn();
 
     // Override mocks for this test
-    mockUseLocalStorage.mockReturnValue([true, vi.fn()]); // Auto-apply enabled
+    mockUseLocalStorageSync.mockReturnValue([
+      {
+        GEMINI_API_KEY: '',
+        CHAT_AUTO_APPLY: true,
+        CHAT_PREFER_MD: false,
+        CHAT_LAST_APPLIED: '',
+      },
+      vi.fn(),
+    ]); // Auto-apply enabled
     mockUseSiteStore.mockReturnValueOnce({
       siteData: { pages: [] },
       messages: [], // Ensure messages array exists

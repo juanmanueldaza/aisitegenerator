@@ -199,14 +199,11 @@ describe('AiProviderSettings', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': 'test-google-key',
       },
       body: JSON.stringify({
-        messages: [{ role: 'user', content: 'Hello, test message' }],
-        options: {
-          provider: 'google',
-          model: 'gemini-2.0-flash',
-        },
+        messages: [{ role: 'user', content: 'ping' }],
+        options: { provider: 'google' },
+        apiKey: 'test-google-key',
       }),
     });
   });

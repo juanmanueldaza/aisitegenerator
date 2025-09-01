@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useLocalStorageSync } from '@/hooks';
 import { useAIProvider } from '@/services/ai';
 import { Toast } from '@/components/ui';
 import { PROXY_CONFIG, ProxyUtils } from '@/constants/config';
@@ -22,14 +22,44 @@ const DeepChatInterface: React.FC<DeepChatInterfaceProps> = ({
 }) => {
   const store = useSiteStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useLocalStorage<string>('GEMINI_API_KEY', '');
+  const [chatSettings, updateChatSetting] = useLocalStorageSync(
+    ['GEMINI_API_KEY', 'CHAT_AUTO_APPLY', 'CHAT_PREFER_MD', 'CHAT_LAST_APPLIED'],
+    {
+      GEMINI_API_KEY: '',
+      CHAT_AUTO_APPLY: true,
+      CHAT_PREFER_MD: false,
+      CHAT_LAST_APPLIED: '',
+    }
+  );
+
+  // Extract individual values for easier access
+  const apiKey = chatSettings.GEMINI_API_KEY;
+  const autoApply = chatSettings.CHAT_AUTO_APPLY;
+  const preferMarkdown = chatSettings.CHAT_PREFER_MD;
+  const lastApplied = chatSettings.CHAT_LAST_APPLIED;
+
+  // Helper functions for updating individual settings
+  const setApiKey = useCallback(
+    (value: string) => updateChatSetting('GEMINI_API_KEY', value),
+    [updateChatSetting]
+  );
+  const setAutoApply = useCallback(
+    (value: boolean) => updateChatSetting('CHAT_AUTO_APPLY', value),
+    [updateChatSetting]
+  );
+  const setPreferMarkdown = useCallback(
+    (value: boolean) => updateChatSetting('CHAT_PREFER_MD', value),
+    [updateChatSetting]
+  );
+  const setLastApplied = useCallback(
+    (value: string) => updateChatSetting('CHAT_LAST_APPLIED', value),
+    [updateChatSetting]
+  );
+
   const [model, setModel] = useState<string>('gemini-2.5-flash');
   const [provider, setProvider] = useState<string>('google');
   const ai = useAIProvider('gemini');
   const [toast, setToast] = useState<string>('');
-  const [autoApply, setAutoApply] = useLocalStorage<boolean>('CHAT_AUTO_APPLY', true);
-  const [preferMarkdown, setPreferMarkdown] = useLocalStorage<boolean>('CHAT_PREFER_MD', false);
-  const [lastApplied, setLastApplied] = useLocalStorage<string>('CHAT_LAST_APPLIED', '');
   const [lastCandidate, setLastCandidate] = useState<string>('');
 
   // Deep Chat specific state

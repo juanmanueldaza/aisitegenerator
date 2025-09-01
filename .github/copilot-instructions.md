@@ -1,378 +1,322 @@
-# GitHub Copilot Instructions for AI Site Generator
+# AI Site Generator - GitHub Copilot Custom Instructions
 
 ## Project Overview
 
-The **AI Site Generator** is a modern React TypeScript application that enables users to create websites step-by-step with AI assistance. It features a sci-fi themed UI with glassmorphism effects, live preview capabilities, Markdown support, Mermaid diagrams, and seamless GitHub integration for deployment.
+The AI Site Generator is a modern React TypeScript web application that enables users to create websites step-by-step with AI assistance. It features live preview, Markdown support, Mermaid diagrams, GitHub authentication, and seamless deployment to GitHub Pages.
 
-### Key Features
+**Key Features:**
 
-- **AI-Powered Content Generation**: Support for multiple AI providers (Google Gemini, OpenAI, Anthropic, Cohere)
-- **Live Preview**: Real-time preview of generated content with Markdown and Mermaid rendering
-- **GitHub Integration**: OAuth authentication and deployment to GitHub Pages
-- **Modern UI**: Custom sci-fi theme using DaisyUI and Tailwind CSS with glassmorphism effects
-- **Type-Safe Architecture**: Full TypeScript implementation with strict typing
-- **Clean Architecture**: SOLID principles with clear separation of concerns
-- **Comprehensive Testing**: Unit tests (Vitest), integration tests, and E2E tests (Playwright)
+- AI-powered content generation with multiple providers (Google Gemini, OpenAI, Anthropic, Cohere)
+- Real-time live preview with Markdown and Mermaid diagram support
+- GitHub OAuth authentication (PKCE and Device Flow)
+- Automated deployment to GitHub Pages
+- Modern sci-fi themed UI with DaisyUI and Tailwind CSS
+- Comprehensive testing with 80% coverage requirement
+- Clean Architecture following SOLID principles
 
 ## Tech Stack
 
-### Frontend
-
-- **React 19** with TypeScript
-- **Vite 7** for build tooling and development server
-- **Tailwind CSS 3.4** + **DaisyUI 5.0** for styling
-- **Custom Sci-Fi Theme** with glassmorphism and neon effects
-
-### Development & Quality
-
-- **ESLint** + **Prettier** for code quality
-- **Husky** + **lint-staged** for pre-commit hooks
-- **TypeScript** with strict configuration
-- **Vitest** + **React Testing Library** for unit/integration tests
-- **Playwright** for E2E testing
-
-### Architecture
-
-- **Clean Architecture** with SOLID principles
-- **Dependency Injection** container pattern
-- **Custom Hooks** following DRY principle
-- **Service Layer** abstraction
-- **Path Mapping** for clean imports (`@/*`, `@components/*`, etc.)
+- **Frontend:** React 19.1.1 + TypeScript 5.8.3
+- **Build Tool:** Vite 7.1.2
+- **Testing:** Vitest 2.0.5 + React Testing Library 16.2.0 + Playwright 1.47.2
+- **UI Framework:** DaisyUI 5.0.54 + Tailwind CSS 3.4.17
+- **AI Integration:** AI SDK 5.0.19 with multiple providers
+- **Code Quality:** ESLint 9.33.0 + Prettier 3.6.2 + Husky 9.1.7
+- **Architecture:** Clean Architecture with SOLID principles
 
 ## Project Structure
 
 ```
 src/
-├── components/          # UI components (presentational layer)
-│   ├── ui/             # Reusable UI components (buttons, inputs, etc.)
-│   ├── auth/           # Authentication-related components
-│   ├── chat/           # Chat interface components
-│   ├── deployment/     # Deployment-related components
-│   └── LivePreview/    # Live preview functionality
-├── hooks/              # Custom React hooks (application layer)
-│   ├── index.ts        # Main hooks export with DRY implementations
-│   ├── useChat.ts      # Chat functionality
-│   ├── useDeployment.ts # Deployment logic
-│   └── useLocalStorage.ts # Storage utilities
-├── services/           # Service layer (domain/infrastructure)
-│   ├── interfaces.ts   # Abstract service interfaces (SOLID)
-│   ├── ai/            # AI provider integrations
-│   ├── github/        # GitHub API integrations
+├── components/          # UI components (tabs, auth, chat, deployment)
+├── hooks/              # Custom React hooks
+├── services/           # Business logic services (AI, GitHub, site)
+│   ├── ai/            # AI provider implementations
+│   ├── github/        # GitHub API integration
 │   └── site/          # Site management services
-├── types/              # TypeScript type definitions
-│   ├── index.ts        # Main types export
-│   ├── ai.ts          # AI-related types
-│   ├── github.ts      # GitHub integration types
-│   └── common.ts      # Shared/common types
-├── utils/              # Pure utility functions
-│   ├── content.ts     # Content processing utilities
-│   ├── array.ts       # Array manipulation helpers
-│   └── index.ts       # Main utils export
-├── di/                 # Dependency injection
-│   ├── container.ts   # DI container implementation
-│   └── service-registry.ts # Service registration
-└── store/              # State management (Zustand)
-    └── siteStore.ts    # Site configuration state
+├── types/             # TypeScript type definitions
+├── utils/             # Pure utility functions
+├── di/                # Dependency injection container
+├── store/             # Zustand state management
+├── assets/            # Static assets and help documentation
+└── constants/         # Application constants and configuration
+
+tests/
+├── e2e/              # End-to-end tests (Playwright)
+├── integration/      # Integration tests
+└── unit/            # Unit tests
+
+docs/                 # Comprehensive documentation
+scripts/             # Quality gates and utility scripts
+server/              # Proxy server for AI providers
 ```
 
-## Coding Conventions
+## Build and Development
 
-### TypeScript Best Practices
+### Prerequisites
 
-- **Strict Mode**: All TypeScript strict checks enabled
-- **Interface Segregation**: Small, focused interfaces following SOLID
-- **Type Safety**: Avoid `any`, use proper union types and generics
-- **Path Mapping**: Use `@/*` imports for clean, relative-path-free code
+- Node.js 18+
+- npm
 
-### React Patterns
-
-- **Functional Components** with hooks (no class components)
-- **Custom Hooks** for reusable logic (DRY principle)
-- **Props Interface**: Define props types for all components
-- **Error Boundaries**: Implement error handling at component level
-
-### Naming Conventions
-
-- **Components**: PascalCase (e.g., `ChatTab`, `UserProfile`)
-- **Hooks**: camelCase with `use` prefix (e.g., `useChat`, `useLocalStorage`)
-- **Types**: PascalCase with descriptive names (e.g., `ChatMessage`, `SiteConfiguration`)
-- **Files**: kebab-case for components, camelCase for utilities
-- **Services**: PascalCase with `I` prefix for interfaces (e.g., `IAuthService`)
-
-### File Organization
-
-- **Barrel Exports**: Use `index.ts` files for clean imports
-- **Single Responsibility**: One component/hook/service per file
-- **Co-location**: Keep related files together (styles, tests, types)
-
-## Development Workflow
-
-### Getting Started
+### Development Setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
-
-# Run quality gates (typecheck + lint + test + build)
-npm run quality-gates
 ```
 
-### Available Scripts
+### Build Commands
 
-- `npm run dev` - Development server with HMR
-- `npm run build` - Production build
-- `npm run preview` - Preview production build
-- `npm run lint` / `npm run lint:fix` - ESLint checking/fixing
-- `npm run format` - Prettier formatting
-- `npm run typecheck` - TypeScript type checking
-- `npm run test` - Run all tests
-- `npm run test:coverage` - Tests with coverage report
-- `npm run test:watch` - Watch mode for development
-- `npm run test:unit` - Unit tests only
-- `npm run test:integration` - Integration tests only
-- `npm run test:e2e` - E2E tests with Playwright
+```bash
+npm run build          # Production build
+npm run preview        # Preview production build
+npm run typecheck      # TypeScript type checking
+```
+
+### Testing Commands
+
+```bash
+npm run test              # Run all tests
+npm run test:coverage     # Tests with coverage (80% minimum)
+npm run test:watch        # Watch mode for development
+npm run test:unit         # Unit tests only
+npm run test:integration  # Integration tests only
+npm run test:e2e          # End-to-end tests (Playwright)
+```
 
 ### Quality Gates
 
-The project uses automated quality gates that must pass:
+```bash
+npm run quality-gates    # Complete quality check pipeline
+# OR
+./scripts/quality-gates.sh
+```
 
-1. **TypeScript Type Checking** (`npm run typecheck`)
-2. **ESLint Code Quality** (`npm run lint`)
-3. **Test Coverage** (`npm run test:coverage`) - Minimum 80%
-4. **Production Build** (`npm run build`)
+Quality gates include:
 
-### Pre-commit Hooks
+1. TypeScript type checking (`npm run typecheck`)
+2. ESLint code quality (`npm run lint`)
+3. Test coverage (80% minimum) (`npm run test:coverage`)
+4. Production build verification (`npm run build`)
 
-- **Husky** + **lint-staged** ensure code quality before commits
-- Automatic formatting and linting fixes
-- Type checking validation
+## Coding Conventions
+
+### TypeScript Configuration
+
+- **Target:** ES2022
+- **Module:** ESNext with bundler resolution
+- **Strict mode:** Enabled with all strict checks
+- **JSX:** React JSX transform
+- **Path mapping:** Clean imports with `@/` prefix
+
+### Import Organization
+
+```typescript
+// External dependencies first
+import React from 'react';
+import { useState } from 'react';
+
+// Internal imports with path mapping
+import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/hooks/useAuth';
+import type { User } from '@/types';
+
+// Relative imports for same directory
+import { helper } from './utils';
+```
+
+### Component Patterns
+
+- Use functional components with hooks
+- Prefer custom hooks for reusable logic
+- Follow interface segregation principle
+- Use TypeScript strict typing
+
+### Naming Conventions
+
+- **Components:** PascalCase (e.g., `ChatInterface.tsx`)
+- **Hooks:** camelCase with `use` prefix (e.g., `useAuth.ts`)
+- **Services:** PascalCase with service suffix (e.g., `AuthService.ts`)
+- **Types:** PascalCase (e.g., `User.ts`)
+- **Files:** kebab-case for components, camelCase for utilities
+
+## Architecture Patterns
+
+### Clean Architecture Implementation
+
+The project follows Clean Architecture with clear separation of concerns:
+
+1. **Domain Layer** (Innermost)
+   - Core business entities and domain services
+   - Independent of frameworks and external dependencies
+
+2. **Application Layer**
+   - Use cases and application services
+   - Orchestrates domain objects
+
+3. **Infrastructure Layer** (Outermost)
+   - External concerns (UI, databases, web frameworks)
+   - Implements interfaces defined in inner layers
+
+### SOLID Principles
+
+- **Single Responsibility:** Each service/class has one reason to change
+- **Open/Closed:** Open for extension, closed for modification
+- **Liskov Substitution:** Subtypes are substitutable for their base types
+- **Interface Segregation:** Clients depend only on methods they use
+- **Dependency Inversion:** Depend on abstractions, not concretions
+
+### Dependency Injection
+
+- Uses custom DI container (`src/di/container.ts`)
+- Services registered with tokens for loose coupling
+- Constructor injection for testability
+
+## Key Files and Directories
+
+### Configuration Files
+
+- `tsconfig.json` - TypeScript project references
+- `tsconfig.app.json` - Application TypeScript configuration
+- `vite.config.ts` - Vite build configuration
+- `vitest.config.ts` - Testing configuration
+- `playwright.config.ts` - E2E testing configuration
+- `eslint.config.js` - ESLint configuration with React and TypeScript rules
+- `tailwind.config.js` - Tailwind CSS with DaisyUI themes
+
+### Core Services
+
+- `src/services/ai/` - AI provider implementations and strategies
+- `src/services/github/` - GitHub API integration
+- `src/services/interfaces.ts` - Service interface definitions
+- `src/di/container.ts` - Dependency injection container
+
+### UI Components
+
+- `src/components/tabs/` - Main application tabs
+- `src/components/auth/` - GitHub authentication components
+- `src/components/chat/` - AI chat interface
+- `src/components/ui/` - Reusable UI components
+
+### State Management
+
+- `src/store/siteStore.ts` - Zustand store for site state
+- `src/hooks/` - Custom React hooks
 
 ## Testing Strategy
 
 ### Testing Pyramid
 
-- **70% Unit Tests**: Component and utility testing
-- **20% Integration Tests**: Service and hook testing
-- **10% E2E Tests**: Critical user journey testing
+- **Unit Tests (70%)**: Individual functions and components
+- **Integration Tests (20%)**: Service interactions and component integration
+- **E2E Tests (10%)**: Full user workflows
 
-### Testing Tools
+### Coverage Requirements
 
-- **Vitest** for fast unit/integration testing
-- **React Testing Library** for component testing
-- **Playwright** for E2E testing
-- **jsdom** for DOM simulation
-- **@testing-library/jest-dom** for custom matchers
+- **Statements:** 80%
+- **Branches:** 80%
+- **Functions:** 80%
+- **Lines:** 80%
 
-### Test File Conventions
+### Test File Organization
 
-- **Unit Tests**: `*.test.ts` or `*.test.tsx`
-- **Integration Tests**: `*.integration.test.ts`
-- **E2E Tests**: Located in `tests/e2e/`
-- **Test Utilities**: `src/test-utils.ts` and `src/setupTests.ts`
+```
+tests/
+├── unit/
+│   ├── components/
+│   ├── hooks/
+│   └── services/
+├── integration/
+│   ├── fixtures/
+│   └── workflows/
+└── e2e/
+    └── specs/
+```
 
-## Architecture Patterns
+## Deployment and CI/CD
 
-### Clean Architecture Layers
+### GitHub Pages Deployment
 
-1. **Presentation Layer**: React components and hooks
-2. **Application Layer**: Use cases and application services
-3. **Domain Layer**: Business entities and domain services
-4. **Infrastructure Layer**: External APIs and implementations
+1. Authenticate with GitHub OAuth
+2. Create/select repository
+3. Generate site content with AI
+4. Deploy to GitHub Pages via Contents API
 
-### SOLID Principles Implementation
+### Environment Variables
 
-- **Single Responsibility**: Each module has one reason to change
-- **Open/Closed**: Open for extension, closed for modification
-- **Liskov Substitution**: Subtypes are substitutable for base types
-- **Interface Segregation**: Small, focused interfaces
-- **Dependency Inversion**: Depend on abstractions, not concretions
+```bash
+# AI Provider Configuration
+VITE_AI_PROXY_BASE_URL=/api/ai-sdk
+VITE_AI_DEFAULT_PROVIDER=google
+VITE_AI_DEFAULT_MODEL=gemini-2.0-flash
 
-### Dependency Injection
+# GitHub OAuth (for production)
+VITE_GITHUB_CLIENT_ID=your_client_id
+```
 
-- **Service Container**: Centralized service registration
-- **Interface-based**: Services implement abstract interfaces
-- **Testable**: Easy mocking for unit tests
+### Quality Gates in CI
 
-## UI/UX Guidelines
+The project uses automated quality gates that must pass before deployment:
 
-### Sci-Fi Design System
-
-- **Primary Colors**: Electric cyan (#00d4ff), Indigo (#6366f1), Purple (#a855f7)
-- **Background**: Dark slate theme (#0f172a, #1e293b)
-- **Glassmorphism**: Backdrop blur and translucent surfaces
-- **Neon Effects**: Subtle lighting effects on interactive elements
-- **Typography**: Inter font family for modern appearance
-
-### Component Patterns
-
-- **DaisyUI Components**: Use DaisyUI for consistent styling
-- **Responsive Design**: Mobile-first approach
-- **Accessibility**: WCAG 2.1 AA compliance
-- **Animation**: Smooth transitions and micro-interactions
-
-## GitHub Integration
-
-### Authentication
-
-- **PKCE Flow**: Recommended for production
-- **Device Flow**: Ideal for local development
-- **Session Storage**: Temporary token storage
-- **Security**: Proper token handling and revocation
-
-### Deployment
-
-- **GitHub Pages**: Automated deployment
-- **Contents API**: File uploads with SHA conflict resolution
-- **Repository Management**: Create and manage repositories
-- **Branch Protection**: Safe deployment practices
-
-## AI Integration
-
-### Multi-Provider Support
-
-- **Google Gemini**: Primary provider (gemini-2.0-flash)
-- **OpenAI**: GPT models support
-- **Anthropic**: Claude models support
-- **Cohere**: Command models support
-
-### Proxy Configuration
-
-- **AI SDK Router**: Vercel AI SDK for unified interface
-- **Legacy Proxy**: Direct provider integration
-- **Environment Variables**: Secure API key management
-- **Fallback Logic**: Automatic provider failover
-
-## Best Practices
-
-### Code Quality
-
-- **DRY Principle**: Don't Repeat Yourself
-- **KISS Principle**: Keep It Simple, Stupid
-- **YAGNI**: You Aren't Gonna Need It
-- **Fail Fast**: Early error detection and handling
-
-### Performance
-
-- **Code Splitting**: Lazy loading and chunk optimization
-- **Bundle Analysis**: Monitor bundle sizes
-- **Caching**: Efficient state and data caching
-- **Optimization**: React.memo, useMemo, useCallback where appropriate
-
-### Security
-
-- **Input Sanitization**: DOMPurify for HTML content
-- **CSP Headers**: Content Security Policy implementation
-- **Token Security**: Proper OAuth token handling
-- **Environment Variables**: Never commit sensitive data
-
-### Documentation
-
-- **JSDoc Comments**: Comprehensive function/component documentation
-- **README Files**: Clear setup and usage instructions
-- **Architecture Docs**: System design and patterns documentation
-- **API Documentation**: Service and interface documentation
+1. TypeScript compilation
+2. ESLint code quality
+3. Test execution with coverage
+4. Production build
 
 ## Common Patterns
 
-### Custom Hook Template
+### Error Handling
 
-```typescript
-export const useCustomHook = (param: Type) => {
-  const [state, setState] = useState<ReturnType>(initialValue);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+- Use custom error classes for different error types
+- Centralized error handling in services
+- User-friendly error messages in UI
 
-  const execute = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await someAsyncOperation(param);
-      setState(result);
-      return result;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setError(error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [param]);
+### Async Operations
 
-  return { execute, loading, error, data: state };
-};
-```
+- Use custom `useAsyncOperation` hook for loading states
+- Proper error boundaries for React components
+- Cancellation support for long-running operations
 
-### Component Template
+### AI Integration
 
-```tsx
-interface ComponentNameProps {
-  title: string;
-  onAction?: (value: string) => void;
-  className?: string;
-}
+- Multiple provider support (Google, OpenAI, Anthropic, Cohere)
+- Streaming responses for real-time chat
+- Fallback mechanisms for provider failures
+- Proxy server for API key management
 
-export const ComponentName: React.FC<ComponentNameProps> = ({
-  title,
-  onAction,
-  className = '',
-}) => {
-  return (
-    <div className={`component-name ${className}`}>
-      <h2 className="text-xl font-bold">{title}</h2>
-      <button className="btn btn-primary" onClick={() => onAction?.('action')} disabled={!onAction}>
-        Action
-      </button>
-    </div>
-  );
-};
-```
+### Security Considerations
 
-### Service Interface Template
+- OAuth tokens stored in sessionStorage only
+- Content Security Policy compliance
+- Input sanitization for user-generated content
+- Secure iframe handling for live preview
 
-```typescript
-export interface IServiceName {
-  methodName(params: ParamsType): Promise<ApiResponse<ReturnType>>;
-}
+## Development Workflow
 
-export class ServiceNameImpl implements IServiceName {
-  async methodName(params: ParamsType): Promise<ApiResponse<ReturnType>> {
-    try {
-      const result = await this.externalCall(params);
-      return {
-        success: true,
-        data: result,
-        timestamp: new Date(),
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date(),
-      };
-    }
-  }
-}
-```
+1. **Setup**: Clone repository and run `npm install`
+2. **Development**: Use `npm run dev` for HMR development
+3. **Testing**: Run `npm run test:watch` during development
+4. **Quality**: Execute `npm run quality-gates` before commits
+5. **Build**: Verify production build with `npm run build`
 
-## Troubleshooting
+## Key Dependencies
 
-### Common Issues
+### Runtime Dependencies
 
-- **Type Errors**: Run `npm run typecheck` to identify issues
-- **Lint Errors**: Run `npm run lint:fix` for automatic fixes
-- **Test Failures**: Check test coverage with `npm run test:coverage`
-- **Build Issues**: Ensure all dependencies are installed and up-to-date
+- `react@^19.1.1` - UI framework
+- `ai@^5.0.19` - AI SDK for multiple providers
+- `@ai-sdk/google@^2.0.7` - Google Gemini integration
+- `zustand@^5.0.7` - State management
+- `daisyui@^5.0.54` - UI component library
+- `tailwindcss@^3.4.17` - CSS framework
 
-### Development Tips
+### Development Dependencies
 
-- Use VS Code with TypeScript and React extensions
-- Enable ESLint and Prettier extensions for real-time feedback
-- Use the integrated terminal for running scripts
-- Check the browser console for runtime errors
-- Use React DevTools for component debugging
+- `@vitejs/plugin-react@^5.0.0` - Vite React plugin
+- `@testing-library/react@^16.2.0` - React testing utilities
+- `@playwright/test@^1.47.2` - E2E testing framework
+- `typescript-eslint@^8.39.1` - TypeScript ESLint rules
+- `husky@^9.1.7` - Git hooks management
 
-This comprehensive guide ensures consistent development practices and high-quality code contributions to the AI Site Generator project.</content>
+This project emphasizes code quality, maintainability, and user experience through modern web technologies and clean architecture principles.</content>
 <parameter name="filePath">/home/ultravietnamita/TryOuts/aisitegenerator/.github/copilot-instructions.md

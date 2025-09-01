@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "proxy": "node server/proxy.js",
-    "dev:all": "concurrently -n proxy,web -c blue,green \"npm:proxy\" \"vite\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -54,7 +53,6 @@
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^2.0.5",
     "autoprefixer": "^10.4.21",
-    "concurrently": "^9.1.0",
     "daisyui": "^5.0.54",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",

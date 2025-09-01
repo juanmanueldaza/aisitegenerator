@@ -1,25 +1,19 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
 import { ChatTabView } from '../../../src/components/tabs/ChatTabView';
 
-// Mock React.lazy and Suspense
-vi.mock('react', async () => {
-  const actualReact = await vi.importActual('react');
-  return {
-    ...actualReact,
-    lazy: vi.fn(() => vi.fn(() => null)),
-    Suspense: ({
-      children,
-      fallback,
-    }: {
-      children?: React.ReactNode;
-      fallback?: React.ReactNode;
-    }) => children || fallback,
-  };
-});
-
 describe('ChatTabView Component', () => {
+  beforeEach(() => {
+    // Clean up before each test
+    cleanup();
+  });
+
+  afterEach(() => {
+    // Clean up after each test
+    cleanup();
+  });
+
   const defaultProps = {
     availableProviders: ['google', 'openai'],
     selectedProvider: 'google',
@@ -39,9 +33,18 @@ describe('ChatTabView Component', () => {
   it('should render successfully with providers available', () => {
     render(<ChatTabView {...defaultProps} />);
 
-    expect(screen.getByText('AI Connection')).toBeTruthy();
-    expect(screen.getByText('Google')).toBeTruthy();
-    expect(screen.getByText((content) => content.includes('✅ AI provider ready'))).toBeTruthy();
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
+    // Use more specific selector for the status text
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          content === 'Connected' &&
+          element?.tagName === 'SPAN' &&
+          element?.className?.includes('font-medium')
+        );
+      })
+    ).toBeTruthy();
+    expect(screen.getAllByTestId('daisyui-chat')).toHaveLength(1);
   });
 
   it('should render with no providers available', () => {
@@ -52,14 +55,14 @@ describe('ChatTabView Component', () => {
 
     render(<ChatTabView {...props} />);
 
-    expect(screen.getByText('No AI Providers Available')).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Please configure at least one AI provider in the Settings tab to enable chat functionality.'
-      )
-    ).toBeTruthy();
-    expect(screen.getByText('💬')).toBeTruthy();
     expect(screen.getByText('Chat Unavailable')).toBeTruthy();
+    expect(screen.getByText('Configure an AI provider in Settings to enable chat')).toBeTruthy();
+    expect(screen.getByText('💬')).toBeTruthy();
+    // Use getAllByText for elements that might appear multiple times
+    const configureButtons = screen.getAllByText((content, element) => {
+      return content === '⚙️ Configure Providers' && element?.tagName === 'SPAN';
+    });
+    expect(configureButtons.length).toBeGreaterThan(0);
   });
 
   it('should render with AI not ready', () => {
@@ -70,15 +73,8 @@ describe('ChatTabView Component', () => {
 
     render(<ChatTabView {...props} />);
 
-    // Check for the specific error message that appears when AI is not ready
-    expect(
-      screen.getByText((content) => content.includes('❌ AI provider not configured'))
-    ).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Configure your AI provider in the Settings tab to enable chat functionality.'
-      )
-    ).toBeTruthy();
+    expect(screen.getByText('Disconnected')).toBeTruthy();
+    expect(screen.getAllByTestId('daisyui-chat')).toHaveLength(1);
   });
 
   it('should display correct provider name', () => {
@@ -89,23 +85,31 @@ describe('ChatTabView Component', () => {
 
     render(<ChatTabView {...props} />);
 
-    expect(screen.getByText('Openai')).toBeTruthy();
+    // Use getAllByText for provider names that might appear multiple times
+    const openaiElements = screen.getAllByText('openai');
+    expect(openaiElements.length).toBeGreaterThan(0);
   });
 
   it('should render chat interface when providers are available', () => {
     render(<ChatTabView {...defaultProps} />);
 
-    // The component should render without crashing
-    // DeepChat component is mocked, so we just verify the container exists
-    const connectionElements = screen.getAllByText('AI Connection');
-    expect(connectionElements.length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('daisyui-chat')).toHaveLength(1);
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
   });
 
   it('should show loading state when providers are available', () => {
     render(<ChatTabView {...defaultProps} />);
 
-    // Since Suspense is mocked, we should see the main content
-    const connectionElements = screen.getAllByText('AI Connection');
-    expect(connectionElements.length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('daisyui-chat')).toHaveLength(1);
+    // Use more specific selector for the status text
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          content === 'Connected' &&
+          element?.tagName === 'SPAN' &&
+          element?.className?.includes('font-medium')
+        );
+      })
+    ).toBeTruthy();
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { ChatTab } from '../../../src/components/tabs/ChatTab';
 import { ServiceProvider } from '../../../src/di/ServiceContext';
@@ -10,42 +10,6 @@ import type {
   IAIProviderManager,
   AIProviderType,
 } from '../../../src/services/interfaces';
-
-// Mock deep-chat-react with a simple implementation
-vi.mock('deep-chat-react', () => ({
-  DeepChat: vi.fn().mockImplementation((props) => {
-    return React.createElement(
-      'div',
-      {
-        'data-testid': 'deep-chat',
-        style: props.style || {},
-      },
-      'Mock Deep Chat Component'
-    );
-  }),
-}));
-
-// Mock React.lazy to return the mocked component immediately
-const originalLazy = React.lazy;
-
-beforeAll(() => {
-  React.lazy = vi.fn().mockImplementation(() => {
-    return vi.fn().mockImplementation((props) => {
-      return React.createElement(
-        'div',
-        {
-          'data-testid': 'deep-chat',
-          style: props.style || {},
-        },
-        'Mock Deep Chat Component'
-      );
-    });
-  });
-});
-
-afterAll(() => {
-  React.lazy = originalLazy;
-});
 
 describe('ChatTab', () => {
   let mockStore: ISiteStore;
@@ -107,52 +71,34 @@ describe('ChatTab', () => {
   it('renders chat interface with AI connection status', () => {
     renderChatTab();
 
-    const aiConnectionHeader = screen.getByText((content, element) => {
-      return element?.tagName === 'H3' && content.includes('AI Connection');
-    });
-    expect(aiConnectionHeader).toBeTruthy();
+    // Check for AI Connection Status in the alert title
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
     expect(screen.getByText('🟢')).toBeTruthy();
+
     // Check that Provider: text exists in the document
-    const providerText = screen.getByText((content, element) => {
-      return (
-        content.includes('Provider:') &&
-        element?.tagName === 'DIV' &&
-        element?.className?.includes('text-sm')
-      );
-    });
-    expect(providerText).toBeInTheDocument();
+    expect(screen.getByText(/Provider:/)).toBeTruthy();
     expect(screen.getByText('Google')).toBeTruthy();
 
-    // Check for AI provider ready text with flexible matching
-    const readyText = screen.getByText((content, element) => {
-      return (
-        content.includes('AI provider ready') &&
-        element?.tagName === 'DIV' &&
-        element?.className?.includes('text-sm')
-      );
-    });
-    expect(readyText).toBeInTheDocument();
+    // Check for AI provider ready text
+    expect(screen.getByText('✅ AI provider ready')).toBeTruthy();
   });
 
   it('shows offline status when AI provider is not ready', () => {
     // For this test, we'll just verify the component renders
     renderChatTab();
 
-    const aiConnectionHeader = screen.getByText((content, element) => {
-      return element?.tagName === 'H3' && content.includes('AI Connection');
-    });
-    expect(aiConnectionHeader).toBeTruthy();
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
   });
 
-  it('renders Deep Chat component', async () => {
+  it('renders DaisyUI Chat component', async () => {
     renderChatTab();
 
     await waitFor(() => {
-      expect(screen.getByTestId('deep-chat')).toBeTruthy();
+      expect(screen.getByTestId('daisyui-chat')).toBeTruthy();
     });
 
-    const deepChat = screen.getByTestId('deep-chat');
-    expect(deepChat).toBeTruthy();
+    const chatComponent = screen.getByTestId('daisyui-chat');
+    expect(chatComponent).toBeTruthy();
   });
 
   it('handles AI provider with streaming response', () => {
@@ -166,63 +112,47 @@ describe('ChatTab', () => {
   it('handles AI provider with non-streaming response', () => {
     renderChatTab();
 
-    // Verify the component can handle non-streaming responses
-    expect(screen.getByText('Mock Deep Chat Component')).toBeTruthy();
+    // Verify the component renders with DaisyUI chat interface
+    expect(screen.getByTestId('daisyui-chat')).toBeTruthy();
   });
 
   it('handles AI provider errors gracefully', () => {
     renderChatTab();
 
     // Error handling is tested implicitly through the component's error boundaries
-    expect(
-      screen.getByText((content, element) => {
-        return element?.tagName === 'H3' && content.includes('AI Connection');
-      })
-    ).toBeTruthy();
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
   });
 
   it('shows loading state while chat is initializing', () => {
     renderChatTab();
 
-    // Initially shows loading or the chat interface
-    expect(
-      screen.getByText((content, element) => {
-        return element?.tagName === 'H3' && content.includes('AI Connection');
-      })
-    ).toBeTruthy();
+    // Check for AI Connection Status in the alert
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
   });
 
   it('maintains message history across re-renders', () => {
     // Simplified test - just verify component renders
     const { rerender } = renderChatTab();
 
-    expect(
-      screen.getByText((content, element) => {
-        return element?.tagName === 'H3' && content.includes('AI Connection');
-      })
-    ).toBeTruthy();
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
 
     // Re-render with same messages
     rerender(
       React.createElement(ServiceProvider, { container, children: React.createElement(ChatTab) })
     );
 
-    expect(
-      screen.getByText((content, element) => {
-        return element?.tagName === 'H3' && content.includes('AI Connection');
-      })
-    ).toBeTruthy();
+    expect(screen.getByText('AI Connection Status')).toBeTruthy();
   });
 
   it('handles abort controller for request cancellation', async () => {
     renderChatTab();
 
     await waitFor(() => {
-      expect(screen.getByTestId('deep-chat')).toBeTruthy();
+      expect(screen.getByTestId('daisyui-chat')).toBeTruthy();
     });
 
     // The abort controller logic is internal to the component
     // This test ensures the component can handle async operations
-    expect(screen.getByText('Mock Deep Chat Component')).toBeTruthy();
+    expect(screen.getByTestId('daisyui-chat')).toBeTruthy();
   });
 });

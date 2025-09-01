@@ -1,9 +1,10 @@
 // Vitest setup file
 // Add any global test setup here (e.g., jest-dom matchers equivalents)
 import '@testing-library/jest-dom/vitest';
+import React from 'react';
 
 // Global test utilities
-import { vi, beforeAll, afterAll } from 'vitest';
+import { vi } from 'vitest';
 
 // Mock environment variables for tests
 process.env.VITE_GITHUB_CLIENT_ID = 'test-client-id';
@@ -35,14 +36,34 @@ Object.defineProperty(window, 'location', {
   writable: true,
 });
 
-// Mock console methods to reduce noise in tests
-beforeAll(() => {
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
-  vi.spyOn(console, 'error').mockImplementation(() => {});
-});
+// Mock deep-chat-react to prevent document access errors
+vi.mock('deep-chat-react', () => ({
+  DeepChat: ({ 'data-testid': testId, ...props }: Record<string, unknown>) =>
+    React.createElement(
+      'div',
+      { 'data-testid': testId || 'deep-chat', ...props },
+      'Mock Deep Chat Component'
+    ),
+}));
 
-afterAll(() => {
-  vi.restoreAllMocks();
+// Mock React.lazy and Suspense
+vi.mock('react', async () => {
+  const actualReact = await vi.importActual('react');
+  return {
+    ...actualReact,
+    lazy: vi.fn(() =>
+      vi.fn(() =>
+        React.createElement('div', { 'data-testid': 'deep-chat' }, 'Mock Deep Chat Component')
+      )
+    ),
+    Suspense: ({
+      children,
+      fallback,
+    }: {
+      children?: React.ReactNode;
+      fallback?: React.ReactNode;
+    }) => children || fallback,
+  };
 });
 
 // Silence React 19 act warnings for simple counter demo if they appear

@@ -36,7 +36,6 @@
       "@types": ["src/types/index"],
       "@utils/*": ["src/utils/*"],
       "@utils": ["src/utils/index"],
-      "@pages/*": ["src/pages/*"],
       "@assets/*": ["src/assets/*"],
       "@styles/*": ["src/styles/*"]
     }

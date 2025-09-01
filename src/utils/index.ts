@@ -2,9 +2,7 @@
 
 // Re-export all utility modules
 export * from './array';
-export * from './object';
 export * from './string';
-export * from './validation';
 
 // Legacy exports (keeping for backward compatibility)
 export const formatDate = (date: Date): string => {

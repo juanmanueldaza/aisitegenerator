@@ -1,7 +1,6 @@
 // Utility functions following DRY principle
 
 // Re-export all utility modules
-export * from './array';
 export * from './string';
 
 // Legacy exports (keeping for backward compatibility)

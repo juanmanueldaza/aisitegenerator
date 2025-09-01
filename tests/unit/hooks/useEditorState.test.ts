@@ -11,29 +11,19 @@ vi.mock('../../../src/hooks/useEditorContent', () => ({
   useEditorContent: vi.fn(),
 }));
 
-vi.mock('../../../src/hooks/useSyntaxHighlighting', () => ({
-  useSyntaxHighlighting: vi.fn(),
-}));
-
-vi.mock('../../../src/hooks/useKeyboardShortcuts', () => ({
-  useKeyboardShortcuts: vi.fn(),
-}));
-
-vi.mock('../../../src/hooks/useViewMode', () => ({
-  useViewMode: vi.fn(),
-}));
-
 // Import mocked functions
 import { useSiteStore } from '../../../src/store/siteStore';
 import { useEditorContent } from '../../../src/hooks/useEditorContent';
-import { useSyntaxHighlighting } from '../../../src/hooks/useSyntaxHighlighting';
-import { useKeyboardShortcuts } from '../../../src/hooks/useKeyboardShortcuts';
-import { useViewMode } from '../../../src/hooks/useViewMode';
 
-describe('useEditorState Hook', () => {
+describe('useEditorState', () => {
   let mockStore: {
     past: unknown[];
     future: unknown[];
+    present: { content: string };
+    undo: ReturnType<typeof vi.fn>;
+    redo: ReturnType<typeof vi.fn>;
+    setContent: ReturnType<typeof vi.fn>;
+    commit: ReturnType<typeof vi.fn>;
   };
 
   let mockContentState: {
@@ -45,31 +35,15 @@ describe('useEditorState Hook', () => {
     resetDirtyState: ReturnType<typeof vi.fn>;
   };
 
-  let mockSyntaxState: {
-    syntaxHighlighting: boolean;
-    detectedLanguage: string;
-    highlightCode: ReturnType<typeof vi.fn>;
-    updateLanguage: ReturnType<typeof vi.fn>;
-  };
-
-  let mockKeyboardState: {
-    handleKeyDown: ReturnType<typeof vi.fn>;
-  };
-
-  let mockViewModeState: {
-    viewMode: 'editor' | 'preview' | 'split';
-    setViewMode: ReturnType<typeof vi.fn>;
-    cycleViewMode: ReturnType<typeof vi.fn>;
-    getViewModeLabel: ReturnType<typeof vi.fn>;
-    getViewModeIcon: ReturnType<typeof vi.fn>;
-    getViewModeDimensions: ReturnType<typeof vi.fn>;
-  };
-
   beforeEach(() => {
-    // Setup mocks
     mockStore = {
       past: [],
       future: [],
+      present: { content: 'test content' },
+      undo: vi.fn(),
+      redo: vi.fn(),
+      setContent: vi.fn(),
+      commit: vi.fn(),
     };
 
     mockContentState = {
@@ -81,48 +55,20 @@ describe('useEditorState Hook', () => {
       resetDirtyState: vi.fn(),
     };
 
-    mockSyntaxState = {
-      syntaxHighlighting: true,
-      detectedLanguage: 'javascript',
-      highlightCode: vi.fn().mockReturnValue('<span>test</span>'),
-      updateLanguage: vi.fn(),
-    };
-
-    mockKeyboardState = {
-      handleKeyDown: vi.fn(),
-    };
-
-    mockViewModeState = {
-      viewMode: 'editor',
-      setViewMode: vi.fn(),
-      cycleViewMode: vi.fn(),
-      getViewModeLabel: vi.fn().mockReturnValue('Editor'),
-      getViewModeIcon: vi.fn().mockReturnValue('📝'),
-      getViewModeDimensions: vi.fn().mockReturnValue({ width: 100, height: 100 }),
-    };
-
     // Get mocked functions
     const mockedUseSiteStore = vi.mocked(useSiteStore);
     const mockedUseEditorContent = vi.mocked(useEditorContent);
-    const mockedUseSyntaxHighlighting = vi.mocked(useSyntaxHighlighting);
-    const mockedUseKeyboardShortcuts = vi.mocked(useKeyboardShortcuts);
-    const mockedUseViewMode = vi.mocked(useViewMode);
 
     mockedUseSiteStore.mockReturnValue(mockStore);
     mockedUseEditorContent.mockReturnValue(mockContentState);
-    mockedUseSyntaxHighlighting.mockReturnValue(mockSyntaxState);
-    mockedUseKeyboardShortcuts.mockReturnValue(mockKeyboardState);
-    mockedUseViewMode.mockReturnValue(mockViewModeState);
   });
 
-  it('should return combined state from all hooks', () => {
+  it('should return simplified state from hooks', () => {
     const { result } = renderHook(() => useEditorState());
 
     expect(result.current.localContent).toBe('test content');
     expect(result.current.isDirty).toBe(false);
-    expect(result.current.syntaxHighlighting).toBe(true);
-    expect(result.current.detectedLanguage).toBe('javascript');
-    expect(result.current.viewMode).toBe('editor');
+    expect(result.current.viewMode).toBe('desktop');
   });
 
   it('should calculate lines count correctly', () => {
@@ -139,84 +85,48 @@ describe('useEditorState Hook', () => {
     expect(result.current.contentLength).toBe(11);
   });
 
-  it('should determine canUndo based on store past length', () => {
-    mockStore.past = [{ content: 'old content' }];
+  it('should handle undo/redo state correctly', () => {
+    mockStore.past = [{ content: 'old' }];
+    mockStore.future = [{ content: 'new' }];
     const { result } = renderHook(() => useEditorState());
 
     expect(result.current.canUndo).toBe(true);
-  });
-
-  it('should determine canRedo based on store future length', () => {
-    mockStore.future = [{ content: 'future content' }];
-    const { result } = renderHook(() => useEditorState());
-
     expect(result.current.canRedo).toBe(true);
   });
 
-  it('should call handleContentChange when content changes', () => {
+  it('should handle keyboard shortcuts', () => {
     const { result } = renderHook(() => useEditorState());
 
-    act(() => {
-      const mockEvent = {
-        target: { value: 'new content' },
-      } as React.ChangeEvent<HTMLTextAreaElement>;
-      result.current.handleContentChange(mockEvent);
-    });
-
-    expect(mockContentState.handleContentChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        target: { value: 'new content' },
-      })
-    );
-  });
-
-  it('should call handleSave when save is triggered', () => {
-    const { result } = renderHook(() => useEditorState());
-
-    act(() => {
-      result.current.handleSave();
-    });
-
-    expect(mockContentState.handleSave).toHaveBeenCalled();
-  });
-
-  it('should call handleKeyDown when keyboard event occurs', () => {
-    const { result } = renderHook(() => useEditorState());
-    const mockEvent = {} as React.KeyboardEvent<HTMLTextAreaElement>;
+    const mockEvent = {
+      key: 's',
+      ctrlKey: true,
+      preventDefault: vi.fn(),
+    } as unknown as React.KeyboardEvent<HTMLTextAreaElement>;
 
     act(() => {
       result.current.handleKeyDown(mockEvent);
     });
 
-    expect(mockKeyboardState.handleKeyDown).toHaveBeenCalledWith(mockEvent);
+    expect(mockEvent.preventDefault).toHaveBeenCalled();
+    expect(mockContentState.handleSave).toHaveBeenCalled();
   });
 
-  it('should call setViewMode when view mode changes', () => {
+  it('should provide view mode functions', () => {
     const { result } = renderHook(() => useEditorState());
 
+    expect(result.current.getViewModeLabel('desktop')).toBe('Desktop');
+    expect(result.current.getViewModeIcon('desktop')).toBe('🖥️');
+    expect(result.current.getViewModeDimensions('desktop')).toEqual({ width: 1920, height: 1080 });
+  });
+
+  it('should handle view mode changes (no-op)', () => {
+    const { result } = renderHook(() => useEditorState());
+
+    // Should not throw
     act(() => {
-      result.current.setViewMode('split');
+      result.current.setViewMode('desktop');
     });
 
-    expect(mockViewModeState.setViewMode).toHaveBeenCalledWith('split');
-  });
-
-  it('should call cycleViewMode when cycling view modes', () => {
-    const { result } = renderHook(() => useEditorState());
-
-    act(() => {
-      result.current.cycleViewMode();
-    });
-
-    expect(mockViewModeState.cycleViewMode).toHaveBeenCalled();
-  });
-
-  it('should call highlightCode with correct parameters', () => {
-    const { result } = renderHook(() => useEditorState());
-
-    const highlighted = result.current.highlightCode('const x = 1;', 'javascript');
-
-    expect(mockSyntaxState.highlightCode).toHaveBeenCalledWith('const x = 1;', 'javascript');
-    expect(highlighted).toBe('<span>test</span>');
+    expect(result.current.viewMode).toBe('desktop');
   });
 });

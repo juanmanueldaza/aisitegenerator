@@ -11,21 +11,6 @@ export interface PreviewMode {
   icon: string;
 }
 
-export interface LivePreviewProps {
-  content: string;
-  className?: string;
-}
-
-export interface PreviewControlsProps {
-  selectedDevice: DeviceType;
-  onDeviceChange: (device: DeviceType) => void;
-  isFullscreen: boolean;
-  onFullscreenToggle: () => void;
-  zoomLevel: number;
-  onZoomChange: (zoom: number) => void;
-  onRefresh: () => void;
-}
-
 export const DEVICE_TYPES: DeviceType[] = [
   {
     name: 'Desktop',

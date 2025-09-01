@@ -5,6 +5,4 @@ export * from './Input';
 export * from './Toast';
 export * from './MarkdownView';
 export * from './HelpPanel';
-export * from './InlineDiffView/InlineDiffView';
 export * from './ThemeProvider';
-export * from './ThemeController';

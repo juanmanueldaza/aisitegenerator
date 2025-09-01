@@ -9,7 +9,6 @@ import { useSiteStore } from '@/store/siteStore';
 import { useEditorState } from '@/hooks/useEditorState';
 import { Textarea } from '@/components/ui/Input/Input';
 import DOMPurify from 'dompurify';
-import type { ViewMode } from '@/types';
 
 // DOMPurify configuration for HTML sanitization
 const DOM_PURIFY_CONFIG = {
@@ -140,21 +139,6 @@ export function EditorTab() {
           )}
         </h4>
 
-        {editorState.syntaxHighlighting && (
-          <span
-            style={{
-              fontSize: '12px',
-              color: '#6b7280',
-              backgroundColor: '#f3f4f6',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-            }}
-          >
-            {editorState.detectedLanguage.toUpperCase()}
-          </span>
-        )}
-
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '12px', color: '#6b7280' }}>
             {editorState.linesCount} lines, {editorState.contentLength} chars
@@ -173,25 +157,22 @@ export function EditorTab() {
           justifyContent: 'space-between',
         }}
       >
-        {/* View Mode Selector */}
+        {/* View Mode Selector - Simplified to desktop only */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '12px', color: '#6b7280' }}>Preview:</span>
-          {(['browser', 'mobile', 'tablet', 'desktop'] as ViewMode[]).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => editorState.setViewMode(mode)}
-              style={{
-                padding: '4px 8px',
-                fontSize: '12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '4px',
-                backgroundColor: editorState.viewMode === mode ? '#e5e7eb' : '#ffffff',
-                cursor: 'pointer',
-              }}
-            >
-              {editorState.getViewModeIcon(mode)} {editorState.getViewModeLabel(mode)}
-            </button>
-          ))}
+          <button
+            style={{
+              padding: '4px 8px',
+              fontSize: '12px',
+              border: '1px solid #d1d5db',
+              borderRadius: '4px',
+              backgroundColor: '#e5e7eb',
+              cursor: 'default',
+            }}
+            disabled
+          >
+            {editorState.getViewModeIcon('desktop')} {editorState.getViewModeLabel('desktop')}
+          </button>
         </div>
 
         {/* Action Buttons */}
@@ -387,13 +368,7 @@ export function EditorTab() {
             </li>
             <li>Content is automatically saved when you switch tabs or leave the editor</li>
             <li>Switch to the Chat tab to ask AI to generate or modify your code</li>
-            {editorState.syntaxHighlighting && (
-              <>
-                <li>✨ Syntax highlighting automatically detects HTML, CSS, and JavaScript</li>
-                <li>🌐 Switch between Browser, Mobile, Tablet, and Desktop preview modes</li>
-                <li>🔒 HTML preview is sanitized for security</li>
-              </>
-            )}
+            <li>🔒 HTML preview is sanitized for security</li>
           </ul>
         </div>
       </div>

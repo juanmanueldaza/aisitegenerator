@@ -1,9 +1,6 @@
 import React, { useMemo } from 'react';
 import { useSiteStore } from '@/store/siteStore';
 import { useEditorContent } from './useEditorContent';
-import { useSyntaxHighlighting } from './useSyntaxHighlighting';
-import { useKeyboardShortcuts } from './useKeyboardShortcuts';
-import { useViewMode } from './useViewMode';
 
 export interface UseEditorStateReturn {
   // Content management
@@ -13,21 +10,15 @@ export interface UseEditorStateReturn {
   handleSave: () => void;
   handleBlur: () => void;
 
-  // Syntax highlighting
-  syntaxHighlighting: boolean;
-  detectedLanguage: string;
-  highlightCode: (code: string, language?: string) => string;
-
-  // Keyboard shortcuts
+  // Basic keyboard handling (simplified)
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 
-  // View mode
-  viewMode: import('@/types').ViewMode;
-  setViewMode: (mode: import('@/types').ViewMode) => void;
-  cycleViewMode: () => void;
-  getViewModeLabel: (mode: import('@/types').ViewMode) => string;
-  getViewModeIcon: (mode: import('@/types').ViewMode) => string;
-  getViewModeDimensions: (mode: import('@/types').ViewMode) => { width: number; height: number };
+  // Basic view mode (simplified)
+  viewMode: 'desktop';
+  setViewMode: (mode: 'desktop') => void;
+  getViewModeLabel: (mode: 'desktop') => string;
+  getViewModeIcon: (mode: 'desktop') => string;
+  getViewModeDimensions: (mode: 'desktop') => { width: number; height: number };
 
   // Computed values
   linesCount: number;
@@ -42,21 +33,39 @@ export function useEditorState(): UseEditorStateReturn {
   // Content management
   const contentState = useEditorContent();
 
-  // Syntax highlighting
-  const syntaxState = useSyntaxHighlighting(contentState.localContent);
+  // Basic keyboard handling
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Basic Ctrl+S handling for save
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        contentState.handleSave();
+      }
+    },
+    [contentState]
+  );
 
-  // Update language detection when content changes
-  React.useEffect(() => {
-    syntaxState.updateLanguage(contentState.localContent);
-  }, [contentState.localContent, syntaxState]);
+  // Basic view mode (simplified to desktop only)
+  const viewMode = 'desktop' as const;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setViewMode = React.useCallback((_mode: 'desktop') => {
+    // No-op since we only support desktop mode
+  }, []);
 
-  // Keyboard shortcuts
-  const keyboardState = useKeyboardShortcuts({
-    onSave: contentState.handleSave,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getViewModeLabel = React.useCallback((_mode: 'desktop') => {
+    return 'Desktop';
+  }, []);
 
-  // View mode
-  const viewModeState = useViewMode();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getViewModeIcon = React.useCallback((_mode: 'desktop') => {
+    return '🖥️';
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getViewModeDimensions = React.useCallback((_mode: 'desktop') => {
+    return { width: 1920, height: 1080 };
+  }, []);
 
   // Computed values
   const linesCount = useMemo(() => {
@@ -83,21 +92,15 @@ export function useEditorState(): UseEditorStateReturn {
     handleSave: contentState.handleSave,
     handleBlur: contentState.handleBlur,
 
-    // Syntax highlighting
-    syntaxHighlighting: syntaxState.syntaxHighlighting,
-    detectedLanguage: syntaxState.detectedLanguage,
-    highlightCode: syntaxState.highlightCode,
+    // Basic keyboard handling
+    handleKeyDown,
 
-    // Keyboard shortcuts
-    handleKeyDown: keyboardState.handleKeyDown,
-
-    // View mode
-    viewMode: viewModeState.viewMode,
-    setViewMode: viewModeState.setViewMode,
-    cycleViewMode: viewModeState.cycleViewMode,
-    getViewModeLabel: viewModeState.getViewModeLabel,
-    getViewModeIcon: viewModeState.getViewModeIcon,
-    getViewModeDimensions: viewModeState.getViewModeDimensions,
+    // Basic view mode
+    viewMode,
+    setViewMode,
+    getViewModeLabel,
+    getViewModeIcon,
+    getViewModeDimensions,
 
     // Computed values
     linesCount,
